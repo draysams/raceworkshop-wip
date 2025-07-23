@@ -30,6 +30,9 @@ const [liveData, setLiveData] = useState<LiveSessionData>(initialData);
     // Ref to track the current session ID to handle session changes
     const displayedSessionId = useRef<number | null>(null);
 
+     // We use a ref to store the previous data without causing re-renders.
+    const lastLoggedData = useRef<LiveSessionData | null>(null);
+
     useEffect(() => {
         // This effect runs once when the component mounts.
         // It sets up the connection and the data handler.
@@ -38,6 +41,17 @@ const [liveData, setLiveData] = useState<LiveSessionData>(initialData);
 
         // Subscribe to the data stream from api.ts
         const unsubscribe = api.telemetry.onData((data: LiveSessionData) => {
+
+             // --- ADD THIS LINE FOR DEBUGGING ---
+              // --- OPTIMIZED LOGGING LOGIC ---
+            // Only log if the lap number has changed OR if a lastLap object has appeared.
+            if (
+                data.currentLap !== lastLoggedData.current?.currentLap ||
+                (data.lastLap && !lastLoggedData.current?.lastLap)
+            ) {
+                console.log("[Transponder] Data received from WebSocket (on change):", data);
+                lastLoggedData.current = data; // Update the ref with the latest logged data
+            }
             // Update the main live data state with every message
             setLiveData(data);
 
@@ -45,13 +59,14 @@ const [liveData, setLiveData] = useState<LiveSessionData>(initialData);
             if (data.isConnected && data.sessionId) {
                 // Check for a new session
                 if (displayedSessionId.current !== data.sessionId) {
-                    console.log(`[Transponder] New session detected (ID: ${data.sessionId}). Clearing old lap data.`);
+                     console.log(`[Transponder] New session detected (ID: ${data.sessionId}). Clearing old lap data.`);
                     setLaps([]); // Clear laps from the previous session
                     displayedSessionId.current = data.sessionId; // Lock onto the new session ID
                 }
 
                 // If the live data includes a newly completed lap, add it to our list
                 if (data.lastLap) {
+                     console.log("%c[Transponder] lastLap object DETECTED!", "color: lightgreen; font-weight: bold;", JSON.stringify(data.lastLap));
                     setLaps(prevLaps => {
                         // Prevent adding the same lap twice
                         if (prevLaps.some(l => l.lapNumber === data.lastLap!.lapNumber)) {
