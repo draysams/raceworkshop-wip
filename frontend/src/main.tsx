@@ -1,3 +1,4 @@
+// frontend/src/main.tsx
 import React from "react"
 import { createRoot } from "react-dom/client"
 import { App } from "./App"
@@ -18,9 +19,9 @@ if (!container) {
 const root = createRoot(container)
 
 root.render(
-  <React.StrictMode>
+  // <React.StrictMode>  // <-- Temporarily commented out for Chunk 3 WebSocket testing
     <ErrorBoundary>
       <App />
     </ErrorBoundary>
-  </React.StrictMode>,
+  // </React.StrictMode>, // <-- Temporarily commented out for Chunk 3 WebSocket testing
 )
