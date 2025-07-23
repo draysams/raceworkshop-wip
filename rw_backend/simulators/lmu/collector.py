@@ -2,14 +2,9 @@
 
 import threading
 import time
-import math
 from rw_backend.pyRfactor2SharedMemory.sharedMemoryAPI import SimInfoAPI
 
 class LMUCollector(threading.Thread):
-    """
-    A thread that continuously polls Le Mans Ultimate's shared memory
-    and passes the raw data to a callback function.
-    """
     def __init__(self, data_callback, status_callback):
         super().__init__(daemon=True)
         self.data_callback = data_callback
@@ -18,47 +13,48 @@ class LMUCollector(threading.Thread):
         self.info = None
 
     def run(self):
-        print("[LMU Collector] Thread started.")
+        print("[LMU Collector] Thread started.", flush=True)
         self._running.set()
         
-        # Initialize the SimInfoAPI within the thread itself.
         self.info = SimInfoAPI()
 
         while self._running.is_set():
             try:
                 if not self.info.isSharedMemoryAvailable():
                     self.status_callback("disconnected", "Game not running or shared memory disabled.")
-                    time.sleep(5) # Check less frequently if the game isn't running
+                    time.sleep(5)
                     continue
 
                 if self.info.isOnTrack():
                     self.status_callback("connected", "Live on track")
                     
-                    # Gather all relevant data structures from shared memory
+                    # --- THE FIX ---
+                    # 1. Get player-specific telemetry data
                     telemetry = self.info.playersVehicleTelemetry()
-                    scoring = self.info.playerScoring()
                     
-                    # Bundle the raw data and send it for processing
+                    # 2. Get the entire scoring structure, which contains session info AND all vehicles
+                    scoring = self.info.Rf2Scor
+                    
+                    # Bundle the raw data structures and send them for processing
                     raw_data_bundle = {
                         'telemetry': telemetry,
-                        'scoring': scoring
+                        'scoring': scoring  # Pass the whole scoring object
                     }
                     self.data_callback(raw_data_bundle)
-                    time.sleep(1 / 60) # High frequency updates for smooth telemetry
+                    time.sleep(1 / 60)
                 else:
                     self.status_callback("connected", "In Menus / Spectating")
-                    time.sleep(1) # Lower frequency when not in the car
+                    time.sleep(1)
 
             except Exception as e:
-                print(f"[LMU Collector] Error in run loop: {e}")
+                print(f"[LMU Collector] Error in run loop: {e}", flush=True)
                 self.status_callback("error", "An error occurred in the collector.")
                 time.sleep(5)
         
-        print("[LMU Collector] Thread stopped.")
+        print("[LMU Collector] Thread stopped.", flush=True)
         if self.info:
             self.info.close()
 
     def stop(self):
-        """Signals the thread to stop its execution loop."""
-        print("[LMU Collector] Stop signal received.")
+        print("[LMU Collector] Stop signal received.", flush=True)
         self._running.clear()
