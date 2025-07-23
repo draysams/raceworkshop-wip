@@ -1,0 +1,6 @@
+pywebview
+peewee
+Flask
+websockets
+pyinstaller
+psutil
