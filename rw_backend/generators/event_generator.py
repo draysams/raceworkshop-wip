@@ -48,9 +48,13 @@ class EventGenerator(threading.Thread):
 
             # --- 2. DATA VALIDATION ---
             scoring = raw_data.get('scoring')
+            # --- CHANGE START ---
+            # We now need the telemetry object here to pass to the lap detector.
+            telemetry = raw_data.get('telemetry')
             player_scoring = next((v for v in scoring.mVehicles if v.mIsPlayer), None) if scoring else None
             
-            if not player_scoring:
+            if not player_scoring or not telemetry:
+            # --- CHANGE END ---
                 self.last_extended_data = {field[0]: getattr(extended, field[0]) for field in extended._fields_} if extended else {}
                 continue
 
@@ -58,7 +62,10 @@ class EventGenerator(threading.Thread):
             self.event_queue.put(TelemetryUpdate(payload=raw_data))
 
             # --- 4. DETECT DISCRETE EVENTS ---
-            self.lap_detector.detect(player_scoring, self.last_player_data)
+            # --- CHANGE START ---
+            # The telemetry object is now passed to the lap_detector.
+            self.lap_detector.detect(player_scoring, self.last_player_data, telemetry)
+            # --- CHANGE END ---
             
             stint_state_change = self.stint_detector.detect(player_scoring, self.last_player_data, self.player_state)
             if stint_state_change:
