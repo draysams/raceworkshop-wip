@@ -3,24 +3,15 @@ import peewee as pw
 import os
 from datetime import datetime
 
-# --- Database Configuration ---
-# Construct a reliable path to the user's AppData/Roaming directory.
-# This ensures the database is stored in a standard, user-specific location.
 app_data_path = os.path.join(os.getenv('APPDATA'), 'RaceWorkshop')
 os.makedirs(app_data_path, exist_ok=True)
 db_path = os.path.join(app_data_path, 'raceworkshop.db')
-
-# Initialize the database connection.
 db = pw.SqliteDatabase(db_path, pragmas={'foreign_keys': 1})
 
-# --- Base Model ---
-# All our models will inherit from this, ensuring they use the same database.
 class BaseModel(pw.Model):
     class Meta:
         database = db
 
-# --- Table Models ---
-# These classes directly map to the tables in our SQLite database.
 class Session(BaseModel):
     track_name = pw.CharField()
     session_type = pw.CharField()
@@ -31,6 +22,7 @@ class Session(BaseModel):
     ended_at = pw.DateTimeField(null=True)
     track_temp = pw.FloatField(null=True)
     air_temp = pw.FloatField(null=True)
+    game_session_uid = pw.CharField(unique=True, null=True)
 
 class Stint(BaseModel):
     session = pw.ForeignKeyField(Session, backref='stints', on_delete='CASCADE')
@@ -41,7 +33,7 @@ class Stint(BaseModel):
 class Lap(BaseModel):
     stint = pw.ForeignKeyField(Stint, backref='laps', on_delete='CASCADE')
     lap_number = pw.IntegerField()
-    lap_time = pw.FloatField()  # Stored as seconds for precision
+    lap_time = pw.FloatField()
     sector1_time = pw.FloatField(null=True)
     sector2_time = pw.FloatField(null=True)
     sector3_time = pw.FloatField(null=True)

@@ -2,59 +2,51 @@
 
 import threading
 import time
+from queue import Queue
 from rw_backend.pyRfactor2SharedMemory.sharedMemoryAPI import SimInfoAPI
 
 class LMUCollector(threading.Thread):
-    def __init__(self, data_callback, status_callback):
+    """
+    A simple, "dumb" worker thread that reads all shared memory data
+    at high frequency and puts it onto a queue for processing.
+    """
+    # --- THE FIX ---
+    # The __init__ signature now correctly accepts `raw_data_queue`.
+    def __init__(self, raw_data_queue: Queue):
         super().__init__(daemon=True)
-        self.data_callback = data_callback
-        self.status_callback = status_callback
+        self.raw_data_queue = raw_data_queue
         self._running = threading.Event()
         self.info = None
 
     def run(self):
-        print("[LMU Collector] Thread started.", flush=True)
+        print("[Collector] Thread started.", flush=True)
         self._running.set()
-        
         self.info = SimInfoAPI()
 
         while self._running.is_set():
             try:
-                if not self.info.isSharedMemoryAvailable():
-                    self.status_callback("disconnected", "Game not running or shared memory disabled.")
-                    time.sleep(5)
-                    continue
-
-                if self.info.isOnTrack():
-                    self.status_callback("connected", "Live on track")
-                    
-                    # --- THE FIX ---
-                    # 1. Get player-specific telemetry data
-                    telemetry = self.info.playersVehicleTelemetry()
-                    
-                    # 2. Get the entire scoring structure, which contains session info AND all vehicles
-                    scoring = self.info.Rf2Scor
-                    
-                    # Bundle the raw data structures and send them for processing
+                if self.info.isSharedMemoryAvailable():
+                    # Bundle all data structures the EventGenerator might need
                     raw_data_bundle = {
-                        'telemetry': telemetry,
-                        'scoring': scoring  # Pass the whole scoring object
+                        'telemetry': self.info.playersVehicleTelemetry(),
+                        'scoring': self.info.Rf2Scor,
+                        'extended': self.info.Rf2Ext
                     }
-                    self.data_callback(raw_data_bundle)
-                    time.sleep(1 / 60)
+                    self.raw_data_queue.put(raw_data_bundle)
+                    
+                    # Poll at a high frequency when on track, lower when not
+                    if self.info.Rf2Ext.mInRealtimeFC:
+                        time.sleep(1 / 60)
+                    else:
+                        time.sleep(1 / 5)
                 else:
-                    self.status_callback("connected", "In Menus / Spectating")
-                    time.sleep(1)
-
+                    time.sleep(2)
             except Exception as e:
-                print(f"[LMU Collector] Error in run loop: {e}", flush=True)
-                self.status_callback("error", "An error occurred in the collector.")
+                print(f"[Collector] Error: {e}", flush=True)
                 time.sleep(5)
         
-        print("[LMU Collector] Thread stopped.", flush=True)
         if self.info:
             self.info.close()
 
     def stop(self):
-        print("[LMU Collector] Stop signal received.", flush=True)
         self._running.clear()

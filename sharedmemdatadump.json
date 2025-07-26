@@ -1,0 +1,1072 @@
+> raceworkshop-python@1.0.0 test:persistence:daemon
+> python daemon.py
+
+[Daemon] Starting background process in DIAGNOSTIC MODE...
+[LMU Collector] Thread started.
+[Daemon] Services running. This process will run until terminated.
+[Daemon Status] Status: connected, Message: In Menus / Spectating
+[Daemon Status] Status: connected, Message: Live on track
+--------------------------------------------------
+[IN GARAGE/PITS]   LapsCompleted: 0 | LastLapTime: ---     | LastS1: ---     | LastS2: ---     | InPits: True
+[IN GARAGE/PITS]   LapsCompleted: 0 | LastLapTime: ---     | LastS1: ---     | LastS2: ---     | InPits: True
+[OUT LAP]          LapsCompleted: 0 | LastLapTime: ---     | LastS1: ---     | LastS2: ---     | InPits: False
+[OUT LAP]          LapsCompleted: 0 | LastLapTime: ---     | LastS1: ---     | LastS2: ---     | InPits: False
+[OUT LAP]          LapsCompleted: 0 | LastLapTime: ---     | LastS1: ---     | LastS2: ---     | InPits: False
+[OUT LAP]          LapsCompleted: 0 | LastLapTime: ---     | LastS1: ---     | LastS2: ---     | InPits: False
+[OUT LAP]          LapsCompleted: 0 | LastLapTime: ---     | LastS1: ---     | LastS2: ---     | InPits: False
+[OUT LAP]          LapsCompleted: 0 | LastLapTime: ---     | LastS1: ---     | LastS2: ---     | InPits: False
+[OUT LAP]          LapsCompleted: 0 | LastLapTime: ---     | LastS1: ---     | LastS2: ---     | InPits: False
+[OUT LAP]          LapsCompleted: 0 | LastLapTime: ---     | LastS1: ---     | LastS2: ---     | InPits: False
+[OUT LAP]          LapsCompleted: 0 | LastLapTime: ---     | LastS1: ---     | LastS2: ---     | InPits: False
+[OUT LAP]          LapsCompleted: 0 | LastLapTime: ---     | LastS1: ---     | LastS2: ---     | InPits: False
+
+================================================================================
+--- TRIGGER: OUT LAP COMPLETED. DUMPING FULL DATA SNAPSHOT NOW. ---
+
+--- TELEMETRY ---
+{
+  "mID": 0,
+  "mDeltaTime": 0.009999999776482582,
+  "mElapsedTime": 317.6125,
+  "mLapNumber": 1,
+  "mLapStartET": 317.42828369140625,
+  "mVehicleName": "Manthey 2025 #90:LM",
+  "mTrackName": "Aut\u00f3dromo Jos\u00e9 Carlos Pace",
+  "mPos": {
+    "x": -109.60411071777344,
+    "y": 39.48717498779297,
+    "z": -112.9722671508789
+  },
+  "mLocalVel": {
+    "x": -0.028885841369628906,
+    "y": 0.35863196849823,
+    "z": -66.9609375
+  },
+  "mLocalAccel": {
+    "x": -0.011902526021003723,
+    "y": -1.6329631805419922,
+    "z": -0.5530725717544556
+  },
+  "mOri": [
+    {
+      "x": 0.969713032245636,
+      "y": -0.02020217850804329,
+      "z": -0.24341025948524475
+    },
+    {
+      "x": 0.015159273520112038,
+      "y": 0.9996302723884583,
+      "z": -0.022573258727788925
+    },
+    {
+      "x": 0.24377629160881042,
+      "y": 0.018199659883975983,
+      "z": 0.9696606993675232
+    }
+  ],
+  "mLocalRot": {
+    "x": -0.024141881614923477,
+    "y": 0.0006195969763211906,
+    "z": 0.024246200919151306
+  },
+  "mLocalRotAccel": {
+    "x": 0.4005495011806488,
+    "y": -0.026454007253050804,
+    "z": -0.6791121959686279
+  },
+  "mGear": 5,
+  "mEngineRPM": 8924.55961805865,
+  "mEngineWaterTemp": 0.0,
+  "mEngineOilTemp": 0.0,
+  "mClutchRPM": 8924.559836976212,
+  "mUnfilteredThrottle": 0.9999998807907104,
+  "mUnfilteredBrake": 0.0,
+  "mUnfilteredSteering": 0.0006301302346400917,
+  "mUnfilteredClutch": 0.0,
+  "mFilteredThrottle": 0.9999998807907104,
+  "mFilteredBrake": 0.0,
+  "mFilteredSteering": 0.0006301302346400917,
+  "mFilteredClutch": 0.0,
+  "mSteeringShaftTorque": -0.47198866067837547,
+  "mFront3rdDeflection": 0.06173733423337455,
+  "mRear3rdDeflection": 0.07729016184927445,
+  "mFrontWingHeight": 0.0,
+  "mFrontRideHeight": 0.0,
+  "mRearRideHeight": 0.0,
+  "mDrag": 0.0,
+  "mFrontDownforce": 0.0,
+  "mRearDownforce": 0.0,
+  "mFuel": 85.47083540381244,
+  "mEngineMaxRPM": 9400.0,
+  "mScheduledStops": 255,
+  "mOverheating": false,
+  "mDetached": false,
+  "mHeadlights": false,
+  "mDentSeverity": [
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "mLastImpactET": 0.0,
+  "mLastImpactMagnitude": 0.0,
+  "mLastImpactPos": {
+    "x": 0.0,
+    "y": 0.0,
+    "z": 0.0
+  },
+  "mEngineTorque": 0.0,
+  "mCurrentSector": 0,
+  "mSpeedLimiter": 0,
+  "mMaxGears": 6,
+  "mFrontTireCompoundIndex": 0,
+  "mRearTireCompoundIndex": 0,
+  "mFuelCapacity": 117.0,
+  "mFrontFlapActivated": 0,
+  "mRearFlapActivated": 0,
+  "mRearFlapLegalStatus": 0,
+  "mIgnitionStarter": 1,
+  "mFrontTireCompoundName": "Medium",
+  "mRearTireCompoundName": "Medium",
+  "mSpeedLimiterAvailable": 1,
+  "mAntiStallActivated": 0,
+  "mUnused": [
+    0,
+    0
+  ],
+  "mVisualSteeringWheelRange": 719.0,
+  "mRearBrakeBias": 0.47,
+  "mTurboBoostPressure": 101325.0,
+  "mPhysicsToGraphicsOffset": [
+    7.152557373046875e-07,
+    -0.3700000047683716,
+    -0.23319391906261444
+  ],
+  "mPhysicalSteeringWheelRange": 0.0,
+  "mDeltaBest": 0.0,
+  "mBatteryChargeFraction": 0.0,
+  "mElectricBoostMotorTorque": 0.0,
+  "mElectricBoostMotorRPM": 0.0,
+  "mElectricBoostMotorTemperature": 0.0,
+  "mElectricBoostWaterTemperature": 0.0,
+  "mElectricBoostMotorState": 0,
+  "mExpansion": [
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "mWheels": [
+    {
+      "mSuspensionDeflection": 0.062277896852387105,
+      "mRideHeight": 0.04069311727655117,
+      "mSuspForce": 5334.354989714039,
+      "mBrakeTemp": 475.4135983532329,
+      "mBrakePressure": 0.0,
+      "mRotation": -198.73441239117045,
+      "mLateralPatchVel": -0.09497091206756875,
+      "mLongitudinalPatchVel": -0.9875182031808221,
+      "mLateralGroundVel": -0.09284343832876907,
+      "mLongitudinalGroundVel": -66.9652721797682,
+      "mCamber": -0.055969171249763215,
+      "mLateralForce": 0.0,
+      "mLongitudinalForce": 0.0,
+      "mTireLoad": 0.0,
+      "mGripFract": 0.0,
+      "mPressure": 168.72579239878948,
+      "mTemperature": [
+        327.9778810947604,
+        338.8891245203963,
+        344.5875490404689
+      ],
+      "mWear": 0.9913855791091919,
+      "mTerrainName": "ROAD,FLOOR",
+      "mSurfaceType": 0,
+      "mFlat": false,
+      "mDetached": false,
+      "mStaticUndeflectedRadius": 34,
+      "mVerticalTireDeflection": 0.014634817602316257,
+      "mWheelYLocation": 0.01068666303355268,
+      "mToe": -0.0006103203376156537,
+      "mTireCarcassTemperature": 354.563576679171,
+      "mTireInnerLayerTemperature": [
+        346.22410414687374,
+        354.40212180004545,
+        358.3841136056674
+      ],
+      "mExpansion": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "mSuspensionDeflection": 0.06119677161436199,
+      "mRideHeight": 0.040964457783873226,
+      "mSuspForce": 6207.044234522539,
+      "mBrakeTemp": 490.9805613250096,
+      "mBrakePressure": 0.0,
+      "mRotation": -198.88672181698925,
+      "mLateralPatchVel": 0.06707690056726895,
+      "mLongitudinalPatchVel": -1.2127226150981092,
+      "mLateralGroundVel": 0.06189687107877617,
+      "mLongitudinalGroundVel": -66.95970783815132,
+      "mCamber": -0.055490114908250024,
+      "mLateralForce": 0.0,
+      "mLongitudinalForce": 0.0,
+      "mTireLoad": 0.0,
+      "mGripFract": 0.0,
+      "mPressure": 169.96668506229767,
+      "mTemperature": [
+        344.0288384705759,
+        344.5318841594719,
+        334.2404611689374
+      ],
+      "mWear": 0.9902452230453491,
+      "mTerrainName": "ROAD,FLOOR",
+      "mSurfaceType": 0,
+      "mFlat": false,
+      "mDetached": false,
+      "mStaticUndeflectedRadius": 34,
+      "mVerticalTireDeflection": 0.016783191302964066,
+      "mWheelYLocation": 0.00922331928371612,
+      "mToe": 0.0010654043813307771,
+      "mTireCarcassTemperature": 357.30269864072034,
+      "mTireInnerLayerTemperature": [
+        359.0184548651174,
+        358.30514844935755,
+        350.14982875438085
+      ],
+      "mExpansion": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "mSuspensionDeflection": 0.07796339488921145,
+      "mRideHeight": 0.05226577011324368,
+      "mSuspForce": 7079.4880158970645,
+      "mBrakeTemp": 540.5036793205347,
+      "mBrakePressure": 0.0,
+      "mRotation": -193.58289140729232,
+      "mLateralPatchVel": 0.183545195613784,
+      "mLongitudinalPatchVel": -0.9648650402419318,
+      "mLateralGroundVel": 0.18578341752717265,
+      "mLongitudinalGroundVel": -66.96411171840364,
+      "mCamber": -0.05381843177048404,
+      "mLateralForce": 0.0,
+      "mLongitudinalForce": 0.0,
+      "mTireLoad": 0.0,
+      "mGripFract": 0.0,
+      "mPressure": 169.5433249654536,
+      "mTemperature": [
+        325.6950983648783,
+        339.5362115193954,
+        340.3701333094065
+      ],
+      "mWear": 0.991071879863739,
+      "mTerrainName": "ROAD,FLOOR",
+      "mSurfaceType": 0,
+      "mFlat": false,
+      "mDetached": false,
+      "mStaticUndeflectedRadius": 36,
+      "mVerticalTireDeflection": 0.02282828044404259,
+      "mWheelYLocation": 0.008797438961807158,
+      "mToe": 0.001579718421527155,
+      "mTireCarcassTemperature": 356.2982888796912,
+      "mTireInnerLayerTemperature": [
+        347.2110860037021,
+        356.9742342109675,
+        357.3851349038506
+      ],
+      "mExpansion": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "mSuspensionDeflection": 0.07661692880933746,
+      "mRideHeight": 0.054041371865033494,
+      "mSuspForce": 6451.54321670723,
+      "mBrakeTemp": 562.2903891307421,
+      "mBrakePressure": 0.0,
+      "mRotation": -193.59786675507405,
+      "mLateralPatchVel": -0.21961258755394172,
+      "mLongitudinalPatchVel": -0.7765782317563447,
+      "mLateralGroundVel": -0.24296408222442523,
+      "mLongitudinalGroundVel": -66.964266725704,
+      "mCamber": -0.05239684813793073,
+      "mLateralForce": 0.0,
+      "mLongitudinalForce": 0.0,
+      "mTireLoad": 0.0,
+      "mGripFract": 0.0,
+      "mPressure": 170.38004422189732,
+      "mTemperature": [
+        339.16783876485863,
+        342.9338947987466,
+        331.426779003968
+      ],
+      "mWear": 0.9908159375190735,
+      "mTerrainName": "ROAD,FLOOR",
+      "mSurfaceType": 0,
+      "mFlat": false,
+      "mDetached": false,
+      "mStaticUndeflectedRadius": 36,
+      "mVerticalTireDeflection": 0.021267099134319734,
+      "mWheelYLocation": 0.007020395650903925,
+      "mToe": -0.0017718209706564568,
+      "mTireCarcassTemperature": 358.843347002898,
+      "mTireInnerLayerTemperature": [
+        357.77735893333863,
+        359.9669182195448,
+        350.7460427384398
+      ],
+      "mExpansion": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ]
+}
+
+--- SCORING ---
+{
+  "mVersionUpdateBegin": 20819,
+  "mVersionUpdateEnd": 20819,
+  "mBytesUpdatedHint": 1136,
+  "mScoringInfo": {
+    "mTrackName": "Aut\u00f3dromo Jos\u00e9 Carlos Pace",
+    "mSession": 1,
+    "mCurrentET": 317.6,
+    "mEndET": 905.0,
+    "mMaxLaps": 2147483647,
+    "mLapDist": 4273.22216796875,
+    "pointer1": [
+      48,
+      230,
+      193,
+      203,
+      208
+    ],
+    "mNumVehicles": 1,
+    "mGamePhase": 5,
+    "mYellowFlagState": "",
+    "mSectorFlag": [
+      11,
+      11,
+      11
+    ],
+    "mStartLight": 0,
+    "mNumRedLights": 5,
+    "mInRealtime": true,
+    "mPlayerName": "bard culture",
+    "mPlrFileName": "Settings",
+    "mDarkCloud": 0.0,
+    "mRaining": 0.0,
+    "mAmbientTemp": 18.0,
+    "mTrackTemp": 31.495630820159306,
+    "mWind": {
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+    },
+    "mMinPathWetness": 0.0,
+    "mMaxPathWetness": 0.0,
+    "mGameMode": 0,
+    "mIsPasswordProtected": false,
+    "mServerPort": 0,
+    "mServerPublicIP": 0,
+    "mMaxPlayers": 0,
+    "mServerName": "-none-",
+    "mStartET": 44400.0,
+    "mAvgPathWetness": 0.0,
+    "mExpansion": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "pointer2": [
+      128,
+      86,
+      35,
+      227,
+      208
+    ]
+  },
+  "mVehicles": [
+    {
+      "mID": 0,
+      "mDriverName": "bard culture",
+      "mVehicleName": "Manthey 2025 #90:LM",
+      "mTotalLaps": 1,
+      "mSector": 1,
+      "mFinishStatus": 0,
+      "mLapDist": 9.18730640411377,
+      "mPathLateral": 3.895103931427002,
+      "mTrackEdge": 7.109999656677246,
+      "mBestSector1": -1.0,
+      "mBestSector2": -1.0,
+      "mBestLapTime": -1.0,
+      "mLastSector1": -1.0,
+      "mLastSector2": -1.0,
+      "mLastLapTime": -1.0,
+      "mCurSector1": -1.0,
+      "mCurSector2": -1.0,
+      "mNumPitstops": 0,
+      "mNumPenalties": 0,
+      "mIsPlayer": true,
+      "mControl": 0,
+      "mInPits": false,
+      "mPlace": 1,
+      "mVehicleClass": "GT3",
+      "mTimeBehindNext": 0.0,
+      "mLapsBehindNext": 0,
+      "mTimeBehindLeader": 0.0,
+      "mLapsBehindLeader": 0,
+      "mLapStartET": 317.42828369140625,
+      "mPos": {
+        "x": -109.76673889160156,
+        "y": 39.468414306640625,
+        "z": -112.322998046875
+      },
+      "mLocalVel": {
+        "x": -0.028867721557617188,
+        "y": 0.3553164005279541,
+        "z": -66.95417022705078
+      },
+      "mLocalAccel": {
+        "x": -0.0757114440202713,
+        "y": -0.8933609127998352,
+        "z": -0.5318488478660583
+      },
+      "mOri": [
+        {
+          "x": 0.9697173237800598,
+          "y": -0.019999681040644646,
+          "z": -0.2434098720550537
+        },
+        {
+          "x": 0.014887314289808273,
+          "y": 0.9996286034584045,
+          "z": -0.022824741899967194
+        },
+        {
+          "x": 0.24377596378326416,
+          "y": 0.01850982755422592,
+          "z": 0.96965491771698
+        }
+      ],
+      "mLocalRot": {
+        "x": -0.025376036763191223,
+        "y": 0.00041662168223410845,
+        "z": 0.03030906617641449
+      },
+      "mLocalRotAccel": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "mHeadlights": 0,
+      "mPitState": 0,
+      "mServerScored": 1,
+      "mIndividualPhase": 5,
+      "mQualification": 1,
+      "mTimeIntoLap": 0.13749845325946808,
+      "mEstimatedLapTime": 96.73101043701172,
+      "mPitGroup": "Group23",
+      "mFlag": 0,
+      "mUnderYellow": false,
+      "mCountLapFlag": 2,
+      "mInGarageStall": false,
+      "mUpgradePack": [
+        49,
+        70,
+        10,
+        0,
+        0
+      ],
+      "mPitLapDist": 199.07876586914062,
+      "mBestLapSector1": -1.0,
+      "mBestLapSector2": -1.0,
+      "mExpansion": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "mID": 0,
+      "mDriverName": "",
+      "mVehicleName": "",
+      "mTotalLaps": 0,
+      "mSector": 0,
+      "mFinishStatus": 0,
+      "mLapDist": 0.0,
+      "mPathLateral": 0.0,
+      "mTrackEdge": 0.0,
+      "mBestSector1": 0.0,
+      "mBestSector2": 0.0,
+      "mBestLapTime": 0.0,
+      "mLastSector1": 0.0,
+      "mLastSector2": 0.0,
+      "mLastLapTime": 0.0,
+      "mCurSector1": 0.0,
+      "mCurSector2": 0.0,
+      "mNumPitstops": 0,
+      "mNumPenalties": 0,
+      "mIsPlayer": false,
+      "mControl": 0,
+      "mInPits": false,
+      "mPlace": 0,
+      "mVehicleClass": "",
+      "mTimeBehindNext": 0.0,
+      "mLapsBehindNext": 0,
+      "mTimeBehindLeader": 0.0,
+      "mLapsBehindLeader": 0,
+      "mLapStartET": 0.0,
+      "mPos": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "mLocalVel": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "mLocalAccel": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "mOri": [
+        {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      ],
+      "mLocalRot": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "mLocalRotAccel": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "mHeadlights": 0,
+      "mPitState": 0,
+      "mServerScored": 0,
+      "mIndividualPhase": 0,
+      "mQualification": 0,
+      "mTimeIntoLap": 0.0,
+      "mEstimatedLapTime": 0.0,
+      "mPitGroup": "",
+      "mFlag": 0,
+      "mUnderYellow": false,
+      "mCountLapFlag": 0,
+      "mInGarageStall": false,
+      "mUpgradePack": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "mPitLapDist": 0.0,
+      "mBestLapSector1": 0.0,
+      "mBestLapSector2": 0.0,
+      "mExpansion": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "mID": 0,
+      "mDriverName": "",
+      "mVehicleName": "",
+      "mTotalLaps": 0,
+      "mSector": 0,
+      "mFinishStatus": 0,
+      "mLapDist": 0.0,
+      "mPathLateral": 0.0,
+      "mTrackEdge": 0.0,
+      "mBestSector1": 0.0,
+      "mBestSector2": 0.0,
+      "mBestLapTime": 0.0,
+      "mLastSector1": 0.0,
+      "mLastSector2": 0.0,
+      "mLastLapTime": 0.0,
+      "mCurSector1": 0.0,
+      "mCurSector2": 0.0,
+      "mNumPitstops": 0,
+      "mNumPenalties": 0,
+      "mIsPlayer": false,
+      "mControl": 0,
+      "mInPits": false,
+      "mPlace": 0,
+      "mVehicleClass": "",
+      "mTimeBehindNext": 0.0,
+      "mLapsBehindNext": 0,
+      "mTimeBehindLeader": 0.0,
+      "mLapsBehindLeader": 0,
+      "mLapStartET": 0.0,
+      "mPos": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "mLocalVel": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "mLocalAccel": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "mOri": [
+        {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      ],
+      "mLocalRot": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "mLocalRotAccel": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "mHeadlights": 0,
+      "mPitState": 0,
+      "mServerScored": 0,
+      "mIndividualPhase": 0,
+      "mQualification": 0,
+      "mTimeIntoLap": 0.0,
+      "mEstimatedLapTime": 0.0,
+      "mPitGroup": "",
+      "mFlag": 0,
+      "mUnderYellow": false,
+      "mCountLapFlag": 0,
+      "mInGarageStall": false,
+      "mUpgradePack": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "mPitLapDist": 0.0,
+      "mBestLapSector1": 0.0,
+      "mBestLapSector2": 0.0,
+      "mExpansion": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "mID": 0,
+      "mDriverName": "",
+      "mVehicleName": "",
+      "mTotalLaps": 0,
+      "mSector": 0,
+      "mFinishStatus": 0,
+      "mLapDist": 0.0,
+      "mPathLateral": 0.0,
+      "mTrackEdge": 0.0,
+      "mBestSector1": 0.0,
+      "mBestSector2": 0.0,
+      "mBestLapTime": 0.0,
+      "mLastSector1": 0.0,
+      "mLastSector2": 0.0,
+      "mLastLapTime": 0.0,
+      "mCurSector1": 0.0,
+      "mCurSector2": 0.0,
+      "mNumPitstops": 0,
+      "mNumPenalties": 0,
+      "mIsPlayer": false,
+      "mControl": 0,
+      "mInPits": false,
+      "mPlace": 0,
+      "mVehicleClass": "",
+      "mTimeBehindNext": 0.0,
+      "mLapsBehindNext": 0,
+      "mTimeBehindLeader": 0.0,
+      "mLapsBehindLeader": 0,
+      "mLapStartET": 0.0,
+      "mPos": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "mLocalVel": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "mLocalAccel": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "mOri": [
+        {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      ],
+      "mLocalRot": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "mLocalRotAccel": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "mHeadlights": 0,
+      "mPitState": 0,
+      "mServerScored": 0,
+      "mIndividualPhase": 0,
+      "mQualification": 0,
+      "mTimeIntoLap": 0.0,
+      "mEstimatedLapTime": 0.0,
+      "mPitGroup": "",
+      "mFlag": 0,
+      "mUnderYellow": false,
+      "mCountLapFlag": 0,
+      "mInGarageStall": false,
+      "mUpgradePack": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "mPitLapDist": 0.0,
+      "mBestLapSector1": 0.0,
+      "mBestLapSector2": 0.0,
+      "mExpansion": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "mID": 0,
+      "mDriverName": "",
+      "mVehicleName": "",
+      "mTotalLaps": 0,
+      "mSector": 0,
+      "mFinishStatus": 0,
+      "mLapDist": 0.0,
+      "mPathLateral": 0.0,
+      "mTrackEdge": 0.0,
+      "mBestSector1": 0.0,
+      "mBestSector2": 0.0,
+      "mBestLapTime": 0.0,
+      "mLastSector1": 0.0,
+      "mLastSector2": 0.0,
+      "mLastLapTime": 0.0,
+      "mCurSector1": 0.0,
+      "mCurSector2": 0.0,
+      "mNumPitstops": 0,
+      "mNumPenalties": 0,
+      "mIsPlayer": false,
+      "mControl": 0,
+      "mInPits": false,
+      "mPlace": 0,
+      "mVehicleClass": "",
+      "mTimeBehindNext": 0.0,
+      "mLapsBehindNext": 0,
+      "mTimeBehindLeader": 0.0,
+      "mLapsBehindLeader": 0,
+      "mLapStartET": 0.0,
+      "mPos": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "mLocalVel": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "mLocalAccel": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "mOri": [
+        {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      ],
+      "mLocalRot": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "mLocalRotAccel": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "mHeadlights": 0,
+      "mPitState": 0,
+      "mServerScored": 0,
+      "mIndividualPhase": 0,
+      "mQualification": 0,
+      "mTimeIntoLap": 0.0,
+      "mEstimatedLapTime": 0.0,
+      "mPitGroup": "",
+      "mFlag": 0,
+      "mUnderYellow": false,
+      "mCountLapFlag": 0,
+      "mInGarageStall": false,
+      "mUpgradePack": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "mPitLapDist": 0.0,
+      "mBestLapSector1": 0.0,
+      "mBestLapSector2": 0.0,
+      "mExpansion": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ]
+}
+
+--- EXTENDED ---
+{
+  "mVersionUpdateBegin": 20861,
+  "mVersionUpdateEnd": 20861,
+  "mVersion": "3.7.15.1",
+  "is64bit": true,
+  "mPhysics": {
+    "mTractionControl": 0,
+    "mAntiLockBrakes": 0,
+    "mStabilityControl": 0,
+    "mAutoShift": 0,
+    "mAutoClutch": 0,
+    "mInvulnerable": 0,
+    "mOppositeLock": 0,
+    "mSteeringHelp": 0,
+    "mBrakingHelp": 0,
+    "mSpinRecovery": 0,
+    "mAutoPit": 0,
+    "mAutoLift": 0,
+    "mAutoBlip": 0,
+    "mFuelMult": 0,
+    "mTireMult": 0,
+    "mMechFail": 0,
+    "mAllowPitcrewPush": 0,
+    "mRepeatShifts": 0,
+    "mHoldClutch": 0,
+    "mAutoReverse": 0,
+    "mAlternateNeutral": 0,
+    "mAIControl": 0,
+    "mUnused1": 0,
+    "mUnused2": 0,
+    "mManualShiftOverrideTime": 0.0,
+    "mAutoShiftOverrideTime": 0.0,
+    "mSpeedSensitiveSteering": 0.0,
+    "mSteerRatioSpeed": 0.0
+  },
+  "mTrackedDamages": [
+    {
+      "mMaxImpactMagnitude": 0.0,
+      "mAccumulatedImpactMagnitude": 0.0
+    },
+    {
+      "mMaxImpactMagnitude": 0.0,
+      "mAccumulatedImpactMagnitude": 0.0
+    },
+    {
+      "mMaxImpactMagnitude": 0.0,
+      "mAccumulatedImpactMagnitude": 0.0
+    },
+    {
+      "mMaxImpactMagnitude": 0.0,
+      "mAccumulatedImpactMagnitude": 0.0
+    },
+    {
+      "mMaxImpactMagnitude": 0.0,
+      "mAccumulatedImpactMagnitude": 0.0
+    }
+  ],
+  "mInRealtimeFC": true,
+  "mMultimediaThreadStarted": false,
+  "mSimulationThreadStarted": true,
+  "mSessionStarted": true,
+  "mTicksSessionStarted": 10150453,
+  "mTicksSessionEnded": 10090015,
+  "mSessionTransitionCapture": {
+    "mGamePhase": 0,
+    "mSession": 1,
+    "mNumScoringVehicles": 1,
+    "mScoringVehicles": [
+      {
+        "mID": 0,
+        "mPlace": 1,
+        "mIsPlayer": true,
+        "mFinishStatus": 0
+      },
+      {
+        "mID": 0,
+        "mPlace": 0,
+        "mIsPlayer": false,
+        "mFinishStatus": 0
+      },
+      {
+        "mID": 0,
+        "mPlace": 0,
+        "mIsPlayer": false,
+        "mFinishStatus": 0
+      },
+      {
+        "mID": 0,
+        "mPlace": 0,
+        "mIsPlayer": false,
+        "mFinishStatus": 0
+      },
+      {
+        "mID": 0,
+        "mPlace": 0,
+        "mIsPlayer": false,
+        "mFinishStatus": 0
+      }
+    ]
+  },
+  "mDisplayedMessageUpdateCapture": "",
+  "mDirectMemoryAccessEnabled": false,
+  "mTicksStatusMessageUpdated": 0,
+  "mStatusMessage": "",
+  "mTicksLastHistoryMessageUpdated": 0,
+  "mLastHistoryMessage": "",
+  "mCurrentPitSpeedLimit": 0.0,
+  "mSCRPluginEnabled": false,
+  "mSCRPluginDoubleFileType": -1,
+  "mTicksLSIPhaseMessageUpdated": 0,
+  "mLSIPhaseMessage": "",
+  "mTicksLSIPitStateMessageUpdated": 0,
+  "mLSIPitStateMessage": "",
+  "mTicksLSIOrderInstructionMessageUpdated": 0,
+  "mLSIOrderInstructionMessage": "",
+  "mTicksLSIRulesInstructionMessageUpdated": 0,
+  "mLSIRulesInstructionMessage": "",
+  "mUnsubscribedBuffersMask": 0,
+  "mHWControlInputEnabled": true,
+  "mWeatherControlInputEnabled": true,
+  "mRulesControlInputEnabled": true
+}
+
+--- END OF FULL DATA DUMP ---
+================================================================================
+
+--------------------------------------------------
+[FLYING LAP #1]    LapsCompleted: 1 | LastLapTime: ---     | LastS1: ---     | LastS2: ---     | InPits: False
+[FLYING LAP #1]    LapsCompleted: 1 | LastLapTime: ---     | LastS1: ---     | LastS2: ---     | InPits: False
+[FLYING LAP #1]    LapsCompleted: 1 | LastLapTime: ---     | LastS1: ---     | LastS2: ---     | InPits: False
+[FLYING LAP #1]    LapsCompleted: 1 | LastLapTime: ---     | LastS1: ---     | LastS2: ---     | InPits: False
+[FLYING LAP #1]    LapsCompleted: 1 | LastLapTime: ---     | LastS1: ---     | LastS2: ---     | InPits: False
+[FLYING LAP #1]    LapsCompleted: 1 | LastLapTime: ---     | LastS1: ---     | LastS2: ---     | InPits: False
+[FLYING LAP #1]    LapsCompleted: 1 | LastLapTime: ---     | LastS1: ---     | LastS2: ---     | InPits: False
+[FLYING LAP #1]    LapsCompleted: 1 | LastLapTime: ---     | LastS1: ---     | LastS2: ---     | InPits: False
+[FLYING LAP #1]    LapsCompleted: 1 | LastLapTime: ---     | LastS1: ---     | LastS2: ---     | InPits: False
+[FLYING LAP #1]    LapsCompleted: 1 | LastLapTime: ---     | LastS1: ---     | LastS2: ---     | InPits: False
+[FLYING LAP #1]    LapsCompleted: 1 | LastLapTime: ---     | LastS1: ---     | LastS2: ---     | InPits: False
+[FLYING LAP #2]    LapsCompleted: 2 | LastLapTime: 106.59  | LastS1: 29.11   | LastS2: 83.02   | InPits: False
+[FLYING LAP #2]    LapsCompleted: 2 | LastLapTime: 106.59  | LastS1: 29.11   | LastS2: 83.02   | InPits: False
+[FLYING LAP #2]    LapsCompleted: 2 | LastLapTime: 106.59  | LastS1: 29.11   | LastS2: 83.02   | InPits: False
+[FLYING LAP #2]    LapsCompleted: 2 | LastLapTime: 106.59  | LastS1: 29.11   | LastS2: 83.02   | InPits: False
+[FLYING LAP #2]    LapsCompleted: 2 | LastLapTime: 106.59  | LastS1: 29.11   | LastS2: 83.02   | InPits: False
+[FLYING LAP #2]    LapsCompleted: 2 | LastLapTime: 106.59  | LastS1: 29.11   | LastS2: 83.02   | InPits: False
+[FLYING LAP #2]    LapsCompleted: 2 | LastLapTime: 106.59  | LastS1: 29.11   | LastS2: 83.02   | InPits: False
+[FLYING LAP #2]    LapsCompleted: 2 | LastLapTime: 106.59  | LastS1: 29.11   | LastS2: 83.02   | InPits: False
+[Daemon Status] Status: connected, Message: In Menus / Spectating
