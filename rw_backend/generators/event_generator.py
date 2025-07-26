@@ -38,23 +38,29 @@ class EventGenerator(threading.Thread):
             extended = raw_data.get('extended')
             
             # --- 1. SESSION DETECTION ---
-            session_state_change = self.session_detector.detect(raw_data, self.last_extended_data)
+            # --- CHANGE START ---
+            # The session_detector now receives the extra context it needs to detect restarts.
+            session_state_change = self.session_detector.detect(raw_data, self.last_extended_data, self.last_player_data, self.player_state)
+            # --- CHANGE END ---
             if session_state_change:
                 self.player_state = session_state_change
 
             if not extended or not extended.mSessionStarted:
                 self.last_extended_data = {field[0]: getattr(extended, field[0]) for field in extended._fields_} if extended else {}
+                # --- UPDATE STATE FOR NEXT FRAME (SESSION NOT STARTED) ---
+                # We also need to update last_player_data here to correctly detect a lap reset from 0.
+                scoring = raw_data.get('scoring')
+                player_scoring = next((v for v in scoring.mVehicles if v.mIsPlayer), None) if scoring else None
+                if player_scoring:
+                    self.last_player_data = {field[0]: getattr(player_scoring, field[0]) for field in player_scoring._fields_}
                 continue
 
             # --- 2. DATA VALIDATION ---
             scoring = raw_data.get('scoring')
-            # --- CHANGE START ---
-            # We now need the telemetry object here to pass to the lap detector.
             telemetry = raw_data.get('telemetry')
             player_scoring = next((v for v in scoring.mVehicles if v.mIsPlayer), None) if scoring else None
             
             if not player_scoring or not telemetry:
-            # --- CHANGE END ---
                 self.last_extended_data = {field[0]: getattr(extended, field[0]) for field in extended._fields_} if extended else {}
                 continue
 
@@ -62,10 +68,7 @@ class EventGenerator(threading.Thread):
             self.event_queue.put(TelemetryUpdate(payload=raw_data))
 
             # --- 4. DETECT DISCRETE EVENTS ---
-            # --- CHANGE START ---
-            # The telemetry object is now passed to the lap_detector.
             self.lap_detector.detect(player_scoring, self.last_player_data, telemetry)
-            # --- CHANGE END ---
             
             stint_state_change = self.stint_detector.detect(player_scoring, self.last_player_data, self.player_state)
             if stint_state_change:
