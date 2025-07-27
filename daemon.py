@@ -1,4 +1,4 @@
-# daemon.py (FINAL ORCHESTRATOR - CORRECTED)
+# daemon.py
 
 import time
 from queue import Queue
@@ -9,27 +9,39 @@ from rw_backend.handlers.session_handler import SessionHandler
 from rw_backend.handlers.stint_handler import StintHandler
 from rw_backend.handlers.lap_handler import LapHandler
 from rw_backend.handlers.live_data_handler import LiveDataHandler
+# --- CHANGE START ---
+from rw_backend.handlers.telemetry_handler import TelemetryHandler
+# --- CHANGE END ---
 from rw_backend.core.events import TelemetryUpdate, SessionEnded
 from rw_backend.core.live_data_server import LiveDataServer
 
 def run_daemon():
-    # ... (This entire function remains unchanged)
     print("[Daemon] Starting background process with Event-Driven Architecture...", flush=True)
     initialize_database()
     connect_db()
     raw_data_queue = Queue()
     event_queue = Queue()
     live_data_server = LiveDataServer()
+    
+    # --- CHANGE START ---
+    # Instantiate all handlers
     session_handler = SessionHandler()
     stint_handler = StintHandler(session_handler)
     lap_handler = LapHandler(stint_handler)
     live_data_handler = LiveDataHandler(live_data_server, session_handler, lap_handler)
-    handlers = [session_handler, stint_handler, lap_handler, live_data_handler]
+    telemetry_handler = TelemetryHandler() # New handler is created
+
+    # Add the new handler to the list of event consumers
+    handlers = [session_handler, stint_handler, lap_handler, live_data_handler, telemetry_handler]
+    # --- CHANGE END ---
+    
     collector = LMUCollector(raw_data_queue=raw_data_queue)
     event_generator = EventGenerator(raw_data_queue=raw_data_queue, event_queue=event_queue)
+    
     collector.start()
     event_generator.start()
     live_data_server.start()
+    
     print("[Daemon] Event bus running. Monitoring for events...", flush=True)
     try:
         while True:
@@ -49,8 +61,5 @@ def run_daemon():
         close_db()
         print("[Daemon] Services shut down. Exiting.", flush=True)
 
-# --- THE FIX ---
-# This ensures the run_daemon() function is only called when
-# the script is executed directly (e.g., "python daemon.py").
 if __name__ == '__main__':
     run_daemon()

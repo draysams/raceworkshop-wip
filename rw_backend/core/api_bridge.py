@@ -2,6 +2,9 @@
 
 import json
 from rw_backend.database.models import Session, Stint, Lap
+# --- CHANGE START ---
+from rw_backend.database.models import TelemetrySnapshot, TelemetryValue, TelemetryChannel
+# --- CHANGE END ---
 from rw_backend.dtos.session_dtos import map_session_to_summary_dto, map_lap_to_detail_dto
 
 class ApiBridge:
@@ -34,3 +37,38 @@ class ApiBridge:
         except Exception as e:
             print(f"Error fetching session detail: {e}")
             return json.dumps(None)
+
+    # --- NEW METHOD START ---
+    def getLapTelemetry(self, lapId):
+        """
+        Fetches all telemetry for a given lap and returns it in a format
+        that is easy for the frontend to chart.
+        """
+        print(f"API CALL: getLapTelemetry for lap {lapId}")
+        try:
+            # The query joins our three new tables to reconstruct the time-series data.
+            query = (TelemetryValue
+                     .select(TelemetryValue.value, TelemetrySnapshot.lap_dist, TelemetryChannel.name)
+                     .join(TelemetrySnapshot)
+                     .join(TelemetryChannel)
+                     .where(TelemetrySnapshot.lap == lapId)
+                     .order_by(TelemetrySnapshot.lap_dist))
+
+            # Restructure the flat data into a more useful format for charting.
+            # Example: { 'Speed': [{x: 50, y: 280.5}, ...], 'RPM': [...] }
+            telemetry_data = {}
+            for row in query:
+                channel_name = row.channel.name
+                if channel_name not in telemetry_data:
+                    telemetry_data[channel_name] = []
+                
+                telemetry_data[channel_name].append({
+                    'x': row.snapshot.lap_dist, # 'x' is lap distance
+                    'y': row.value              # 'y' is the telemetry value
+                })
+
+            return json.dumps(telemetry_data)
+        except Exception as e:
+            print(f"Error fetching lap telemetry: {e}")
+            return json.dumps({})
+    # --- NEW METHOD END ---

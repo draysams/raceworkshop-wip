@@ -1,5 +1,5 @@
 # rw_backend/database/manager.py
-from .models import db, Session, Stint, Lap
+from .models import db, Session, Stint, Lap, TelemetryChannel, TelemetrySnapshot, TelemetryValue
 
 def initialize_database():
     """
@@ -8,7 +8,12 @@ def initialize_database():
     """
     try:
         db.connect()
-        db.create_tables([Session, Stint, Lap])
+      
+        db.create_tables([
+            Session, Stint, Lap, 
+            TelemetryChannel, TelemetrySnapshot, TelemetryValue
+        ])
+
         print("Database initialized successfully.", flush=True)
     except Exception as e:
         print(f"Error initializing database: {e}", flush=True)
