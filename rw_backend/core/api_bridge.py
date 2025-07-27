@@ -1,74 +1,17 @@
 # rw_backend/core/api_bridge.py
 
-import json
-from rw_backend.database.models import Session, Stint, Lap
-# --- CHANGE START ---
-from rw_backend.database.models import TelemetrySnapshot, TelemetryValue, TelemetryChannel
-# --- CHANGE END ---
-from rw_backend.dtos.session_dtos import map_session_to_summary_dto, map_lap_to_detail_dto
+from rw_backend.api.dashboard_api import DashboardApi
+from rw_backend.api.session_api import SessionApi
+from rw_backend.api.telemetry_api import TelemetryApi
 
 class ApiBridge:
+    """
+    This class acts as a single, clean entry point for the Pywebview JS API.
+    It composes the other domain-specific API classes. The JS will call methods
+    like `window.pywebview.api.sessions.getSessionHistory()`.
+    """
     def __init__(self):
-        pass
-
-    def getSessionHistory(self, filters):
-        print("API CALL: getSessionHistory")
-        try:
-            query = Session.select().order_by(Session.started_at.desc())
-            sessions_dto = [map_session_to_summary_dto(s) for s in query]
-            return json.dumps(sessions_dto)
-        except Exception as e:
-            print(f"Error fetching session history: {e}")
-            return json.dumps([])
-
-    def getSessionDetail(self, sessionId):
-        print(f"API CALL: getSessionDetail for session {sessionId}")
-        try:
-            session = Session.get_by_id(sessionId)
-            laps_query = Lap.select().join(Stint).where(Stint.session == session).order_by(Lap.lap_number)
-            
-            session_dto = map_session_to_summary_dto(session)
-            laps_dto = [map_lap_to_detail_dto(lap) for lap in laps_query]
-
-            return json.dumps({
-                'session': session_dto,
-                'laps': laps_dto
-            })
-        except Exception as e:
-            print(f"Error fetching session detail: {e}")
-            return json.dumps(None)
-
-    # --- NEW METHOD START ---
-    def getLapTelemetry(self, lapId):
-        """
-        Fetches all telemetry for a given lap and returns it in a format
-        that is easy for the frontend to chart.
-        """
-        print(f"API CALL: getLapTelemetry for lap {lapId}")
-        try:
-            # The query joins our three new tables to reconstruct the time-series data.
-            query = (TelemetryValue
-                     .select(TelemetryValue.value, TelemetrySnapshot.lap_dist, TelemetryChannel.name)
-                     .join(TelemetrySnapshot)
-                     .join(TelemetryChannel)
-                     .where(TelemetrySnapshot.lap == lapId)
-                     .order_by(TelemetrySnapshot.lap_dist))
-
-            # Restructure the flat data into a more useful format for charting.
-            # Example: { 'Speed': [{x: 50, y: 280.5}, ...], 'RPM': [...] }
-            telemetry_data = {}
-            for row in query:
-                channel_name = row.channel.name
-                if channel_name not in telemetry_data:
-                    telemetry_data[channel_name] = []
-                
-                telemetry_data[channel_name].append({
-                    'x': row.snapshot.lap_dist, # 'x' is lap distance
-                    'y': row.value              # 'y' is the telemetry value
-                })
-
-            return json.dumps(telemetry_data)
-        except Exception as e:
-            print(f"Error fetching lap telemetry: {e}")
-            return json.dumps({})
-    # --- NEW METHOD END ---
+        # Instantiate and expose the domain-specific API services
+        self.dashboard = DashboardApi()
+        self.sessions = SessionApi()
+        self.telemetry = TelemetryApi()
