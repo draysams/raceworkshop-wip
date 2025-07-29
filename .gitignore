@@ -4,3 +4,4 @@ frontend/node_modules/.bin/js-yaml.cmd
 __pycache__
 
 frontend/dist/assets
+.coverage

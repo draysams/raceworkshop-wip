@@ -42,6 +42,16 @@ class LapCompleted(Event):
     sector3_time: float
     is_valid: bool
 
+@dataclass
+class LapAborted(Event):
+    """Fired when a lap is aborted mid-way (e.g., Return to Garage)."""
+    lap_number: int
+    lap_time: float
+    sector1_time: float
+    sector2_time: float
+    sector3_time: float
+    is_valid: bool = False
+
 # --- Live Data Events ---
 @dataclass
 class TelemetryUpdate(Event):
