@@ -10,14 +10,16 @@ class Event:
 # --- Session Events ---
 @dataclass
 class SessionStarted(Event):
+    # --- REFACTORED to carry IDs instead of raw strings ---
     uid: str
-    track_name: str
+    simulator_id: int
+    track_id: int
+    car_id: int
+    driver_id: int
     session_type: str
-    player_name: str
-    car_model: str
-    car_class: str
     track_temp: float
     air_temp: float
+    # --- REFACTOR END ---
 
 @dataclass
 class SessionEnded(Event):

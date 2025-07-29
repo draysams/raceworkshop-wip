@@ -1,5 +1,10 @@
 # rw_backend/database/manager.py
-from .models import db, Session, Stint, Lap, TelemetryChannel, TelemetrySnapshot, TelemetryValue
+
+from .models import (
+    db, Session, Stint, Lap, 
+    TelemetryChannel, TelemetrySnapshot, TelemetryValue,
+    Simulator, Track, Car, Driver  # <-- Import new models
+)
 
 def initialize_database():
     """
@@ -10,6 +15,8 @@ def initialize_database():
         db.connect()
       
         db.create_tables([
+            # --- Add new models to the creation list ---
+            Simulator, Track, Car, Driver,
             Session, Stint, Lap, 
             TelemetryChannel, TelemetrySnapshot, TelemetryValue
         ])
