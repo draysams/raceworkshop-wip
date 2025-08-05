@@ -9,7 +9,7 @@
     "//-- DEVELOPMENT (Hot Reload) --//": "",
     "dev": "concurrently \"npm:dev:frontend\" \"npm:dev:backend\"",
     "dev:frontend": "cd frontend && npm run dev",
-    "dev:backend": "cross-env RACEWORKSHOP_DEV_MODE=1 python main.py",
+    "dev:backend": "cross-env RACEWORKSHOP_DEV_MODE=1 PYTHONUNBUFFERED=1 python main.py",
      "test:persistence:daemon": "python daemon.py",
     "test:persistence:gui": "python main.py",
     "//-- PRODUCTION --//": "",

@@ -6,22 +6,35 @@ import { ErrorBoundary } from "./components/system/ErrorBoundary"
 import "./index.css"
 
 /**
- * Ensure the application can bootstrap even if an element
- * with id="root" is not present (e.g., in a preview iframe).
+ * Renders the React application into the DOM.
  */
-let container = document.getElementById("root")
-if (!container) {
-  container = document.createElement("div")
-  container.id = "root"
-  document.body.appendChild(container)
+const renderApp = () => {
+  let container = document.getElementById("root")
+  if (!container) {
+    container = document.createElement("div")
+    container.id = "root"
+    document.body.appendChild(container)
+  }
+  
+  const root = createRoot(container)
+  
+  root.render(
+    // <React.StrictMode>  // <-- Temporarily commented out for Chunk 3 WebSocket testing
+      <ErrorBoundary>
+        <App />
+      </ErrorBoundary>
+    // </React.StrictMode>, // <-- Temporarily commented out for Chunk 3 WebSocket testing
+  )
 }
 
-const root = createRoot(container)
-
-root.render(
-  // <React.StrictMode>  // <-- Temporarily commented out for Chunk 3 WebSocket testing
-    <ErrorBoundary>
-      <App />
-    </ErrorBoundary>
-  // </React.StrictMode>, // <-- Temporarily commented out for Chunk 3 WebSocket testing
-)
+// --- THIS IS THE FIX ---
+// We wrap the entire application bootstrap logic in an event listener.
+// The 'pywebviewready' event is fired by the Python backend once its API
+// has been successfully injected into the JavaScript 'window' object.
+// This completely resolves the race condition where the React app might
+// try to call the API before it exists.
+window.addEventListener('pywebviewready', () => {
+  console.log("Pywebview is ready. Rendering React application.")
+  renderApp()
+})
+// --- END FIX ---

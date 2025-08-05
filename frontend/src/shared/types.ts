@@ -1,3 +1,5 @@
+// frontend/src/shared/types.ts
+
 // =================================================================
 //                      CORE DATA STRUCTURES
 // =================================================================
@@ -26,6 +28,7 @@ export interface SessionSummary {
 }
 
 export interface LapData {
+    id: number
     lapNumber: number;
     lapTime: string; // "3:28.456" format
     lapTimeMs: number;
@@ -37,7 +40,6 @@ export interface LapData {
     sector3Ms: number;
     isValid: boolean;
     delta: number; // Delta to best lap in milliseconds
-    // The following will be implemented later
     fuelUsed: number;
     tyrePressure: { fl: number; fr: number; rl: number; rr: number };
     speed: { sector1: number; sector2: number; sector3: number; topSpeed: number };
@@ -62,7 +64,7 @@ export interface LiveSessionData {
     weather: string;
     trackTemp: number;
     airTemp: number;
-    lastLap?: LapData; // Include the latest completed lap if available
+    lastLap?: LapData;
     bestLapTime?: string | null;
     optimalLapTime?: string | null;
 }
@@ -78,10 +80,30 @@ export interface SessionFilters {
     sortOrder?: 'asc' | 'desc';
 }
 
+// --- NEW TYPES START ---
+
+export interface Simulator {
+    id: number;
+    name: string;
+}
+
+export interface GlobalDashboardStats {
+    totalSessions: number;
+    totalLaps: number;
+    totalDriveTime: string; // Formatted as "HH:MM:SS"
+    recentSessions: SessionSummary[];
+}
+
+// For now, ModuleDashboardStats is identical to GlobalDashboardStats.
+// It can be expanded with module-specific stats in the future.
+export type ModuleDashboardStats = GlobalDashboardStats;
+
+// --- NEW TYPES END ---
+
+
 // =================================================================
 //                      MODULE & API DEFINITIONS
 // =================================================================
-
 
 export interface TransponderStatus {
     message: string;
@@ -89,18 +111,21 @@ export interface TransponderStatus {
 }
 
 export interface IRaceWorkshopAPI {
-    appGetNodeVersion: (msg: string) => Promise<string>;
-
-    db: {
+    simulators: {
+        getSimulatorList: () => Promise<Simulator[]>;
+    };
+    dashboard: {
+        getGlobalDashboardStats: () => Promise<GlobalDashboardStats>;
+        getModuleDashboardStats: (simulatorId: number) => Promise<ModuleDashboardStats>;
+    };
+    sessions: {
         getSessionHistory: (filters: SessionFilters) => Promise<SessionSummary[]>;
         getSessionDetail: (sessionId: number) => Promise<{ session: SessionSummary; laps: LapData[] } | null>;
     };
-
     telemetry: {
         start: (simulatorId: string) => void;
         stop: () => void;
-        onData: (callback: (data: LiveSessionData) => void) => () => void; // Returns an unsubscribe function
+        onData: (callback: (data: LiveSessionData) => void) => () => void;
+        getLapTelemetry: (lapId: number) => Promise<any>; // Define a proper type for telemetry data later
     };
-
-    // We will add settings later
 }

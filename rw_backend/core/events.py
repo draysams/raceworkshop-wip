@@ -36,6 +36,11 @@ class StintEnded(Event):
 
 # --- Lap Events ---
 @dataclass
+class LapStarted(Event):
+    """Fired when a new lap begins (e.g., first outlap or after crossing S/F)."""
+    lap_number: int
+
+@dataclass
 class LapCompleted(Event):
     lap_number: int
     lap_time: float
@@ -59,3 +64,4 @@ class LapAborted(Event):
 class TelemetryUpdate(Event):
     """Event to push live data to the UI."""
     payload: dict
+    player_state: str

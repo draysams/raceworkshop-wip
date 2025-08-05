@@ -1,121 +1,79 @@
 # rw_backend/handlers/telemetry_handler.py
 
-from rw_backend.core.events import TelemetryUpdate, LapCompleted, StintStarted, SessionEnded
-from rw_backend.database.models import Lap, TelemetryChannel, TelemetrySnapshot, TelemetryValue, db
+from rw_backend.core.events import TelemetryUpdate, LapStarted, SessionEnded
+from rw_backend.database.models import Lap, LapTelemetry, db
 
 class TelemetryHandler:
-    """
-    Handles high-frequency telemetry updates, samples them based on distance,
-    and saves them to the database for detailed lap analysis.
-    """
-    SAMPLING_DISTANCE = 50 # Log a snapshot every 50 meters
+    BUFFER_SIZE = 200
 
     def __init__(self):
         self.current_lap_model = None
-        self.last_log_distance = -1
-        self.channel_cache = {} # A cache to avoid frequent DB lookups for channel IDs
+        self.telemetry_buffer = []
 
     def handle_event(self, event):
-        if isinstance(event, LapCompleted):
-            self._on_lap_completed(event)
-        elif isinstance(event, StintStarted):
-            self._on_stint_started(event)
+        if isinstance(event, LapStarted):
+            self._on_lap_started(event)
         elif isinstance(event, TelemetryUpdate):
             self._on_telemetry_update(event)
         elif isinstance(event, SessionEnded):
             self._on_session_ended(event)
 
-    def _on_stint_started(self, event: StintStarted):
-        """When a stint starts, we don't have a lap model yet."""
-        self.current_lap_model = None
-
-    def _on_lap_completed(self, event: LapCompleted):
-        """When a lap is completed, we need to fetch its new DB record."""
-        # This ensures we are always associating telemetry with the correct lap
-        self.current_lap_model = Lap.select().where(Lap.lap_number == event.lap_number).order_by(Lap.id.desc()).first()
-        self.last_log_distance = -1 # Reset distance tracking for the new lap
+    def _on_lap_started(self, event: LapStarted):
+        self._flush_buffer()
+        self.current_lap_model = Lap.select().order_by(Lap.id.desc()).first()
+        if not self.current_lap_model or self.current_lap_model.lap_number != event.lap_number:
+             print(f"[TelemetryHandler] WARNING: Mismatch finding new lap record for lap #{event.lap_number}", flush=True)
+             self.current_lap_model = None
 
     def _on_session_ended(self, event: SessionEnded):
-        """Clear the state when the session ends."""
+        self._flush_buffer()
         self.current_lap_model = None
 
     def _on_telemetry_update(self, event: TelemetryUpdate):
-        if not self.current_lap_model:
-            return # We are not in a valid lap (e.g., in menus, first outlap not started)
-
-        player_scoring = next((v for v in event.payload['scoring'].mVehicles if v.mIsPlayer), None)
-        if not player_scoring:
+        # --- THIS IS THE FIX ---
+        # We only buffer telemetry data if a lap is active AND the car is physically on track.
+        if not self.current_lap_model or event.player_state != "ON_TRACK":
             return
-
-        current_dist = player_scoring.mLapDist
-
-        # Check if we have traveled far enough to warrant a new snapshot
-        if (current_dist - self.last_log_distance) >= self.SAMPLING_DISTANCE:
-            self._create_telemetry_snapshot(event.payload, current_dist)
-            self.last_log_distance = current_dist
+        # --- END FIX ---
+        
+        self._add_snapshot_to_buffer(event.payload)
+        if len(self.telemetry_buffer) >= self.BUFFER_SIZE:
+            self._flush_buffer()
     
-    def _get_channel_id(self, channel_name):
-        """
-        Gets the ID for a channel name, using a cache to improve performance.
-        """
-        if channel_name in self.channel_cache:
-            return self.channel_cache[channel_name]
-        
-        channel, created = TelemetryChannel.get_or_create(name=channel_name)
-        self.channel_cache[channel_name] = channel.id
-        return channel.id
-
-    def _create_telemetry_snapshot(self, raw_data, lap_dist):
-        """
-        Creates a TelemetrySnapshot and all its associated TelemetryValue records
-        in a single, efficient database transaction.
-        """
+    def _add_snapshot_to_buffer(self, raw_data):
         telemetry = raw_data['telemetry']
+        player_scoring = next((v for v in raw_data['scoring'].mVehicles if v.mIsPlayer), None)
+        if not player_scoring: return
+        wheels = telemetry.mWheels
         
-        # Define the data we want to save
-        data_points = {
-            'Throttle': telemetry.mFilteredThrottle,
-            'Brake': telemetry.mFilteredBrake,
-            'Steering': telemetry.mFilteredSteering,
-            'Speed': telemetry.mLocalVel.z, # Assuming z is the forward velocity
-            'RPM': telemetry.mEngineRPM,
-            'Gear': telemetry.mGear,
-            'FuelLevel': telemetry.mFuel,
-            'DRS_Active': telemetry.mRearFlapActivated,
-            
-            # Tire Pressures
-            'TirePressureFL': telemetry.mWheels[0].mPressure,
-            'TirePressureFR': telemetry.mWheels[1].mPressure,
-            'TirePressureRL': telemetry.mWheels[2].mPressure,
-            'TirePressureRR': telemetry.mWheels[3].mPressure,
-
-            # Tire Wear
-            'TireWearFL': telemetry.mWheels[0].mWear,
-            'TireWearFR': telemetry.mWheels[1].mWear,
-            'TireWearRL': telemetry.mWheels[2].mWear,
-            'TireWearRR': telemetry.mWheels[3].mWear,
+        snapshot_data = {
+            'lap': self.current_lap_model, 'lap_dist': player_scoring.mLapDist,
+            'throttle': telemetry.mFilteredThrottle, 'brake': telemetry.mFilteredBrake,
+            'steering': telemetry.mFilteredSteering, 'speed': telemetry.mLocalVel.z * 3.6,
+            'rpm': telemetry.mEngineRPM, 'gear': telemetry.mGear,
+            'pos_x': telemetry.mPos.x, 'pos_y': telemetry.mPos.y, 'pos_z': telemetry.mPos.z,
+            'fuel_level': telemetry.mFuel, 'drs_active': telemetry.mRearFlapActivated,
+            'tire_pressure_fl': wheels[0].mPressure, 'tire_pressure_fr': wheels[1].mPressure,
+            'tire_pressure_rl': wheels[2].mPressure, 'tire_pressure_rr': wheels[3].mPressure,
+            'tire_wear_fl': wheels[0].mWear, 'tire_wear_fr': wheels[1].mWear,
+            'tire_wear_rl': wheels[2].mWear, 'tire_wear_rr': wheels[3].mWear,
+            'tire_temp_fl_i': wheels[0].mTemperature[0], 'tire_temp_fl_m': wheels[0].mTemperature[1], 'tire_temp_fl_o': wheels[0].mTemperature[2],
+            'tire_temp_fr_i': wheels[1].mTemperature[0], 'tire_temp_fr_m': wheels[1].mTemperature[1], 'tire_temp_fr_o': wheels[1].mTemperature[2],
+            'tire_temp_rl_i': wheels[2].mTemperature[0], 'tire_temp_rl_m': wheels[2].mTemperature[1], 'tire_temp_rl_o': wheels[2].mTemperature[2],
+            'tire_temp_rr_i': wheels[3].mTemperature[0], 'tire_temp_rr_m': wheels[3].mTemperature[1], 'tire_temp_rr_o': wheels[3].mTemperature[2],
         }
+        self.telemetry_buffer.append(snapshot_data)
 
-        # Add all 12 tire temperature points
-        temps = ['Inner', 'Middle', 'Outer']
-        wheels = ['FL', 'FR', 'RL', 'RR']
-        for i, wheel_name in enumerate(wheels):
-            for j, temp_name in enumerate(temps):
-                key = f'TireTemp{wheel_name}{temp_name}'
-                data_points[key] = telemetry.mWheels[i].mTemperature[j]
-
-        # Use a transaction for efficiency. All these inserts will be
-        # committed to the database in a single, fast operation.
-        with db.atomic():
-            snapshot = TelemetrySnapshot.create(lap=self.current_lap_model, lap_dist=lap_dist)
-            
-            telemetry_values = [
-                {
-                    'snapshot': snapshot,
-                    'channel': self._get_channel_id(name),
-                    'value': value
-                }
-                for name, value in data_points.items()
-            ]
-            
-            TelemetryValue.insert_many(telemetry_values).execute()
+    def _flush_buffer(self):
+        if not self.telemetry_buffer or not self.current_lap_model:
+            self.telemetry_buffer.clear()
+            return
+        
+        print(f"[TelemetryHandler] Flushing {len(self.telemetry_buffer)} snapshots to DB for Lap number {self.current_lap_model.lap_number}...", flush=True)
+        try:
+            with db.atomic():
+                LapTelemetry.insert_many(self.telemetry_buffer).execute()
+            self.telemetry_buffer.clear()
+        except Exception as e:
+            print(f"[TelemetryHandler] ERROR: Failed to flush telemetry buffer: {e}", flush=True)
+            self.telemetry_buffer.clear()

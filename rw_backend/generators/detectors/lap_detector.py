@@ -1,6 +1,6 @@
 # rw_backend/generators/detectors/lap_detector.py
 
-from rw_backend.core.events import LapCompleted
+from rw_backend.core.events import LapCompleted, LapStarted
 
 class LapDetector:
     def __init__(self, event_queue):
@@ -88,3 +88,11 @@ class LapDetector:
         
         event = LapCompleted(lap_number=last_player_data.get('mTotalLaps'), lap_time=lap_data[0], sector1_time=lap_data[1], sector2_time=lap_data[2], sector3_time=lap_data[3], is_valid=final_is_valid)
         self.event_queue.put(event)
+        # --- THIS IS THE FIX ---
+        # A new lap only begins if the car is still on track after the last one finished.
+        # This prevents firing LapStarted for an in-lap or after returning to the garage.
+        if player_state == "ON_TRACK":
+            next_lap_num = player_scoring.mTotalLaps
+            print(f"[LapDetector] Firing LapStarted for next lap #{next_lap_num}", flush=True)
+            self.event_queue.put(LapStarted(lap_number=next_lap_num))
+        # --- END FIX ---

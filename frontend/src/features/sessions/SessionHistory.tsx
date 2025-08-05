@@ -36,7 +36,7 @@ export function SessionHistory({ onViewSession }: SessionHistoryProps) {
             // const fetchedSessions = await api.db.getSessionHistory(filters);
             // setSessions(fetchedSessions);
 
-             const fetchedSessions = await api.db.getSessionHistory(filters);
+             const fetchedSessions = await api.sessions.getSessionHistory(filters);
             setSessions(fetchedSessions);
         } catch (error) {
             console.error("Failed to fetch session history:", error);

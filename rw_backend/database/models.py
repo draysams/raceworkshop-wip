@@ -13,8 +13,6 @@ class BaseModel(pw.Model):
     class Meta:
         database = db
 
-# --- NEW NORMALIZED TABLES START ---
-
 class Simulator(BaseModel):
     name = pw.CharField(unique=True)
 
@@ -28,31 +26,23 @@ class Car(BaseModel):
 class Driver(BaseModel):
     name = pw.CharField(unique=True)
 
-# --- NEW NORMALIZED TABLES END ---
-
-
 class Session(BaseModel):
-    # --- REFACTORED SESSION TABLE ---
     simulator = pw.ForeignKeyField(Simulator, backref='sessions', index=True)
     track = pw.ForeignKeyField(Track, backref='sessions', index=True)
     car = pw.ForeignKeyField(Car, backref='sessions', index=True)
     driver = pw.ForeignKeyField(Driver, backref='sessions', index=True)
-    
     session_type = pw.CharField(index=True)
     started_at = pw.DateTimeField(default=datetime.now, index=True)
     ended_at = pw.DateTimeField(null=True)
     track_temp = pw.FloatField(null=True)
     air_temp = pw.FloatField(null=True)
     game_session_uid = pw.CharField(unique=True, null=True)
-    # --- REFACTOR END ---
-
 
 class Stint(BaseModel):
     session = pw.ForeignKeyField(Session, backref='stints', on_delete='CASCADE', index=True)
     stint_number = pw.IntegerField()
     started_on_lap = pw.IntegerField()
     ended_on_lap = pw.IntegerField(null=True)
-
 
 class Lap(BaseModel):
     stint = pw.ForeignKeyField(Stint, backref='laps', on_delete='CASCADE', index=True)
@@ -64,20 +54,56 @@ class Lap(BaseModel):
     is_valid = pw.BooleanField()
     timestamp = pw.DateTimeField(default=datetime.now)
 
+# --- DATABASE REFACTOR START ---
+# The old TelemetryChannel, TelemetrySnapshot, and TelemetryValue tables are removed.
+# They are replaced with a single, high-performance "wide" format table.
 
-class TelemetryChannel(BaseModel):
-    name = pw.CharField(unique=True)
-
-
-class TelemetrySnapshot(BaseModel):
-    lap = pw.ForeignKeyField(Lap, backref='snapshots', on_delete='CASCADE', index=True)
+class LapTelemetry(BaseModel):
+    """
+    Stores a full snapshot of telemetry data at a specific point in a lap.
+    This "wide" format is optimized for fast read performance for lap charts.
+    """
+    lap = pw.ForeignKeyField(Lap, backref='telemetry', on_delete='CASCADE', index=True)
     lap_dist = pw.FloatField()
+    
+    # Core Channels
+    throttle = pw.FloatField()
+    brake = pw.FloatField()
+    steering = pw.FloatField()
+    speed = pw.FloatField()
+    rpm = pw.FloatField()
+    gear = pw.IntegerField()
+    fuel_level = pw.FloatField()
+    drs_active = pw.IntegerField()
 
+    # Track position
+    pos_x = pw.FloatField(null=True)
+    pos_y = pw.FloatField(null=True)
+    pos_z = pw.FloatField(null=True)
+    
+    # Tire Pressures
+    tire_pressure_fl = pw.FloatField()
+    tire_pressure_fr = pw.FloatField()
+    tire_pressure_rl = pw.FloatField()
+    tire_pressure_rr = pw.FloatField()
 
-class TelemetryValue(BaseModel):
-    snapshot = pw.ForeignKeyField(TelemetrySnapshot, backref='values', on_delete='CASCADE', index=True)
-    channel = pw.ForeignKeyField(TelemetryChannel, backref='values', on_delete='CASCADE', index=True)
-    value = pw.FloatField()
+    # Tire Wear
+    tire_wear_fl = pw.FloatField()
+    tire_wear_fr = pw.FloatField()
+    tire_wear_rl = pw.FloatField()
+    tire_wear_rr = pw.FloatField()
 
-    class Meta:
-        primary_key = pw.CompositeKey('snapshot', 'channel')
+    # Tire Temps (Inner/Middle/Outer for each wheel)
+    tire_temp_fl_i = pw.FloatField()
+    tire_temp_fl_m = pw.FloatField()
+    tire_temp_fl_o = pw.FloatField()
+    tire_temp_fr_i = pw.FloatField()
+    tire_temp_fr_m = pw.FloatField()
+    tire_temp_fr_o = pw.FloatField()
+    tire_temp_rl_i = pw.FloatField()
+    tire_temp_rl_m = pw.FloatField()
+    tire_temp_rl_o = pw.FloatField()
+    tire_temp_rr_i = pw.FloatField()
+    tire_temp_rr_m = pw.FloatField()
+    tire_temp_rr_o = pw.FloatField()
+# --- DATABASE REFACTOR END ---

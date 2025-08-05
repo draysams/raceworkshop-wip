@@ -2,8 +2,8 @@
 
 from .models import (
     db, Session, Stint, Lap, 
-    TelemetryChannel, TelemetrySnapshot, TelemetryValue,
-    Simulator, Track, Car, Driver  # <-- Import new models
+    Simulator, Track, Car, Driver,
+    LapTelemetry # <-- Import the new model
 )
 
 def initialize_database():
@@ -14,12 +14,13 @@ def initialize_database():
     try:
         db.connect()
       
+        # --- CHANGE START: Update the table creation list ---
         db.create_tables([
-            # --- Add new models to the creation list ---
             Simulator, Track, Car, Driver,
             Session, Stint, Lap, 
-            TelemetryChannel, TelemetrySnapshot, TelemetryValue
+            LapTelemetry # <-- Add the new table, remove the old three
         ])
+        # --- CHANGE END ---
 
         print("Database initialized successfully.", flush=True)
     except Exception as e:

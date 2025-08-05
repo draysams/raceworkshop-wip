@@ -7,7 +7,7 @@ from rw_backend.dtos.session_dtos import map_session_to_summary_dto
 
 class DashboardApi:
     def getGlobalDashboardStats(self):
-        print("API CALL: getGlobalDashboardStats")
+        print("API CALL: getGlobalDashboardStats", flush=True)
         try:
             total_sessions = Session.select().count()
             total_laps = Lap.select().count()
@@ -34,11 +34,11 @@ class DashboardApi:
             }
             return json.dumps(stats)
         except Exception as e:
-            print(f"Error fetching global dashboard stats: {e}")
+            print(f"Error fetching global dashboard stats: {e}", flush=True)
             return json.dumps({})
 
     def getModuleDashboardStats(self, simulatorId):
-        print(f"API CALL: getModuleDashboardStats for {simulatorId}")
+        print(f"API CALL: getModuleDashboardStats for {simulatorId}", flush=True)
         # NOTE: This is a placeholder for now. For this to work correctly, a `simulator`
         # field needs to be added to the `Session` model. For now, it returns global stats.
         # We will implement the full, detailed query in the next step.
