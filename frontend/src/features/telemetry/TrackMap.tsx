@@ -38,11 +38,24 @@ interface TrackMapProps {
     throttle: TelemetryDataSet
     brake: TelemetryDataSet
   } | null
+  trackName?: string // Add track name prop
 }
 
 interface CarPathSegment {
   pathData: string
   color: string
+}
+
+// Track name to SVG file mapping
+const TRACK_SVG_MAP: Record<string, string> = {
+  'Algarve International Circuit': '/assets/tracks/6 Hours of Portimao - Algarve International Circuit.svg',
+  'Fuji Speedway': '/assets/tracks/6 Hours of Fuji - Fuji Speedway.svg',
+  'Imola': '/assets/tracks/6 Hours of Imola - Autodromo Enzo e Dino Ferrari.svg',
+}
+
+// Helper function to get track SVG path
+const getTrackSvgPath = (trackName: string): string => {
+  return TRACK_SVG_MAP[trackName] || '/assets/tracks/default-track.svg'
 }
 
 export function TrackMap({
@@ -52,12 +65,13 @@ export function TrackMap({
   zoomRange,
   onTrackMapError,
   telemetryData,
+  trackName,
 }: TrackMapProps) {
   const [trackPathD, setTrackPathD] = useState<string>("")
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [tool, setTool] = useState(TOOL_AUTO)
-  const [value, setValue] = useState({})
+  const [value, setValue] = useState<any>({})
   const viewerRef = useRef<any>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 })
@@ -86,9 +100,10 @@ export function TrackMap({
         setLoading(true)
         setError(null)
 
-        const response = await fetch(
-          "https://xttutongfcumlplt.public.blob.vercel-storage.com/bahrain-paddock-track-map.svg",
-        )
+        // Get the SVG path based on track name
+        const svgPath = trackName ? getTrackSvgPath(trackName) : '/assets/tracks/default-track.svg'
+        
+        const response = await fetch(svgPath)
         if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`)
 
         const svgText = await response.text()
@@ -128,7 +143,7 @@ export function TrackMap({
     }
 
     fetchAndParseSvg()
-  }, [onTrackMapError])
+  }, [onTrackMapError, trackName])
 
   // Memoized helper function to get color based on real telemetry data
   const getPointColor = useCallback(

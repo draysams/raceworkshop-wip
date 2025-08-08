@@ -53,7 +53,7 @@ class TelemetryApi:
                 # Append to the track path
                 response_data['trackpath'].append({
                     'distance': dist,
-                    'x': row['pos_x'],
+                    'x': -row['pos_x'],
                     'y': row['pos_z'] # Use Z for the 2D map's Y-axis
                 })
 

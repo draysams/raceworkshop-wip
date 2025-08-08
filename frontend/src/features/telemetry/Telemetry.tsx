@@ -486,14 +486,15 @@ export default function Telemetry({ sessionId, lapNumber, onBackToSessionDetail 
                   <CardTitle className="text-white">Track Map</CardTitle>
                 </CardHeader>
                 <CardContent className="flex-1 min-h-0">
-                  <TrackMap
-                    trackPathData={trackPathData}
-                    hoveredData={hoveredData}
-                    setHoveredData={() => {}} // No direct interaction with track map
-                    zoomRange={zoomRange}
-                    onTrackMapError={setTrackMapError}
-                    telemetryData={trackMapTelemetryData}
-                  />
+                                     <TrackMap
+                     trackPathData={trackPathData}
+                     hoveredData={hoveredData}
+                     setHoveredData={() => {}} // No direct interaction with track map
+                     zoomRange={zoomRange}
+                     onTrackMapError={setTrackMapError}
+                     telemetryData={trackMapTelemetryData}
+                     trackName={telemetryData ? "Algarve International Circuit" : undefined}
+                   />
                 </CardContent>
               </Card>
             </div>
