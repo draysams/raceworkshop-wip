@@ -21,13 +21,11 @@ export function ModuleDashboard({ moduleId, onNavigate }: ModuleDashboardProps) 
         moduleId = "lmu" // Default to LMU if no module is specified
     }
     const [stats, setStats] = useState<ModuleDashboardStats | null>(null)
-    // --- CHANGE START: Add state for the simulator list ---
     const [simulators, setSimulators] = useState<Simulator[]>([])
-    // --- CHANGE END ---
 
     const moduleConfig = features[moduleId]
 
-    // --- CHANGE START: Fetch the list of simulators on mount ---
+    // Fetch the list of simulators on mount
     useEffect(() => {
         const fetchSims = async () => {
             const simList = await api.simulators.getSimulatorList();
@@ -35,15 +33,29 @@ export function ModuleDashboard({ moduleId, onNavigate }: ModuleDashboardProps) 
         };
         fetchSims();
     }, []);
-    // --- CHANGE END ---
 
     useEffect(() => {
         if (!moduleId || !moduleConfig || simulators.length === 0) return;
 
         // Find the correct simulator ID from the fetched list
-        const currentSim = simulators.find(sim => sim.name === moduleConfig.name);
+        // Convert the frontend module name to match backend naming convention
+        const frontendSimName = moduleConfig.name;
+        const backendSimName = frontendSimName.toLowerCase().replace(/\s+/g, '');
+        
+        const currentSim = simulators.find(sim => {
+            // Try exact match first
+            if (sim.name.toLowerCase().replace(/\s+/g, '') === backendSimName) {
+                return true;
+            }
+            // Try partial match
+            if (sim.name.toLowerCase().includes(backendSimName) || backendSimName.includes(sim.name.toLowerCase())) {
+                return true;
+            }
+            return false;
+        });
+        
         if (!currentSim) {
-            console.warn(`Simulator "${moduleConfig.name}" not found in database.`);
+            console.warn(`Simulator "${moduleConfig.name}" not found in database. Available simulators:`, simulators.map(s => s.name));
             return;
         }
 
@@ -59,15 +71,11 @@ export function ModuleDashboard({ moduleId, onNavigate }: ModuleDashboardProps) 
         };
 
         fetchModuleStats();
-    }, [moduleId, moduleConfig, simulators]); // Re-run when the list of simulators is available
+    }, [moduleId, moduleConfig, simulators]);
 
     if (!moduleConfig) {
         return <div className="p-6 text-center"><p className="text-gray-400">Module not found</p></div>;
     }
-
-
-
-    
 
     // Simulate auto-detection
     useEffect(() => {
@@ -78,9 +86,6 @@ export function ModuleDashboard({ moduleId, onNavigate }: ModuleDashboardProps) 
         }, 3000)
         return () => clearTimeout(timer)
     }, [])
-
-
-
 
     const [isTransponderActive, setIsTransponderActive] = useState(false)
     const [autoDetected, setAutoDetected] = useState(false)
@@ -99,12 +104,13 @@ export function ModuleDashboard({ moduleId, onNavigate }: ModuleDashboardProps) 
                             setAutoDetected={setAutoDetected}
                         />  
                         {/* Performance Analytics Section */}
-                        <PerformanceAnalyticsWidget />
+                        <PerformanceAnalyticsWidget stats={stats} />
                         {/* Bottom Section - Takes remaining space */}
                         <div className="grid lg:grid-cols-3 gap-6 min-h-0 flex-1">
                             {/* Recent Sessions - Scrollable */}
                             <RecentSessionsWidget
                                 moduleId={moduleId}
+                                sessions={stats?.recentSessions || []}
                                 onAnalyse={() => onNavigate("sessions")}
                                 onViewAll={() => onNavigate("sessions")}
                             />

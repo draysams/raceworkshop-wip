@@ -19,11 +19,23 @@ def map_session_to_summary_dto(session: Session) -> dict:
     best_lap_s = min((lap.lap_time for lap in valid_laps), default=None)
     average_lap_s = (sum(lap.lap_time for lap in valid_laps) / len(valid_laps)) if valid_laps else None
     duration_s = (session.ended_at - session.started_at).total_seconds() if session.ended_at else 0
+    
+    # Create a meaningful car name
+    car_name = ""
+    if session.car.model and session.car.car_class:
+        car_name = f"{session.car.model} {session.car.car_class}"
+    elif session.car.model:
+        car_name = session.car.model
+    elif session.car.car_class:
+        car_name = session.car.car_class
+    else:
+        car_name = "Unknown Car"
+    
     return {
         "id": session.id,
         "simulator": session.simulator.name.lower().replace(" ", ""),
         "track": session.track.name,
-        "car": session.car.model,
+        "car": car_name,
         "sessionType": session.session_type,
         "date": session.started_at.isoformat(),
         "dateEnded": session.ended_at.isoformat() if session.ended_at else None,
