@@ -2,6 +2,8 @@ import { useState, useEffect, useMemo, useRef } from "react"
 import type { LapData, LiveSessionData } from "../../shared/types";
 import { formatTimeFromMs } from "../../shared/utils/formatters";
 import { api } from "../../services/api";
+import { FeatureNavigation } from "../../components/navigation/FeatureNavigation";
+import { FeatureLayout } from "../../components/layout/FeatureLayout";
 
 const initialData: LiveSessionData = {
     sessionId: null,
@@ -21,7 +23,7 @@ const initialData: LiveSessionData = {
     optimalLapTime: '--:--.---',
     // lastLap is optional and will be undefined initially
 };
-export function LMUTransponder() {
+export function Transponder() {
 const [liveData, setLiveData] = useState<LiveSessionData>(initialData);
     
     // State for the lap history table
@@ -116,7 +118,7 @@ const [liveData, setLiveData] = useState<LiveSessionData>(initialData);
 
 
     return (
-        <div className="flex-1 overflow-auto bg-black">
+       <FeatureLayout header={<FeatureNavigation />}>
             <div className="p-6">
                 <div className="mb-6">
                     <div className="flex items-center justify-between mb-4">
@@ -346,6 +348,6 @@ const [liveData, setLiveData] = useState<LiveSessionData>(initialData);
                     </div>
                 )}
             </div>
-        </div>
+        </FeatureLayout>
     )
 }

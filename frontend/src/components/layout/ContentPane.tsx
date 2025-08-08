@@ -1,47 +1,76 @@
-import type { ViewState } from "../../src/hooks/useViewManager"
+
 import { ModuleDashboard } from "../../features/dashboard/ModuleDashboard"
-import { GlobalDashboard } from "../../features/dashboard/GlobalDashboard"
-import { LMUTransponder } from "../../features/lmu/Transponder"
-import { ACCTransponder } from "../../features/acc/Transponder"
-import { SessionManager } from "../../features/sessions/SessionManager"
+import { Transponder } from "../../features/transponder/Transponder"
+import { SessionHistory } from "../../features/sessions/SessionHistory"
+import { SessionDetail } from "../../features/sessions/SessionDetail"
+import Telemetry from "../../features/telemetry/Telemetry"
+import RaceEngineer from "../../features/engineer/RaceEngineer"
+import { useViewManager } from "../../hooks/useViewManager"
 
-interface ContentPaneProps {
-    activeView: ViewState
-    onNavigate: (submoduleId: string) => void
-    onModuleSelect: (moduleId: string) => void
-}
+export function ContentPane() {
+    const viewManager = useViewManager()
 
-export function ContentPane({ activeView, onNavigate, onModuleSelect }: ContentPaneProps) {
-    // No module selected - show global dashboard
-    if (!activeView.module) {
-        return (
-            <GlobalDashboard
-                onModuleSelect={onModuleSelect}
-                onNavigateToSessions={(moduleId) => {
-                    onModuleSelect(moduleId)
-                    onNavigate("sessions")
-                }}
-            />
-        )
-    }
-
-    // Dashboard view (submodule is null)
-    if (!activeView.submodule) {
-        return <ModuleDashboard moduleId={activeView.module} onNavigate={onNavigate} />
+    // Dashboard view (submodule is null or "dashboard")
+    if (!viewManager.activeView.submodule || viewManager.activeView.submodule === "dashboard") {
+        return <ModuleDashboard moduleId={viewManager.activeView.module ?? "lmu"} onNavigate={viewManager.setActiveSubmodule} />
     }
 
     // Specific submodule views
     const renderSubmodule = () => {
-        const key = `${activeView.module}-${activeView.submodule}`
+        const key = `${viewManager.activeView.submodule}`
 
         switch (key) {
-            case "lmu-transponder":
-                return <LMUTransponder />
-            case "acc-transponder":
-                return <ACCTransponder />
-            case "lmu-sessions":
-            case "acc-sessions":
-                return <SessionManager />
+            case "transponder":
+                return <Transponder />
+            case "sessions":
+                return <SessionHistory onViewSession={viewManager.setActiveSession} />
+            case "session-detail":
+                if (!viewManager.activeView.sessionId) {
+                    return (
+                        <div className="p-6 text-center bg-black">
+                            <p className="text-gray-400">No session selected</p>
+                        </div>
+                    )
+                }
+                return (
+                    <SessionDetail 
+                        sessionId={viewManager.activeView.sessionId} 
+                        onBack={() => viewManager.setActiveSubmodule("sessions")}
+                        onViewTelemetry={(lapNumber) => {
+                            // Navigate to telemetry view with session and lap data
+                            viewManager.setActiveTelemetry(viewManager.activeView.sessionId!, lapNumber)
+                        }}
+                    />
+                )
+            case "telemetry":
+                if (!viewManager.activeView.telemetryData) {
+                    return (
+                        <div className="p-6 text-center bg-black">
+                            <p className="text-gray-400">No telemetry data available</p>
+                        </div>
+                    )
+                }
+                return (
+                    <Telemetry 
+                        sessionId={viewManager.activeView.telemetryData.sessionId}
+                        lapNumber={viewManager.activeView.telemetryData.lapNumber}
+                        onBackToSessionDetail={() => viewManager.setActiveSession(viewManager.activeView.telemetryData!.sessionId)}
+                    />
+                )
+            case "engineer":
+                return <RaceEngineer />
+            case "paintshop":
+                return (
+                    <div className="p-6 text-center bg-black">
+                        <p className="text-gray-400">Paint Shop feature coming soon</p>
+                    </div>
+                )
+            case "teams":
+                return (
+                    <div className="p-6 text-center bg-black">
+                        <p className="text-gray-400">Teams feature coming soon</p>
+                    </div>
+                )
             default:
                 return (
                     <div className="p-6 text-center bg-black">

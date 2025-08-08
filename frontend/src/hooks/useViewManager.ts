@@ -1,29 +1,46 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import React, { useState, useCallback, createContext, useContext, ReactNode } from "react"
 
 export interface ViewState {
     module: string | null
     submodule: string | null
+    sessionId?: number | null
+    telemetryData?: {
+        sessionId: number
+        lapNumber: number
+    } | null
 }
 
 export interface ViewManager {
     activeView: ViewState
     setActiveModule: (moduleId: string) => void
     setActiveSubmodule: (submoduleId: string) => void
+    setActiveSession: (sessionId: number) => void
+    setActiveTelemetry: (sessionId: number, lapNumber: number) => void
     goToDashboard: () => void
 }
 
-export function useViewManager(): ViewManager {
+const ViewManagerContext = createContext<ViewManager | null>(null)
+
+interface ViewManagerProviderProps {
+    children: ReactNode
+}
+
+export function ViewManagerProvider({ children }: ViewManagerProviderProps) {
     const [activeView, setActiveView] = useState<ViewState>({
         module: null,
         submodule: null,
+        sessionId: null,
+        telemetryData: null,
     })
 
     const setActiveModule = useCallback((moduleId: string) => {
         setActiveView({
             module: moduleId,
-            submodule: null, // Reset to dashboard when changing modules
+            submodule: null,
+            sessionId: null,
+            telemetryData: null,
         })
     }, [])
 
@@ -31,6 +48,29 @@ export function useViewManager(): ViewManager {
         setActiveView((prev) => ({
             ...prev,
             submodule: submoduleId,
+            sessionId: null,
+            telemetryData: null,
+        }))
+    }, [])
+
+    const setActiveSession = useCallback((sessionId: number) => {
+        setActiveView((prev) => ({
+            ...prev,
+            submodule: "session-detail",
+            sessionId: sessionId,
+            telemetryData: null,
+        }))
+    }, [])
+
+    const setActiveTelemetry = useCallback((sessionId: number, lapNumber: number) => {
+        setActiveView((prev) => ({
+            ...prev,
+            submodule: "telemetry",
+            sessionId: null,
+            telemetryData: {
+                sessionId,
+                lapNumber,
+            },
         }))
     }, [])
 
@@ -38,13 +78,27 @@ export function useViewManager(): ViewManager {
         setActiveView((prev) => ({
             ...prev,
             submodule: null,
+            sessionId: null,
+            telemetryData: null,
         }))
     }, [])
 
-    return {
+    const viewManager: ViewManager = {
         activeView,
         setActiveModule,
         setActiveSubmodule,
+        setActiveSession,
+        setActiveTelemetry,
         goToDashboard,
     }
+
+    return React.createElement(ViewManagerContext.Provider, { value: viewManager }, children)
+}
+
+export function useViewManager(): ViewManager {
+    const context = useContext(ViewManagerContext)
+    if (!context) {
+        throw new Error("useViewManager must be used within a ViewManagerProvider")
+    }
+    return context
 }

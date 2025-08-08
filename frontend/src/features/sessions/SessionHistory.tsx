@@ -1,491 +1,633 @@
-"use client"
+import { Search, Filter, ArrowDown, ArrowUp, X, Link, Calendar, Clock, MapPin, Car, Thermometer, Trophy } from "lucide-react"
+import  { useCallback, useEffect, useState } from "react"
+import  { Label } from "recharts"
+import  { Button } from "../../components/ui/button"
+import { Card, CardContent } from "../../components/ui/card"
 
-import { useState, useMemo, useEffect, useCallback } from "react"
-import { features } from "../../../features.config"
-import { DateRangePicker } from "../../components/ui/DateRangePicker"
-import { api } from "../../services/api";
-import type { SessionFilters } from "../../shared/types";
-import type { SessionSummary } from "../../shared/types";
-import { formatDurationFromMs, formatTimeFromMs } from "../../shared/utils/formatters";
+import { Input } from "../../components/ui/input"
 
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../../components/ui/dialog"
+import { Badge } from "../../components/ui/badge"
+import { FeatureLayout } from "../../components/layout/FeatureLayout"
+import { FeatureNavigation } from "../../components/navigation/FeatureNavigation"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select"
+import { Separator } from "../../components/ui/separator"
+import { api } from "../../services/api"
+import { SessionFilters, SessionSummary } from "../../shared/types"
 
-interface SessionHistoryProps {
+interface ISessionHistoryProps {
     onViewSession: (sessionId: number) => void
 }
 
-export function SessionHistory({ onViewSession }: SessionHistoryProps) {
-    const [sessions, setSessions] = useState<SessionSummary[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+export function SessionHistory({ onViewSession }: ISessionHistoryProps) {
+  const [searchTerm, setSearchTerm] = useState("")
+  const [filters, setFilters] = useState<string[]>([])
+  const [sortBy, setSortBy] = useState("")
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
+  const [isFilterDialogOpen, setIsFilterDialogOpen] = useState(false)
 
-    // Keep this single state object for all filters
-    const [filters, setFilters] = useState<SessionFilters>({
-        simulator: "all",
-        sessionType: "all",
-        track: "all",
-        car: "all",
-        dateFrom: "",
-        dateTo: "",
-        sortBy: "date",
-        sortOrder: "desc",
-    });
+  const sessions = [
+    {
+      id: 1,
+      date: "2024-01-15",
+      time: "14:30",
+      track: "Silverstone GP",
+      car: "Porsche 911 GT3 R",
+      carClass: "GT3",
+      simulator: "iRacing",
+      sessionType: "Race",
+      temperature: "22°C",
+      trackTemp: "28°C",
+      bestLap: "1:58.342",
+      totalLaps: 45,
+      validLaps: 42,
+      invalidLaps: 3,
+      duration: "1h 23m",
+      avgLap: "2:01.156",
+    },
+    {
+      id: 2,
+      date: "2024-01-14",
+      time: "19:45",
+      track: "Spa-Francorchamps",
+      car: "Porsche 911 RSR",
+      carClass: "GTE",
+      simulator: "ACC",
+      sessionType: "Practice",
+      temperature: "18°C",
+      trackTemp: "24°C",
+      bestLap: "2:17.891",
+      totalLaps: 32,
+      validLaps: 30,
+      invalidLaps: 2,
+      duration: "1h 15m",
+      avgLap: "2:20.445",
+    },
+    {
+      id: 3,
+      date: "2024-01-13",
+      time: "16:20",
+      track: "Nürburgring GP",
+      car: "Porsche 911 GT3 Cup",
+      carClass: "Cup",
+      simulator: "iRacing",
+      sessionType: "Qualifying",
+      temperature: "15°C",
+      trackTemp: "19°C",
+      bestLap: "1:47.234",
+      totalLaps: 38,
+      validLaps: 35,
+      invalidLaps: 3,
+      duration: "1h 08m",
+      avgLap: "1:49.567",
+    },
+    // Add more sessions for scrolling demo
+    ...Array.from({ length: 10 }, (_, i) => ({
+      id: i + 4,
+      date: `2024-01-${12 - i}`,
+      time: "16:20",
+      track: `Track ${i + 1}`,
+      car: "Porsche 911 GT3 Cup",
+      carClass: "Cup",
+      simulator: "ACC",
+      sessionType: i % 3 === 0 ? "Race" : i % 3 === 1 ? "Practice" : "Qualifying",
+      temperature: `${15 + i}°C`,
+      trackTemp: `${19 + i}°C`,
+      bestLap: "1:47.234",
+      totalLaps: 38 + i,
+      validLaps: 35 + i,
+      invalidLaps: 3,
+      duration: "1h 08m",
+      avgLap: "1:49.567",
+    })),
+    {
+      id: 14,
+      date: "2024-01-10",
+      time: "18:15",
+      track: "Algarve International Circuit-748557515",
+      car: "WEC 2023, GTE, Ferrari 488 GTE EVO",
+      carClass: "GTE",
+      simulator: "ACC",
+      sessionType: "Race",
+      temperature: "24°C",
+      trackTemp: "31°C",
+      bestLap: "1:39.847",
+      totalLaps: 67,
+      validLaps: 64,
+      invalidLaps: 3,
+      duration: "1h 45m",
+      avgLap: "1:42.234",
+    },
+    {
+      id: 15,
+      date: "2024-01-09",
+      time: "15:30",
+      track: "Autódromo José Carlos Pace 1.19.2",
+      car: "Porsche 911 GT3 R (2019) - Championship Edition",
+      carClass: "GT3",
+      simulator: "iRacing",
+      sessionType: "Practice",
+      temperature: "28°C",
+      trackTemp: "35°C",
+      bestLap: "1:08.923",
+      totalLaps: 89,
+      validLaps: 85,
+      invalidLaps: 4,
+      duration: "2h 12m",
+      avgLap: "1:11.456",
+    },
+  ]
 
-    const fetchSessions = useCallback(async () => {
-        setIsLoading(true);
-        try {
-            //TODO add filters to the API call when implemented
-            // const fetchedSessions = await api.db.getSessionHistory(filters);
-            // setSessions(fetchedSessions);
-
-             const fetchedSessions = await api.sessions.getSessionHistory(filters);
-            setSessions(fetchedSessions);
-        } catch (error) {
-            console.error("Failed to fetch session history:", error);
-            setSessions([]);
-        } finally {
-            setIsLoading(false);
-        }
-    }, [filters]);
-
-    useEffect(() => {
-        fetchSessions();
-    }, [fetchSessions]);
-
-
-
-
-    // Unique values for dropdowns are derived from the fetched data.
-    const { uniqueTracks, uniqueCars } = useMemo(() => {
-        const allTracks = [...new Set(sessions.map((s) => s.track))].sort();
-        const allCars = [...new Set(sessions.map((s) => s.car))].sort();
-        return { uniqueTracks: allTracks, uniqueCars: allCars };
-    }, [sessions]);
-
-    const summaryStats = useMemo(() => {
-        if (sessions.length === 0) {
-            return {
-                totalSessions: 0, totalDistance: 0, totalLaps: 0, totalValidLaps: 0,
-                totalDuration: 0, totalFuelUsed: 0, averageLapTime: 0, bestLapTime: 0,
-                sessionTypeBreakdown: {}, simulatorBreakdown: {},
-            }
-        }
-
-        const totalDistance = sessions.reduce((sum, s) => sum + s.distance, 0);
-        const totalLaps = sessions.reduce((sum, s) => sum + s.totalLaps, 0);
-        const totalValidLaps = sessions.reduce((sum, s) => sum + s.validLaps, 0);
-        const totalDuration = sessions.reduce((sum, s) => sum + s.durationMs, 0);
-        const totalFuelUsed = sessions.reduce((sum, s) => sum + s.fuelUsed, 0);
-
-        const validLapSessions = sessions.filter(s => s.averageLapMs && s.validLaps > 0);
-        const totalWeightedMs = validLapSessions.reduce((sum, s) => sum + (s.averageLapMs || 0) * s.validLaps, 0);
-        const totalValidLapsForAvg = validLapSessions.reduce((sum, s) => sum + s.validLaps, 0);
-        const averageLapTime = totalValidLapsForAvg > 0 ? totalWeightedMs / totalValidLapsForAvg : 0;
-
-        const bestLapTime = Math.min(...sessions.map(s => s.bestLapMs || Infinity).filter(t => t > 0));
-
-        const sessionTypeBreakdown = sessions.reduce((acc, s) => {
-            acc[s.sessionType] = (acc[s.sessionType] || 0) + 1;
-            return acc;
-        }, {} as Record<string, number>);
-
-        const simulatorBreakdown = sessions.reduce((acc, s) => {
-            acc[s.simulator] = (acc[s.simulator] || 0) + 1;
-            return acc;
-        }, {} as Record<string, number>);
-
-        return {
-            totalSessions: sessions.length, totalDistance, totalLaps, totalValidLaps,
-            totalDuration, totalFuelUsed, averageLapTime, bestLapTime,
-            sessionTypeBreakdown, simulatorBreakdown,
-        };
-    }, [sessions]);
-
-    // Generic handler to update a filter property
-    const handleFilterChange = (filterName: keyof SessionFilters, value: string) => {
-        setFilters(prev => ({ ...prev, [filterName]: value }));
-    };
-
-
-    const handleSort = (newSortBy: string) => {
-        handleFilterChange('sortBy', newSortBy);
-        if (filters.sortBy === newSortBy) {
-            handleFilterChange('sortOrder', filters.sortOrder === 'asc' ? 'desc' : 'asc');
-        } else {
-            handleFilterChange('sortOrder', 'desc');
-        }
-    };
-
-    const getSortIcon = (column: string) => {
-        if (filters.sortBy !== column) {
-            return <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" /></svg>;
-        }
-        return filters.sortOrder === 'asc' ? <svg className="w-4 h-4 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" /></svg> : <svg className="w-4 h-4 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h9m5-4v12m0 0l-4-4m4 4l4-4" /></svg>;
-    };
-
-    const clearAllFilters = () => {
-        setFilters({
-            simulator: "all", sessionType: "all", track: "all", car: "all",
-            dateFrom: "", dateTo: "", sortBy: "date", sortOrder: "desc",
-        });
-    };
-
-    const hasActiveFilters = filters.simulator !== "all" || filters.sessionType !== "all" || filters.track !== "all" || filters.car !== "all" || filters.dateFrom !== "" || filters.dateTo !== "";
-    const enabledSimulators = Object.entries(features).filter(([, config]) => config.enabled);
-
-    if (isLoading) {
-        return <div className="p-6 text-center text-gray-400">Loading session history...</div>;
+  const addFilter = (filterType: string, value: string) => {
+    const filterString = `${filterType}: ${value}`
+    if (!filters.includes(filterString)) {
+      setFilters([...filters, filterString])
     }
+  }
 
-    return (
-        <div className="flex-1 overflow-auto bg-black">
-            <div className="p-6">
-                <div className="mb-6">
-                    <h1 className="text-2xl font-semibold text-white mb-2">Session History</h1>
-                    <p className="text-gray-400">Comprehensive view and analysis of all your racing sessions</p>
+  const removeFilter = (filter: string) => {
+    setFilters(filters.filter((f) => f !== filter))
+  }
+
+  const clearAllFilters = () => {
+    setFilters([])
+    setSortBy("")
+    setSortOrder("desc")
+  }
+
+  const applySort = (field: string, order: "asc" | "desc") => {
+    setSortBy(field)
+    setSortOrder(order)
+    // Add sort indicator to filters for display
+    const sortString = `Sort: ${field} (${order === "asc" ? "↑" : "↓"})`
+    const newFilters = filters.filter((f) => !f.startsWith("Sort:"))
+    setFilters([...newFilters, sortString])
+  }
+
+  const getSessionTypeColor = (type: string) => {
+    switch (type) {
+      case "Race":
+        return "bg-red-600/20 text-red-300 border-red-600/30"
+      case "Practice":
+        return "bg-blue-600/20 text-blue-300 border-blue-600/30"
+      case "Qualifying":
+        return "bg-yellow-600/20 text-yellow-300 border-yellow-600/30"
+      default:
+        return "bg-zinc-600/20 text-zinc-300 border-zinc-600/30"
+    }
+  }
+
+  const [apiSessions, setApiSessions] = useState<SessionSummary[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Keep this single state object for all filters
+  const [apiFilters, setApiFilters] = useState<SessionFilters>({
+      simulator: "all",
+      sessionType: "all",
+      track: "all",
+      car: "all",
+      dateFrom: "",
+      dateTo: "",
+      sortBy: "date",
+      sortOrder: "desc",
+  });
+
+  const fetchSessions = useCallback(async () => {
+    setIsLoading(true);
+    try {
+        //TODO add filters to the API call when implemented
+        // const fetchedSessions = await api.db.getSessionHistory(filters);
+        // setSessions(fetchedSessions);
+
+         const fetchedSessions = await api.sessions.getSessionHistory(apiFilters);
+         console.log(fetchedSessions);
+        setApiSessions(fetchedSessions);
+    } catch (error) {
+        console.error("Failed to fetch session history:", error);
+        setApiSessions([]);
+    } finally {
+        setIsLoading(false);
+    }
+}, [apiFilters]);
+
+useEffect(() => {
+    fetchSessions();
+}, [fetchSessions]);
+
+  return (
+    <FeatureLayout header={<FeatureNavigation />}>
+      {/* Main Content Area */}
+      <div className="flex-1 overflow-hidden">
+        <div className="h-full px-6 py-6 flex flex-col">
+          {/* Header */}
+          <div className="mb-6 flex-shrink-0">
+            <h1 className="text-3xl font-bold text-white mb-2">Racing Sessions</h1>
+            <p className="text-zinc-400">
+              Analyze your racing history with advanced filtering and detailed session data
+            </p>
+          </div>
+
+          {/* Search and Filter Bar */}
+          <Card className="bg-zinc-900/50 border-zinc-800 mb-6 flex-shrink-0">
+            <CardContent className="p-6">
+              <div className="flex flex-col lg:flex-row gap-4">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-zinc-400 w-4 h-4" />
+                  <Input
+                    placeholder="Search sessions..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10 bg-zinc-800 border-zinc-700 text-white"
+                  />
                 </div>
 
-                {/* Advanced Filters and Controls */}
-                <div className="bg-surface border border-gray-800 rounded-lg p-4 mb-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-4">
-                        <div>
-                            <label className="block text-sm text-gray-400 mb-2">Simulator</label>
-                            <select
-                                value={filters.simulator}
-                                onChange={(e) => handleFilterChange('simulator', e.target.value)}
-                                className="w-full bg-black border border-gray-800 rounded px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-accent"
-                            >
-                                <option value="all">All Simulators</option>
-                                {enabledSimulators.map(([moduleId, config]) => (
-                                    <option key={moduleId} value={moduleId}>
-                                        {config.icon} {config.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
+                <div className="flex gap-2">
+                  <Select onValueChange={(value) => addFilter("Track", value)}>
+                    <SelectTrigger className="w-48 bg-zinc-800 border-zinc-700 text-white">
+                      <SelectValue placeholder="Track" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Silverstone GP">Silverstone GP</SelectItem>
+                      <SelectItem value="Spa-Francorchamps">Spa-Francorchamps</SelectItem>
+                      <SelectItem value="Nürburgring GP">Nürburgring GP</SelectItem>
+                      <SelectItem value="Monza">Monza</SelectItem>
+                      <SelectItem value="Algarve International Circuit-748557515">
+                        Algarve International Circuit
+                      </SelectItem>
+                      <SelectItem value="Autódromo José Carlos Pace 1.19.2">Autódromo José Carlos Pace</SelectItem>
+                    </SelectContent>
+                  </Select>
 
-                        <div>
-                            <label className="block text-sm text-gray-400 mb-2">Track</label>
-                            <select
-                                value={filters.track}
-                                onChange={(e) => handleFilterChange('track', e.target.value)}
-                                className="w-full bg-black border border-gray-800 rounded px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-accent"
-                            >
-                                <option value="all">All Tracks</option>
-                                {uniqueTracks.map((track: string) => (
-                                    <option key={track} value={track}>
-                                        {track}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
+                  <Select onValueChange={(value) => addFilter("Car", value)}>
+                    <SelectTrigger className="w-48 bg-zinc-800 border-zinc-700 text-white">
+                      <SelectValue placeholder="Car" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Porsche 911 GT3 R">911 GT3 R</SelectItem>
+                      <SelectItem value="Porsche 911 RSR">911 RSR</SelectItem>
+                      <SelectItem value="Porsche 911 GT3 Cup">911 GT3 Cup</SelectItem>
+                      <SelectItem value="WEC 2023, GTE, Ferrari 488 GTE EVO">Ferrari 488 GTE EVO</SelectItem>
+                      <SelectItem value="Porsche 911 GT3 R (2019) - Championship Edition">
+                        911 GT3 R (2019) Championship
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
 
-                        <div>
-                            <label className="block text-sm text-gray-400 mb-2">Car</label>
-                            <select
-                                value={filters.car}
-                                onChange={(e) => handleFilterChange('car', e.target.value)}
-                                className="w-full bg-black border border-gray-800 rounded px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-accent"
-                            >
-                                <option value="all">All Cars</option>
-                                {uniqueCars.map((car: string) => (
-                                    <option key={car} value={car}>
-                                        {car}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
+                  <Select onValueChange={(value) => addFilter("Car Class", value)}>
+                    <SelectTrigger className="w-40 bg-zinc-800 border-zinc-700 text-white">
+                      <SelectValue placeholder="Car Class" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="GT3">GT3</SelectItem>
+                      <SelectItem value="GTE">GTE</SelectItem>
+                      <SelectItem value="Cup">Cup</SelectItem>
+                      <SelectItem value="LMP1">LMP1</SelectItem>
+                    </SelectContent>
+                  </Select>
 
-                        <div>
-                            <label className="block text-sm text-gray-400 mb-2">Session Type</label>
-                            <select
-                                value={filters.sessionType}
-                                onChange={(e) => handleFilterChange('sessionType', e.target.value)}
-                                className="w-full bg-black border border-gray-800 rounded px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-accent"
-                            >
-                                <option value="all">All Types</option>
-                                <option value="race">Race</option>
-                                <option value="practice">Practice</option>
-                                <option value="qualifying">Qualifying</option>
-                            </select>
-                        </div>
+                  <Select onValueChange={(value) => addFilter("Session Type", value)}>
+                    <SelectTrigger className="w-40 bg-zinc-800 border-zinc-700 text-white">
+                      <SelectValue placeholder="Session Type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Race">Race</SelectItem>
+                      <SelectItem value="Practice">Practice</SelectItem>
+                      <SelectItem value="Qualifying">Qualifying</SelectItem>
+                    </SelectContent>
+                  </Select>
 
-                        <div className="md:col-span-2">
-                            <DateRangePicker
-                                fromDate={filters.dateFrom || ''}
-                                toDate={filters.dateTo || ''}
-                                onFromDateChange={(date) => handleFilterChange('dateFrom', date)}
-                                onToDateChange={(date) => handleFilterChange('dateTo', date)}
-                            />
-                        </div>
+                  <Dialog open={isFilterDialogOpen} onOpenChange={setIsFilterDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="border-zinc-700 text-zinc-300 hover:text-white bg-transparent"
+                      >
+                        <Filter className="w-4 h-4 mr-2" />
+                        More Filters
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="bg-gradient-to-br from-zinc-950 via-zinc-900 to-red-950 border-zinc-800 text-white w-[50vw] min-w-[800px] max-w-none">
+                      <DialogHeader>
+                        <DialogTitle>Advanced Filters & Sorting</DialogTitle>
+                      </DialogHeader>
+                      <div className="grid grid-cols-2 gap-6">
+                        {/* Filters Column */}
+                        <div className="space-y-4">
+                          <h3 className="text-lg font-semibold">Filters</h3>
 
-                        <div>
-                            <label className="block text-sm text-gray-400 mb-2">Sort By</label>
-                            <select
-                                value={filters.sortBy}
-                                onChange={(e) => handleFilterChange('sortBy', e.target.value)}
-                                className="w-full bg-black border border-gray-800 rounded px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-accent"
-                            >
-                                <option value="date">Date</option>
-                                <option value="track">Track</option>
-                                <option value="car">Car</option>
-                                <option value="bestLap">Best Lap Time</option>
-                                <option value="averageLap">Average Lap Time</option>
-                                <option value="laps">Lap Count</option>
-                                <option value="distance">Session Distance</option>
-                                <option value="duration">Session Duration</option>
-                                <option value="trackDistance">Total Track Distance</option>
-                                <option value="carDistance">Total Car Distance</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label className="block text-sm text-gray-400 mb-2">Order</label>
-                            <button
-                                onClick={() => handleFilterChange('sortOrder', filters.sortOrder === 'asc' ? 'desc' : 'asc')}
-                                className="w-full bg-black border border-gray-800 rounded px-3 py-2 text-white text-sm hover:bg-gray-800 transition-colors flex items-center justify-center gap-2"
-                            >
-                                {filters.sortOrder === "asc" ? "Ascending" : "Descending"}
-                                {getSortIcon(filters.sortBy || 'date')}
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Clear Filters Button */}
-                    {hasActiveFilters && (
-                        <div className="mb-4">
-                            <button
-                                onClick={clearAllFilters}
-                                className="px-4 py-2 bg-accent/10 hover:bg-accent/20 text-accent border border-accent/30 rounded-md text-sm font-medium transition-colors flex items-center gap-2"
-                            >
-                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                                Clear All Filters
-                            </button>
-                        </div>
-                    )}
-
-                    {/* Summary Statistics Bar */}
-                    <div className="border-t border-gray-800 pt-4">
-                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4">
-                            <div className="text-center">
-                                <div className="text-lg font-mono font-bold text-white">{summaryStats.totalSessions}</div>
-                                <div className="text-xs text-gray-400">Sessions</div>
+                          <div className="space-y-3">
+                            <div>
+                              <Label className="text-sm text-zinc-300">Track</Label>
+                              <Select onValueChange={(value) => addFilter("Track", value)}>
+                                <SelectTrigger className="bg-zinc-800 border-zinc-700">
+                                  <SelectValue placeholder="Select track" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="Silverstone GP">Silverstone GP</SelectItem>
+                                  <SelectItem value="Spa-Francorchamps">Spa-Francorchamps</SelectItem>
+                                  <SelectItem value="Nürburgring GP">Nürburgring GP</SelectItem>
+                                  <SelectItem value="Monza">Monza</SelectItem>
+                                  <SelectItem value="Algarve International Circuit-748557515">
+                                    Algarve International Circuit-748557515
+                                  </SelectItem>
+                                  <SelectItem value="Autódromo José Carlos Pace 1.19.2">
+                                    Autódromo José Carlos Pace 1.19.2
+                                  </SelectItem>
+                                </SelectContent>
+                              </Select>
                             </div>
 
-                            <div className="text-center">
-                                <div className="text-lg font-mono font-bold text-accent">
-                                    {summaryStats.totalDistance.toFixed(1)} km
-                                </div>
-                                <div className="text-xs text-gray-400">Total Distance</div>
+                            <div>
+                              <Label className="text-sm text-zinc-300">Car</Label>
+                              <Select onValueChange={(value) => addFilter("Car", value)}>
+                                <SelectTrigger className="bg-zinc-800 border-zinc-700">
+                                  <SelectValue placeholder="Select car" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="Porsche 911 GT3 R">911 GT3 R</SelectItem>
+                                  <SelectItem value="Porsche 911 RSR">911 RSR</SelectItem>
+                                  <SelectItem value="Porsche 911 GT3 Cup">911 GT3 Cup</SelectItem>
+                                  <SelectItem value="WEC 2023, GTE, Ferrari 488 GTE EVO">
+                                    WEC 2023, GTE, Ferrari 488 GTE EVO
+                                  </SelectItem>
+                                  <SelectItem value="Porsche 911 GT3 R (2019) - Championship Edition">
+                                    911 GT3 R (2019) - Championship Edition
+                                  </SelectItem>
+                                </SelectContent>
+                              </Select>
                             </div>
 
-                            <div className="text-center">
-                                <div className="text-lg font-mono font-bold text-white">{summaryStats.totalLaps.toLocaleString()}</div>
-                                <div className="text-xs text-gray-400">Total Laps</div>
+                            <div>
+                              <Label className="text-sm text-zinc-300">Simulator</Label>
+                              <Select onValueChange={(value) => addFilter("Simulator", value)}>
+                                <SelectTrigger className="bg-zinc-800 border-zinc-700">
+                                  <SelectValue placeholder="Select simulator" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="iRacing">iRacing</SelectItem>
+                                  <SelectItem value="ACC">ACC</SelectItem>
+                                  <SelectItem value="rFactor 2">rFactor 2</SelectItem>
+                                  <SelectItem value="F1 23">F1 23</SelectItem>
+                                </SelectContent>
+                              </Select>
                             </div>
 
-                            <div className="text-center">
-                                <div className="text-lg font-mono font-bold text-green-400">
-                                    {summaryStats.totalValidLaps.toLocaleString()}
-                                </div>
-                                <div className="text-xs text-gray-400">Valid Laps</div>
+                            <div>
+                              <Label className="text-sm text-zinc-300">Temperature Range</Label>
+                              <Select onValueChange={(value) => addFilter("Temperature", value)}>
+                                <SelectTrigger className="bg-zinc-800 border-zinc-700">
+                                  <SelectValue placeholder="Select range" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="Cold (< 15°C)">Cold (&lt; 15°C)</SelectItem>
+                                  <SelectItem value="Moderate (15-25°C)">Moderate (15-25°C)</SelectItem>
+                                  <SelectItem value="Hot (> 25°C)">Hot (&gt; 25°C)</SelectItem>
+                                </SelectContent>
+                              </Select>
                             </div>
-
-                            <div className="text-center">
-                                <div className="text-lg font-mono font-bold text-blue-400">
-                                    {formatDurationFromMs(summaryStats.totalDuration)}
-                                </div>
-                                <div className="text-xs text-gray-400">Total Time</div>
-                            </div>
-
-                            {summaryStats.averageLapTime > 0 && (
-                                <div className="text-center">
-                                    <div className="text-lg font-mono font-bold text-yellow-400">
-                                        {formatTimeFromMs(summaryStats.averageLapTime)}
-                                    </div>
-                                    <div className="text-xs text-gray-400">Avg Lap Time</div>
-                                </div>
-                            )}
-
-                            {summaryStats.bestLapTime > 0 && summaryStats.bestLapTime < Number.POSITIVE_INFINITY && (
-                                <div className="text-center">
-                                    <div className="text-lg font-mono font-bold text-accent">
-                                        {formatTimeFromMs(summaryStats.bestLapTime)}
-                                    </div>
-                                    <div className="text-xs text-gray-400">Best Lap</div>
-                                </div>
-                            )}
-
-                            <div className="text-center">
-                                <div className="text-lg font-mono font-bold text-orange-400">
-                                    {summaryStats.totalFuelUsed.toFixed(1)}L
-                                </div>
-                                <div className="text-xs text-gray-400">Total Fuel</div>
-                            </div>
+                          </div>
                         </div>
 
-                        {/* Session Type and Simulator Breakdown */}
-                        {(Object.keys(summaryStats.sessionTypeBreakdown).length > 1 ||
-                            Object.keys(summaryStats.simulatorBreakdown).length > 1) && (
-                                <div className="mt-4 pt-4 border-t border-gray-800">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        {Object.keys(summaryStats.sessionTypeBreakdown).length > 1 && (
-                                            <div>
-                                                <h4 className="text-sm font-medium text-gray-400 mb-2">Session Types</h4>
-                                                <div className="flex flex-wrap gap-2">
-                                                    {Object.entries(summaryStats.sessionTypeBreakdown).map(([type, count]) => (
-                                                        <span
-                                                            key={type}
-                                                            className={`
-                              px-2 py-1 rounded text-xs font-medium
-                              ${type === "Race"
-                                                                    ? "bg-red-500/20 text-red-300"
-                                                                    : type === "Qualifying"
-                                                                        ? "bg-yellow-500/20 text-yellow-300"
-                                                                        : "bg-blue-500/20 text-blue-300"
-                                                                }
-                            `}
-                                                        >
-                                                            {type}: {count}
-                                                        </span>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
+                        {/* Sorting Column */}
+                        <div className="space-y-4">
+                          <h3 className="text-lg font-semibold">Sort By</h3>
 
-                                        {Object.keys(summaryStats.simulatorBreakdown).length > 1 && (
-                                            <div>
-                                                <h4 className="text-sm font-medium text-gray-400 mb-2">Simulators</h4>
-                                                <div className="flex flex-wrap gap-2">
-                                                    {Object.entries(summaryStats.simulatorBreakdown).map(([sim, count]) => {
-                                                        const simConfig = features[sim]
-                                                        return (
-                                                            <span
-                                                                key={sim}
-                                                                className="px-2 py-1 rounded text-xs font-medium bg-surface border border-gray-800 text-white"
-                                                            >
-                                                                {simConfig?.icon} {simConfig?.name}: {count}
-                                                            </span>
-                                                        )
-                                                    })}
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            )}
-                    </div>
+                          <div className="space-y-3">
+                            <div className="grid grid-cols-2 gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => applySort("date", "desc")}
+                                className="justify-start border-zinc-700 bg-transparent px-3 py-1"
+                              >
+                                <ArrowDown className="w-3 h-3 mr-2" />
+                                Date (Newest)
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => applySort("date", "asc")}
+                                className="justify-start border-zinc-700 bg-transparent px-3 py-1"
+                              >
+                                <ArrowUp className="w-3 h-3 mr-2" />
+                                Date (Oldest)
+                              </Button>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => applySort("bestLap", "asc")}
+                                className="justify-start border-zinc-700 bg-transparent px-3 py-1"
+                              >
+                                <ArrowUp className="w-3 h-3 mr-2" />
+                                Best Lap (Fastest)
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => applySort("bestLap", "desc")}
+                                className="justify-start border-zinc-700 bg-transparent px-3 py-1"
+                              >
+                                <ArrowDown className="w-3 h-3 mr-2" />
+                                Best Lap (Slowest)
+                              </Button>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => applySort("totalLaps", "desc")}
+                                className="justify-start border-zinc-700 bg-transparent px-3 py-1"
+                              >
+                                <ArrowDown className="w-3 h-3 mr-2" />
+                                Most Laps
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => applySort("totalLaps", "asc")}
+                                className="justify-start border-zinc-700 bg-transparent px-3 py-1"
+                              >
+                                <ArrowUp className="w-3 h-3 mr-2" />
+                                Least Laps
+                              </Button>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => applySort("trackTemp", "desc")}
+                                className="justify-start border-zinc-700 bg-transparent px-3 py-1"
+                              >
+                                <ArrowDown className="w-3 h-3 mr-2" />
+                                Hottest Track
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => applySort("trackTemp", "asc")}
+                                className="justify-start border-zinc-700 bg-transparent px-3 py-1"
+                              >
+                                <ArrowUp className="w-3 h-3 mr-2" />
+                                Coolest Track
+                              </Button>
+                            </div>
+                          </div>
+
+                          <Separator className="bg-zinc-700" />
+
+                          <Button
+                            variant="outline"
+                            onClick={clearAllFilters}
+                            className="w-full border-zinc-700 bg-transparent text-zinc-300 hover:text-white"
+                          >
+                            Clear All Filters
+                          </Button>
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                 </div>
+              </div>
 
-                {/* Sessions List */}
-                <div className="bg-surface border border-gray-800 rounded-lg overflow-hidden">
-                    <div className="divide-y divide-gray-800">
-                        {sessions.map((session) => {
-                            const simConfig = features[session.simulator]
-                            return (
-                                <div
-                                    key={session.id}
-                                    className="p-6 hover:bg-black/50 transition-all duration-200 cursor-pointer group"
-                                    onClick={() => onViewSession(session.id)}
-                                >
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-4 flex-1 min-w-0">
-                                            <div className="text-2xl">{simConfig?.icon}</div>
-
-                                            <div className="flex-1 min-w-0">
-                                                <div className="flex items-center gap-3 mb-2">
-                                                    <h4 className="font-medium text-white truncate">{session.track}</h4>
-                                                    <span
-                                                        className={`
-                              px-2 py-0.5 rounded text-xs font-medium
-                              ${session.sessionType === "Race"
-                                                                ? "bg-red-500/20 text-red-300"
-                                                                : session.sessionType === "Qualifying"
-                                                                    ? "bg-yellow-500/20 text-yellow-300"
-                                                                    : "bg-blue-500/20 text-blue-300"
-                                                            }
-                            `}
-                                                    >
-                                                        {session.sessionType}
-                                                    </span>
-                                                </div>
-
-                                                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 text-sm text-gray-400">
-                                                    <div>
-                                                        <span className="block text-xs text-gray-500">Car</span>
-                                                        <span className="text-white">{session.car}</span>
-                                                    </div>
-                                                    <div>
-                                                        <span className="block text-xs text-gray-500">Laps</span>
-                                                        <span className="text-white font-mono">{session.totalLaps}</span>
-                                                    </div>
-                                                    <div>
-                                                        <span className="block text-xs text-gray-500">Distance</span>
-                                                        <span className="text-white font-mono">{session.distance?.toFixed(1)} km</span>
-                                                    </div>
-                                                    <div>
-                                                        <span className="block text-xs text-gray-500">Duration</span>
-                                                        <span className="text-white font-mono">{session.duration}</span>
-                                                    </div>
-                                                    <div>
-                                                        <span className="block text-xs text-gray-500">Valid Laps</span>
-                                                        <span className="text-white font-mono">
-                                                            {session.validLaps}/{session.totalLaps}
-                                                        </span>
-                                                    </div>
-                                                    <div>
-                                                        <span className="block text-xs text-gray-500">Date</span>
-                                                        <span className="text-white">{new Date(session.date).toLocaleDateString()}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex items-center gap-6 ml-4">
-                                            <div className="text-right">
-                                                <div className="text-xs text-gray-500">Best Lap</div>
-                                                <div className="font-mono text-green-400 font-medium">{session.bestLap || "--:--.---"}</div>
-                                            </div>
-                                            <div className="text-right">
-                                                <div className="text-xs text-gray-500">Average</div>
-                                                <div className="font-mono text-blue-400 font-medium">{session.averageLap || "--:--.---"}</div>
-                                            </div>
-
-                                            <button
-                                                className="
-                        px-4 py-2 bg-accent/10 hover:bg-accent text-accent hover:text-white 
-                        border border-accent/30 hover:border-accent rounded-md text-sm font-medium
-                        transition-all duration-200 opacity-0 group-hover:opacity-100
-                        transform translate-x-2 group-hover:translate-x-0
-                      "
-                                            >
-                                                Analyze
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            )
-                        })}
-                    </div>
+              {/* Active Filters */}
+              {filters.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-4">
+                  {filters.map((filter, index) => (
+                    <Badge key={index} variant="secondary" className="bg-red-600/20 text-red-300 border-red-600/30">
+                      {filter}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="ml-2 h-auto p-0 text-red-300 hover:text-red-200"
+                        onClick={() => removeFilter(filter)}
+                      >
+                        <X className="w-3 h-3" />
+                      </Button>
+                    </Badge>
+                  ))}
                 </div>
+              )}
+            </CardContent>
+          </Card>
 
-                {sessions.length === 0 && (
-                    <div className="bg-surface border border-gray-800 rounded-lg p-12 text-center">
-                        <div className="w-16 h-16 bg-accent/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <svg className="w-8 h-8 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                                />
-                            </svg>
+          {/* Sessions List - Scrollable */}
+          <div className="flex-1 overflow-y-auto">
+            <div className="space-y-3 pr-2">
+              {sessions.map((session) => (
+                <Card
+                  key={session.id}
+                  className="bg-zinc-900/50 border-zinc-800 hover:border-red-800/50 transition-all duration-300 group cursor-pointer"
+                >
+                  <a onClick={() => onViewSession(session.id)}>
+                    <CardContent className="p-4">
+                      <div className="grid lg:grid-cols-12 gap-3 items-center">
+                        {/* Date & Time */}
+                        <div className="lg:col-span-1">
+                          <div className="flex items-center gap-2 text-zinc-400 mb-1">
+                            <Calendar className="w-3 h-3" />
+                            <span className="text-sm">{session.date}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-zinc-300">
+                            <Clock className="w-3 h-3" />
+                            <span className="text-sm font-medium">{session.time}</span>
+                          </div>
                         </div>
-                        <h3 className="text-lg font-semibold text-white mb-2">No sessions found</h3>
-                        <p className="text-gray-400">No sessions match your current filter criteria</p>
-                    </div>
-                )}
+
+                        {/* Track */}
+                        <div className="lg:col-span-3">
+                          <div className="flex items-center gap-2 text-white">
+                            <MapPin className="w-3 h-3 text-red-500" />
+                            <span className="font-semibold text-base">{session.track}</span>
+                          </div>
+                        </div>
+
+                        {/* Car & Badges */}
+                        <div className="lg:col-span-3">
+                          <div className="flex items-center gap-2 text-zinc-300 mb-2">
+                            <Car className="w-3 h-3" />
+                            <span className="text-sm">{session.car}</span>
+                          </div>
+                          <div className="flex flex-wrap gap-1">
+                            <Badge variant="outline" className="text-sm border-zinc-600 text-zinc-400 px-1 py-0">
+                              {session.carClass}
+                            </Badge>
+                            <Badge className={`text-sm px-1 py-0 ${getSessionTypeColor(session.sessionType)}`}>
+                              {session.sessionType === "Practice"
+                                ? "Prac"
+                                : session.sessionType === "Qualifying"
+                                  ? "Qual"
+                                  : session.sessionType}
+                            </Badge>
+                            <Badge variant="secondary" className="text-sm px-1 py-0">
+                              {session.simulator}
+                            </Badge>
+                          </div>
+                        </div>
+
+                        {/* Temperature */}
+                        <div className="lg:col-span-1">
+                          <div className="flex items-center gap-2 text-zinc-400">
+                            <Thermometer className="w-3 h-3" />
+                            <div className="text-sm">
+                              <div>{session.temperature}</div>
+                              <div className="text-xs text-zinc-500">T: {session.trackTemp}</div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Performance */}
+                        <div className="lg:col-span-2">
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <div className="flex items-center gap-1 text-red-400">
+                                <Trophy className="w-3 h-3" />
+                                <span className="text-sm font-mono">{session.bestLap}</span>
+                              </div>
+                              <div className="text-xs text-zinc-500">Best Lap</div>
+                            </div>
+                            <div>
+                              <div className="text-zinc-300 text-sm font-mono">{session.avgLap}</div>
+                              <div className="text-xs text-zinc-500">Avg Lap</div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Lap Stats */}
+                        <div className="lg:col-span-1">
+                          <div className="flex items-center gap-1 text-sm">
+                            <div className="text-center">
+                              <div className="text-green-400 font-semibold">{session.validLaps}</div>
+                              <div className="text-xs text-zinc-500">Valid</div>
+                            </div>
+                            <div className="text-center">
+                              <div className="text-red-400 font-semibold">{session.invalidLaps}</div>
+                              <div className="text-xs text-zinc-500">Invalid</div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Session Stats */}
+                        <div className="lg:col-span-1">
+                          <div className="text-right">
+                            <div className="text-white font-semibold text-base">{session.totalLaps}</div>
+                            <div className="text-zinc-400 text-sm">laps</div>
+                            <div className="text-zinc-400 text-sm">{session.duration}</div>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </a>
+                </Card>
+              ))}
             </div>
+          </div>
         </div>
-    )
+      </div>
+    </FeatureLayout>
+  )
 }
