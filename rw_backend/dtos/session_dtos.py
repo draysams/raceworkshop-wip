@@ -63,6 +63,7 @@ def map_lap_to_detail_dto(lap: Lap) -> dict:
         "id": lap.id,
     # --- END FIX ---
         "lapNumber": lap.lap_number,
+        "stintId": lap.stint.id,
         "lapTime": _format_time_from_seconds(lap.lap_time),
         "lapTimeMs": lap.lap_time * 1000 if lap.lap_time else 0,
         "sector1": _format_time_from_seconds(lap.sector1_time),

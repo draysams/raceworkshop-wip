@@ -29,6 +29,7 @@ export interface SessionSummary {
 
 export interface LapData {
     id: number
+    stintId: number;
     lapNumber: number;
     lapTime: string; // "3:28.456" format
     lapTimeMs: number;
