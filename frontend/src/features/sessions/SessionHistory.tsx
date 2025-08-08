@@ -26,117 +26,20 @@ export function SessionHistory({ onViewSession }: ISessionHistoryProps) {
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
   const [isFilterDialogOpen, setIsFilterDialogOpen] = useState(false)
 
-  const sessions = [
-    {
-      id: 1,
-      date: "2024-01-15",
-      time: "14:30",
-      track: "Silverstone GP",
-      car: "Porsche 911 GT3 R",
-      carClass: "GT3",
-      simulator: "iRacing",
-      sessionType: "Race",
-      temperature: "22°C",
-      trackTemp: "28°C",
-      bestLap: "1:58.342",
-      totalLaps: 45,
-      validLaps: 42,
-      invalidLaps: 3,
-      duration: "1h 23m",
-      avgLap: "2:01.156",
-    },
-    {
-      id: 2,
-      date: "2024-01-14",
-      time: "19:45",
-      track: "Spa-Francorchamps",
-      car: "Porsche 911 RSR",
-      carClass: "GTE",
-      simulator: "ACC",
-      sessionType: "Practice",
-      temperature: "18°C",
-      trackTemp: "24°C",
-      bestLap: "2:17.891",
-      totalLaps: 32,
-      validLaps: 30,
-      invalidLaps: 2,
-      duration: "1h 15m",
-      avgLap: "2:20.445",
-    },
-    {
-      id: 3,
-      date: "2024-01-13",
-      time: "16:20",
-      track: "Nürburgring GP",
-      car: "Porsche 911 GT3 Cup",
-      carClass: "Cup",
-      simulator: "iRacing",
-      sessionType: "Qualifying",
-      temperature: "15°C",
-      trackTemp: "19°C",
-      bestLap: "1:47.234",
-      totalLaps: 38,
-      validLaps: 35,
-      invalidLaps: 3,
-      duration: "1h 08m",
-      avgLap: "1:49.567",
-    },
-    // Add more sessions for scrolling demo
-    ...Array.from({ length: 10 }, (_, i) => ({
-      id: i + 4,
-      date: `2024-01-${12 - i}`,
-      time: "16:20",
-      track: `Track ${i + 1}`,
-      car: "Porsche 911 GT3 Cup",
-      carClass: "Cup",
-      simulator: "ACC",
-      sessionType: i % 3 === 0 ? "Race" : i % 3 === 1 ? "Practice" : "Qualifying",
-      temperature: `${15 + i}°C`,
-      trackTemp: `${19 + i}°C`,
-      bestLap: "1:47.234",
-      totalLaps: 38 + i,
-      validLaps: 35 + i,
-      invalidLaps: 3,
-      duration: "1h 08m",
-      avgLap: "1:49.567",
-    })),
-    {
-      id: 14,
-      date: "2024-01-10",
-      time: "18:15",
-      track: "Algarve International Circuit-748557515",
-      car: "WEC 2023, GTE, Ferrari 488 GTE EVO",
-      carClass: "GTE",
-      simulator: "ACC",
-      sessionType: "Race",
-      temperature: "24°C",
-      trackTemp: "31°C",
-      bestLap: "1:39.847",
-      totalLaps: 67,
-      validLaps: 64,
-      invalidLaps: 3,
-      duration: "1h 45m",
-      avgLap: "1:42.234",
-    },
-    {
-      id: 15,
-      date: "2024-01-09",
-      time: "15:30",
-      track: "Autódromo José Carlos Pace 1.19.2",
-      car: "Porsche 911 GT3 R (2019) - Championship Edition",
-      carClass: "GT3",
-      simulator: "iRacing",
-      sessionType: "Practice",
-      temperature: "28°C",
-      trackTemp: "35°C",
-      bestLap: "1:08.923",
-      totalLaps: 89,
-      validLaps: 85,
-      invalidLaps: 4,
-      duration: "2h 12m",
-      avgLap: "1:11.456",
-    },
-  ]
+  const [apiSessions, setApiSessions] = useState<SessionSummary[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Keep this single state object for all filters
+  const [apiFilters, setApiFilters] = useState<SessionFilters>({
+      simulator: "all",
+      sessionType: "all",
+      track: "all",
+      car: "all",
+      dateFrom: "",
+      dateTo: "",
+      sortBy: "date",
+      sortOrder: "desc",
+  });
 
   const addFilter = (filterType: string, value: string) => {
     const filterString = `${filterType}: ${value}`
@@ -177,30 +80,11 @@ export function SessionHistory({ onViewSession }: ISessionHistoryProps) {
     }
   }
 
-  const [apiSessions, setApiSessions] = useState<SessionSummary[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Keep this single state object for all filters
-  const [apiFilters, setApiFilters] = useState<SessionFilters>({
-      simulator: "all",
-      sessionType: "all",
-      track: "all",
-      car: "all",
-      dateFrom: "",
-      dateTo: "",
-      sortBy: "date",
-      sortOrder: "desc",
-  });
-
   const fetchSessions = useCallback(async () => {
     setIsLoading(true);
     try {
-        //TODO add filters to the API call when implemented
-        // const fetchedSessions = await api.db.getSessionHistory(filters);
-        // setSessions(fetchedSessions);
-
-         const fetchedSessions = await api.sessions.getSessionHistory(apiFilters);
-         console.log(fetchedSessions);
+        const fetchedSessions = await api.sessions.getSessionHistory(apiFilters);
+        console.log(fetchedSessions);
         setApiSessions(fetchedSessions);
     } catch (error) {
         console.error("Failed to fetch session history:", error);
@@ -213,6 +97,20 @@ export function SessionHistory({ onViewSession }: ISessionHistoryProps) {
 useEffect(() => {
     fetchSessions();
 }, [fetchSessions]);
+
+  // Helper function to format date and time from ISO string
+  const formatSessionDateTime = (dateString: string) => {
+    const date = new Date(dateString);
+    return {
+      date: date.toLocaleDateString(),
+      time: date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+  };
+
+  // Helper function to calculate invalid laps
+  const getInvalidLaps = (totalLaps: number, validLaps: number) => {
+    return Math.max(0, totalLaps - validLaps);
+  };
 
   return (
     <FeatureLayout header={<FeatureNavigation />}>
@@ -518,112 +416,128 @@ useEffect(() => {
           {/* Sessions List - Scrollable */}
           <div className="flex-1 overflow-y-auto">
             <div className="space-y-3 pr-2">
-              {sessions.map((session) => (
-                <Card
-                  key={session.id}
-                  className="bg-zinc-900/50 border-zinc-800 hover:border-red-800/50 transition-all duration-300 group cursor-pointer"
-                >
-                  <a onClick={() => onViewSession(session.id)}>
-                    <CardContent className="p-4">
-                      <div className="grid lg:grid-cols-12 gap-3 items-center">
-                        {/* Date & Time */}
-                        <div className="lg:col-span-1">
-                          <div className="flex items-center gap-2 text-zinc-400 mb-1">
-                            <Calendar className="w-3 h-3" />
-                            <span className="text-sm">{session.date}</span>
-                          </div>
-                          <div className="flex items-center gap-2 text-zinc-300">
-                            <Clock className="w-3 h-3" />
-                            <span className="text-sm font-medium">{session.time}</span>
-                          </div>
-                        </div>
-
-                        {/* Track */}
-                        <div className="lg:col-span-3">
-                          <div className="flex items-center gap-2 text-white">
-                            <MapPin className="w-3 h-3 text-red-500" />
-                            <span className="font-semibold text-base">{session.track}</span>
-                          </div>
-                        </div>
-
-                        {/* Car & Badges */}
-                        <div className="lg:col-span-3">
-                          <div className="flex items-center gap-2 text-zinc-300 mb-2">
-                            <Car className="w-3 h-3" />
-                            <span className="text-sm">{session.car}</span>
-                          </div>
-                          <div className="flex flex-wrap gap-1">
-                            <Badge variant="outline" className="text-sm border-zinc-600 text-zinc-400 px-1 py-0">
-                              {session.carClass}
-                            </Badge>
-                            <Badge className={`text-sm px-1 py-0 ${getSessionTypeColor(session.sessionType)}`}>
-                              {session.sessionType === "Practice"
-                                ? "Prac"
-                                : session.sessionType === "Qualifying"
-                                  ? "Qual"
-                                  : session.sessionType}
-                            </Badge>
-                            <Badge variant="secondary" className="text-sm px-1 py-0">
-                              {session.simulator}
-                            </Badge>
-                          </div>
-                        </div>
-
-                        {/* Temperature */}
-                        <div className="lg:col-span-1">
-                          <div className="flex items-center gap-2 text-zinc-400">
-                            <Thermometer className="w-3 h-3" />
-                            <div className="text-sm">
-                              <div>{session.temperature}</div>
-                              <div className="text-xs text-zinc-500">T: {session.trackTemp}</div>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Performance */}
-                        <div className="lg:col-span-2">
-                          <div className="grid grid-cols-2 gap-3">
-                            <div>
-                              <div className="flex items-center gap-1 text-red-400">
-                                <Trophy className="w-3 h-3" />
-                                <span className="text-sm font-mono">{session.bestLap}</span>
+              {isLoading ? (
+                <div className="text-center py-8 text-zinc-400">
+                  <p>Loading sessions...</p>
+                </div>
+              ) : apiSessions.length === 0 ? (
+                <div className="text-center py-8 text-zinc-400">
+                  <p>No sessions found</p>
+                  <p className="text-sm">Start a session to see your data here</p>
+                </div>
+              ) : (
+                apiSessions.map((session) => {
+                  const { date, time } = formatSessionDateTime(session.date);
+                  const invalidLaps = getInvalidLaps(session.totalLaps, session.validLaps);
+                  
+                  return (
+                    <Card
+                      key={session.id}
+                      className="bg-zinc-900/50 border-zinc-800 hover:border-red-800/50 transition-all duration-300 group cursor-pointer"
+                    >
+                      <a onClick={() => onViewSession(session.id)}>
+                        <CardContent className="p-4">
+                          <div className="grid lg:grid-cols-12 gap-3 items-center">
+                            {/* Date & Time */}
+                            <div className="lg:col-span-1">
+                              <div className="flex items-center gap-2 text-zinc-400 mb-1">
+                                <Calendar className="w-3 h-3" />
+                                <span className="text-sm">{date}</span>
                               </div>
-                              <div className="text-xs text-zinc-500">Best Lap</div>
+                              <div className="flex items-center gap-2 text-zinc-300">
+                                <Clock className="w-3 h-3" />
+                                <span className="text-sm font-medium">{time}</span>
+                              </div>
                             </div>
-                            <div>
-                              <div className="text-zinc-300 text-sm font-mono">{session.avgLap}</div>
-                              <div className="text-xs text-zinc-500">Avg Lap</div>
-                            </div>
-                          </div>
-                        </div>
 
-                        {/* Lap Stats */}
-                        <div className="lg:col-span-1">
-                          <div className="flex items-center gap-1 text-sm">
-                            <div className="text-center">
-                              <div className="text-green-400 font-semibold">{session.validLaps}</div>
-                              <div className="text-xs text-zinc-500">Valid</div>
+                            {/* Track */}
+                            <div className="lg:col-span-3">
+                              <div className="flex items-center gap-2 text-white">
+                                <MapPin className="w-3 h-3 text-red-500" />
+                                <span className="font-semibold text-base">{session.track || "---"}</span>
+                              </div>
                             </div>
-                            <div className="text-center">
-                              <div className="text-red-400 font-semibold">{session.invalidLaps}</div>
-                              <div className="text-xs text-zinc-500">Invalid</div>
-                            </div>
-                          </div>
-                        </div>
 
-                        {/* Session Stats */}
-                        <div className="lg:col-span-1">
-                          <div className="text-right">
-                            <div className="text-white font-semibold text-base">{session.totalLaps}</div>
-                            <div className="text-zinc-400 text-sm">laps</div>
-                            <div className="text-zinc-400 text-sm">{session.duration}</div>
+                            {/* Car & Badges */}
+                            <div className="lg:col-span-3">
+                              <div className="flex items-center gap-2 text-zinc-300 mb-2">
+                                <Car className="w-3 h-3" />
+                                <span className="text-sm">{session.car || "---"}</span>
+                              </div>
+                              <div className="flex flex-wrap gap-1">
+                                <Badge variant="outline" className="text-sm border-zinc-600 text-zinc-400 px-1 py-0">
+                                  ---
+                                </Badge>
+                                <Badge className={`text-sm px-1 py-0 ${getSessionTypeColor(session.sessionType)}`}>
+                                  {session.sessionType === "Practice"
+                                    ? "Prac"
+                                    : session.sessionType === "Qualifying"
+                                      ? "Qual"
+                                      : session.sessionType || "---"}
+                                </Badge>
+                                <Badge variant="secondary" className="text-sm px-1 py-0">
+                                  {session.simulator || "---"}
+                                </Badge>
+                              </div>
+                            </div>
+
+                            {/* Temperature */}
+                            <div className="lg:col-span-1">
+                              <div className="flex items-center gap-2 text-zinc-400">
+                                <Thermometer className="w-3 h-3" />
+                                <div className="text-sm">
+                                  <div>{session.airTemp ? `${session.airTemp}°C` : "---"}</div>
+                                  <div className="text-xs text-zinc-500">T: {session.trackTemp ? `${session.trackTemp}°C` : "---"}</div>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Performance */}
+                            <div className="lg:col-span-2">
+                              <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                  <div className="flex items-center gap-1 text-red-400">
+                                    <Trophy className="w-3 h-3" />
+                                    <span className="text-sm font-mono">{session.bestLap || "---"}</span>
+                                  </div>
+                                  <div className="text-xs text-zinc-500">Best Lap</div>
+                                </div>
+                                <div>
+                                  <div className="text-zinc-300 text-sm font-mono">{session.averageLap || "---"}</div>
+                                  <div className="text-xs text-zinc-500">Avg Lap</div>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Lap Stats */}
+                            <div className="lg:col-span-1">
+                              <div className="flex items-center gap-1 text-sm">
+                                <div className="text-center">
+                                  <div className="text-green-400 font-semibold">{session.validLaps || "---"}</div>
+                                  <div className="text-xs text-zinc-500">Valid</div>
+                                </div>
+                                <div className="text-center">
+                                  <div className="text-red-400 font-semibold">{invalidLaps || "---"}</div>
+                                  <div className="text-xs text-zinc-500">Invalid</div>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Session Stats */}
+                            <div className="lg:col-span-1">
+                              <div className="text-right">
+                                <div className="text-white font-semibold text-base">{session.totalLaps || "---"}</div>
+                                <div className="text-zinc-400 text-sm">laps</div>
+                                <div className="text-zinc-400 text-sm">{session.duration || "---"}</div>
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </a>
-                </Card>
-              ))}
+                        </CardContent>
+                      </a>
+                    </Card>
+                  );
+                })
+              )}
             </div>
           </div>
         </div>
