@@ -163,43 +163,39 @@ export default function Telemetry({ sessionId, lapNumber, onBackToSessionDetail 
         setTrackPathError(null)
         setTrackMapError(null)
 
-        const promises = []
+        // Fetch telemetry data from backend
+        try {
+          const data = await api.telemetry.getLapTelemetry(lapNumber)
+          console.log("Backend telemetry data:", data)
+          
+          if (data && data.telemetry) {
+            setTelemetryData(data.telemetry)
+            
+            // Set initial zoom range based on telemetry data
+            if (data.telemetry.speed?.data && data.telemetry.speed.data.length > 0) {
+              const minDistance = data.telemetry.speed.data[0].x
+              const maxDistance = data.telemetry.speed.data[data.telemetry.speed.data.length - 1].x
+              setZoomRange({ min: minDistance, max: maxDistance })
+            }
+          } else {
+            setTelemetryError("No telemetry data available")
+          }
+        } catch (err) {
+          setTelemetryError(err instanceof Error ? err.message : "Failed to fetch telemetry data")
+        }
 
-        // Fetch telemetry data
-        promises.push(
-          fetch("https://xttutongfcumlplt.public.blob.vercel-storage.com/telemetryJsonData.json")
-            .then(async (response) => {
-              if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`)
-              const data = await response.json()
-              setTelemetryData(data)
+        // Fetch track path data from backend
+        try {
+          const data = await api.telemetry.getLapTelemetry(lapNumber)
+          if (data && data.trackpath) {
+            setTrackPathData(data.trackpath)
+          } else {
+            setTrackPathError("No track path data available")
+          }
+        } catch (err) {
+          setTrackPathError(err instanceof Error ? err.message : "Failed to fetch track path data")
+        }
 
-              // Set initial zoom range based on telemetry data
-              if (data.speed?.data?.length > 0) {
-                const minDistance = data.speed.data[0].x
-                const maxDistance = data.speed.data[data.speed.data.length - 1].x
-                setZoomRange({ min: minDistance, max: maxDistance })
-              }
-            })
-            .catch((err) => {
-              setTelemetryError(err instanceof Error ? err.message : "Failed to fetch telemetry data")
-            }),
-        )
-
-        // Fetch track path data
-        promises.push(
-          fetch("https://xttutongfcumlplt.public.blob.vercel-storage.com/trackPathJsonData.json")
-            .then(async (response) => {
-              if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`)
-              const data = await response.json()
-              setTrackPathData(data)
-            })
-            .catch((err) => {
-              setTrackPathError(err instanceof Error ? err.message : "Failed to fetch track path data")
-            }),
-        )
-
-        // Wait for all requests to complete
-        await Promise.allSettled(promises)
       } finally {
         setLoading(false)
       }
@@ -230,7 +226,7 @@ export default function Telemetry({ sessionId, lapNumber, onBackToSessionDetail 
   }, [zoomRange])
 
   const handleResetZoom = useCallback(() => {
-    if (telemetryData?.speed?.data?.length > 0) {
+    if (telemetryData?.speed?.data && telemetryData.speed.data.length > 0) {
       const minDistance = telemetryData.speed.data[0].x
       const maxDistance = telemetryData.speed.data[telemetryData.speed.data.length - 1].x
       setZoomRange({ min: minDistance, max: maxDistance })
@@ -276,27 +272,7 @@ export default function Telemetry({ sessionId, lapNumber, onBackToSessionDetail 
     }
   }, [telemetryData])
 
-  const [apiSelectedLap, setApiSelectedLap] = useState<LapData | null>(null);
-  const [telemetry, setTelemetry] = useState<TelemetryData | null>(null);
-  const [isTelemetryLoading, setIsTelemetryLoading] = useState(false);
-  interface TelemetryData {
-    [channelName: string]: { x: number; y: number }[];
-}
-  useEffect(() => {
-    if (!lapNumber) { // Guard against missing ID
-      setTelemetry(null);
-      return;
-    }
-    
-    setIsTelemetryLoading(true);
-    api.telemetry.getLapTelemetry(lapNumber)
-      .then(data => {
-        setTelemetry(data);
-        console.log(data);
-      })
-      .catch(err => console.error("Failed to fetch telemetry:", err))
-      .finally(() => setIsTelemetryLoading(false));
-    }, [apiSelectedLap?.id]); // Depend on the ID to ensure re-fetch
+
     
 
   if (loading) {
@@ -331,7 +307,7 @@ export default function Telemetry({ sessionId, lapNumber, onBackToSessionDetail 
                   <br />
                   {telemetryError}
                   <br />
-                  <span className="text-xs text-zinc-400 mt-1 block">URL: telemetryJsonData.json</span>
+                  <span className="text-xs text-zinc-400 mt-1 block">Source: Backend API</span>
                 </AlertDescription>
               </Alert>
             )}
@@ -344,7 +320,7 @@ export default function Telemetry({ sessionId, lapNumber, onBackToSessionDetail 
                   <br />
                   {trackPathError}
                   <br />
-                  <span className="text-xs text-zinc-400 mt-1 block">URL: trackPathJsonData.json</span>
+                  <span className="text-xs text-zinc-400 mt-1 block">Source: Backend API</span>
                 </AlertDescription>
               </Alert>
             )}
@@ -402,7 +378,7 @@ export default function Telemetry({ sessionId, lapNumber, onBackToSessionDetail 
                   {sessionId && lapNumber && (
                     <>
                       <span>•</span>
-                      <Badge variant="default" className="bg-red-600">
+                      <Badge className="bg-red-600">
                         Session {sessionId}, Lap {lapNumber}
                       </Badge>
                     </>
@@ -526,7 +502,7 @@ export default function Telemetry({ sessionId, lapNumber, onBackToSessionDetail 
             <div className="w-1/2 min-h-0 overflow-y-auto">
               <div className="space-y-4 pr-2">
                 {visibleCharts.map((chartConfig) => {
-                  const dataSet = telemetryData[chartConfig.id as keyof TelemetryData]
+                  const dataSet = telemetryData?.[chartConfig.id as keyof TelemetryData]
                   if (!dataSet) return null
 
                   return (
