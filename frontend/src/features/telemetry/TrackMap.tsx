@@ -219,6 +219,48 @@ export function TrackMap({
     ))
   }, [carPathSegments])
 
+  // Calculate view box based on zoom range
+  const viewBox = useMemo(() => {
+    if (trackPathData.length === 0) {
+      return "-500 -750 750 1250" // Default view box
+    }
+
+    // Filter track path data to only include points within the zoom range
+    const visiblePoints = trackPathData.filter(
+      point => point.distance >= zoomRange.min && point.distance <= zoomRange.max
+    )
+
+    if (visiblePoints.length === 0) {
+      return "-500 -750 750 1250" // Default if no points in range
+    }
+
+    // Calculate bounding box of visible points
+    const xCoords = visiblePoints.map(p => p.x)
+    const yCoords = visiblePoints.map(p => p.y)
+    
+    const minX = Math.min(...xCoords)
+    const maxX = Math.max(...xCoords)
+    const minY = Math.min(...yCoords)
+    const maxY = Math.max(...yCoords)
+
+    // Add padding around the bounding box
+    const padding = 50
+    const width = maxX - minX + (padding * 2)
+    const height = maxY - minY + (padding * 2)
+
+    return `${minX - padding} ${minY - padding} ${width} ${height}`
+  }, [trackPathData, zoomRange])
+
+  // Reset track map view when zoom range changes
+  useEffect(() => {
+    if (viewerRef.current) {
+      // Small delay to ensure the viewBox has updated
+      setTimeout(() => {
+        viewerRef.current.fitToViewer()
+      }, 100)
+    }
+  }, [viewBox])
+
   // Pan and zoom control handlers
   const handleZoomIn = () => {
     if (viewerRef.current) {
@@ -405,7 +447,7 @@ export function TrackMap({
         scaleFactorMax={10}
         className="border-0"
       >
-        <svg viewBox="-500 -750 750 1250" style={{ overflow: "visible" }}>
+        <svg viewBox={viewBox} style={{ overflow: "visible" }}>
           {/* 1. Render the track outline from the extracted path data */}
           {trackPathD && <path d={trackPathD} fill="none" stroke="#555" strokeWidth="2" opacity="0.8" />}
 

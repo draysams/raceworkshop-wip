@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useCallback, useMemo } from "react"
+import { useEffect, useRef, useMemo } from "react"
 
 import {
   Chart as ChartJS,
@@ -14,12 +14,11 @@ import {
   type ChartOptions,
 } from "chart.js"
 import { Line } from "react-chartjs-2"
-import "chartjs-plugin-crosshair"
-import "chartjs-plugin-zoom"
+import Zoom from "chartjs-plugin-zoom"
 import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/card"
 
 // Register Chart.js components
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend)
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Zoom)
 
 interface TelemetryPoint {
   x: number
@@ -43,7 +42,7 @@ interface TelemetryChartProps {
   title: string
   data: TelemetryDataSet
   height: number
-  hoveredDistance: number | null // Changed from hoveredData to just distance
+  hoveredDistance: number | null
   zoomRange: ZoomRange
   onZoomComplete: (min: number, max: number) => void
   onHover?: (distance: number | null) => void
@@ -59,8 +58,6 @@ export function TelemetryChart({
   onHover,
 }: TelemetryChartProps) {
   const chartRef = useRef<ChartJS<"line">>(null)
-  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null)
-  const lastHoverDistanceRef = useRef<number | null>(null)
 
   // Memoize chart data to prevent unnecessary re-renders
   const chartData = useMemo(
@@ -82,63 +79,36 @@ export function TelemetryChart({
     [data],
   )
 
-  // Throttled hover handler to reduce flickering
-  const throttledHover = useCallback(
-    (distance: number | null) => {
-      // Clear any pending hover updates
-      if (hoverTimeoutRef.current) {
-        clearTimeout(hoverTimeoutRef.current)
-      }
-
-      // Only update if the distance has changed significantly (reduce noise)
-      const threshold = 5 // 5 meter threshold
-      if (distance !== null && lastHoverDistanceRef.current !== null) {
-        if (Math.abs(distance - lastHoverDistanceRef.current) < threshold) {
-          return // Skip update if change is too small
-        }
-      }
-
-      // Debounce the hover update
-      hoverTimeoutRef.current = setTimeout(() => {
-        if (onHover && distance !== lastHoverDistanceRef.current) {
-          lastHoverDistanceRef.current = distance
-          onHover(distance)
-        }
-      }, 16) // ~60fps throttling
-    },
-    [onHover],
-  )
-
   // Memoize chart options to prevent recreation on every render
   const options: ChartOptions<"line"> = useMemo(
     () => ({
       responsive: true,
       maintainAspectRatio: false,
-      parsing: false,
-      animation: false,
+      parsing: false as const,
+      animation: false as const,
       interaction: {
         intersect: false,
-        mode: "index",
+        mode: "index" as const,
       },
-      onHover: (event, activeElements) => {
-        if (chartRef.current && event.native) {
+      onHover: (event: any, activeElements: any) => {
+        if (chartRef.current && event.native && 'clientX' in event.native) {
           const chart = chartRef.current
           const rect = chart.canvas.getBoundingClientRect()
-          const x = event.native.clientX - rect.left
+          const x = (event.native as MouseEvent).clientX - rect.left
 
           // Convert pixel position to data value
           const dataX = chart.scales.x.getValueForPixel(x)
 
-          // Only call throttled hover if we're within the chart bounds
-          if (dataX >= zoomRange.min && dataX <= zoomRange.max) {
-            throttledHover(dataX)
+          // Only call onHover if we're within the chart bounds and dataX is defined
+          if (dataX !== undefined && dataX >= zoomRange.min && dataX <= zoomRange.max) {
+            onHover?.(dataX)
           } else {
-            throttledHover(null)
+            onHover?.(null)
           }
         }
       },
       onHoverLeave: () => {
-        throttledHover(null)
+        onHover?.(null)
       },
       plugins: {
         legend: {
@@ -147,17 +117,6 @@ export function TelemetryChart({
         tooltip: {
           enabled: false,
         },
-        crosshair: {
-          line: {
-            color: "#dc2626",
-            width: 2,
-          },
-          sync: {
-            enabled: true,
-            group: 1, // All charts in the same sync group
-            suppressTooltips: true,
-          },
-        },
         zoom: {
           pan: {
             enabled: false,
@@ -165,6 +124,7 @@ export function TelemetryChart({
           zoom: {
             drag: {
               enabled: true,
+              mode: 'x',
               backgroundColor: "rgba(220, 38, 38, 0.1)",
               borderColor: "rgba(220, 38, 38, 0.5)",
               borderWidth: 1,
@@ -172,7 +132,7 @@ export function TelemetryChart({
             wheel: {
               enabled: false,
             },
-            onZoomComplete: ({ chart }) => {
+            onZoomComplete: ({ chart }: { chart: any }) => {
               const { min, max } = chart.scales.x
               onZoomComplete(min, max)
             },
@@ -181,7 +141,7 @@ export function TelemetryChart({
       },
       scales: {
         x: {
-          type: "linear",
+          type: "linear" as const,
           min: zoomRange.min,
           max: zoomRange.max,
           display: true,
@@ -190,7 +150,7 @@ export function TelemetryChart({
           },
           ticks: {
             color: "#9ca3af",
-            callback: (value) => Math.floor(Number(value)) + "m",
+            callback: (value: any) => Math.floor(Number(value)) + "m",
           },
         },
         y: {
@@ -204,7 +164,7 @@ export function TelemetryChart({
         },
       },
     }),
-    [zoomRange, onZoomComplete, throttledHover],
+    [zoomRange, onZoomComplete, onHover],
   )
 
   // Update chart when zoom range changes
@@ -216,49 +176,6 @@ export function TelemetryChart({
       chart.update("none")
     }
   }, [zoomRange])
-
-  // Update crosshair when hovered distance changes - this enables sync across charts
-  useEffect(() => {
-    if (chartRef.current && hoveredDistance !== null) {
-      const chart = chartRef.current
-
-      // Only show crosshair if the hovered distance is within the visible range
-      if (hoveredDistance >= zoomRange.min && hoveredDistance <= zoomRange.max) {
-        // Get the pixel position for the distance
-        const xScale = chart.scales.x
-        const pixelX = xScale.getPixelForValue(hoveredDistance)
-
-        // Create a synthetic mouse event to trigger crosshair
-        const syntheticEvent = {
-          type: "mousemove",
-          chart: chart,
-          x: pixelX,
-          y: height / 2, // Middle of chart
-          native: {
-            clientX: pixelX,
-            clientY: height / 2,
-            type: "mousemove",
-          },
-        }
-
-        // Trigger the crosshair plugin
-        // @ts-ignore - Chart.js plugin event handling
-        if (chart.options.plugins?.crosshair?.sync?.enabled) {
-          // The crosshair plugin will handle the visual sync
-          chart.notifyPlugins("afterEvent", { event: syntheticEvent })
-        }
-      }
-    }
-  }, [hoveredDistance, zoomRange, height])
-
-  // Cleanup timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (hoverTimeoutRef.current) {
-        clearTimeout(hoverTimeoutRef.current)
-      }
-    }
-  }, [])
 
   // Memoize the closest data point value to prevent recalculation
   const hoveredValue = useMemo(() => {

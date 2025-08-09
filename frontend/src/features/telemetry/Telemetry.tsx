@@ -82,8 +82,6 @@ export default function Telemetry({ sessionId, lapNumber, onBackToSessionDetail 
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false)
 
   // Refs for optimization
-  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null)
-  const lastHoverDistanceRef = useRef<number | null>(null)
   const trackPathLookupRef = useRef<Map<number, TrackPathPoint>>(new Map())
 
   // Custom hook for chart configuration
@@ -130,28 +128,10 @@ export default function Telemetry({ sessionId, lapNumber, onBackToSessionDetail 
     }
   }, [hoveredDistance, trackPathData])
 
-  // Optimized chart hover handler with debouncing
+  // Simplified chart hover handler - no double debouncing needed
   const handleChartHover = useCallback((distance: number | null) => {
-    // Clear any pending updates
-    if (hoverTimeoutRef.current) {
-      clearTimeout(hoverTimeoutRef.current)
-    }
-
-    // Skip if distance hasn't changed significantly (reduce noise)
-    if (distance !== null && lastHoverDistanceRef.current !== null) {
-      const threshold = 3 // 3 meter threshold to reduce noise
-      if (Math.abs(distance - lastHoverDistanceRef.current) < threshold) {
-        return
-      }
-    }
-
-    // Debounce the update to prevent excessive re-renders
-    hoverTimeoutRef.current = setTimeout(() => {
-      if (distance !== lastHoverDistanceRef.current) {
-        lastHoverDistanceRef.current = distance
-        setHoveredDistance(distance) // Single state update
-      }
-    }, 16) // ~60fps throttling
+    // Direct state update - the crosshair plugin handles the synchronization
+    setHoveredDistance(distance)
   }, [])
 
   // Data fetching
@@ -166,7 +146,6 @@ export default function Telemetry({ sessionId, lapNumber, onBackToSessionDetail 
         // Fetch telemetry data from backend
         try {
           const data = await api.telemetry.getLapTelemetry(lapNumber)
-          console.log("Backend telemetry data:", data)
           
           if (data && data.telemetry) {
             setTelemetryData(data.telemetry)
@@ -240,9 +219,7 @@ export default function Telemetry({ sessionId, lapNumber, onBackToSessionDetail 
   // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
-      if (hoverTimeoutRef.current) {
-        clearTimeout(hoverTimeoutRef.current)
-      }
+      // No timeout to clear
     }
   }, [])
 
