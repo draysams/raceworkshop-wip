@@ -72,9 +72,22 @@ export function TrackMap({
   const [error, setError] = useState<string | null>(null)
   const [tool, setTool] = useState(TOOL_AUTO)
   const [value, setValue] = useState<any>({})
+  const [isViewerReady, setIsViewerReady] = useState(false)
   const viewerRef = useRef<any>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 })
+
+  // Callback ref to calculate dimensions as soon as container is available
+  const setContainerRef = useCallback((node: HTMLDivElement | null) => {
+    if (node) {
+      containerRef.current = node
+      const rect = node.getBoundingClientRect()
+      setDimensions({
+        width: rect.width,
+        height: rect.height,
+      })
+    }
+  }, [])
 
   // Update dimensions when container resizes
   useEffect(() => {
@@ -88,7 +101,6 @@ export function TrackMap({
       }
     }
 
-    updateDimensions()
     window.addEventListener("resize", updateDimensions)
     return () => window.removeEventListener("resize", updateDimensions)
   }, [])
@@ -221,6 +233,7 @@ export function TrackMap({
 
   // Calculate view box based on zoom range
   const viewBox = useMemo(() => {
+    
     if (trackPathData.length === 0) {
       return "-500 -750 750 1250" // Default view box
     }
@@ -230,8 +243,22 @@ export function TrackMap({
       point => point.distance >= zoomRange.min && point.distance <= zoomRange.max
     )
 
-    if (visiblePoints.length === 0) {
-      return "-500 -750 750 1250" // Default if no points in range
+    // If no points in zoom range or if zoom range covers the entire track, use all track data
+    if (visiblePoints.length === 0 || (zoomRange.min <= 0 && zoomRange.max >= 4000)) {
+      const allXCoords = trackPathData.map(p => p.x)
+      const allYCoords = trackPathData.map(p => p.y)
+      
+      const minX = Math.min(...allXCoords)
+      const maxX = Math.max(...allXCoords)
+      const minY = Math.min(...allYCoords)
+      const maxY = Math.max(...allYCoords)
+
+      const padding = 100
+      const width = maxX - minX + (padding * 2)
+      const height = maxY - minY + (padding * 2)
+
+      const calculatedViewBox = `${minX - padding} ${minY - padding} ${width} ${height}`
+      return calculatedViewBox
     }
 
     // Calculate bounding box of visible points
@@ -248,18 +275,48 @@ export function TrackMap({
     const width = maxX - minX + (padding * 2)
     const height = maxY - minY + (padding * 2)
 
-    return `${minX - padding} ${minY - padding} ${width} ${height}`
+    const calculatedViewBox = `${minX - padding} ${minY - padding} ${width} ${height}`
+    return calculatedViewBox
   }, [trackPathData, zoomRange])
 
   // Reset track map view when zoom range changes
   useEffect(() => {
-    if (viewerRef.current) {
+    if (viewerRef.current && isViewerReady) {
       // Small delay to ensure the viewBox has updated
       setTimeout(() => {
         viewerRef.current.fitToViewer()
       }, 100)
     }
-  }, [viewBox])
+  }, [viewBox, isViewerReady, zoomRange])
+
+  // Initial fit when viewer is ready and data is loaded
+  useEffect(() => {
+    
+    // Trigger fit when data is loaded and component is rendered, regardless of onLoad
+    if (viewerRef.current && trackPathData.length > 0 && !loading) {
+      
+      // Call fitToViewer multiple times with increasing delays to ensure proper alignment
+      setTimeout(() => {
+        if (viewerRef.current) {
+          viewerRef.current.fitToViewer()
+        }
+      }, 200)
+      
+      setTimeout(() => {
+        if (viewerRef.current) {
+          viewerRef.current.fitToViewer()
+        }
+      }, 500)
+      
+      setTimeout(() => {
+        if (viewerRef.current) {
+          viewerRef.current.fitToViewer()
+        }
+      }, 1000)
+      
+      // Remove the manual view setting as it's not needed
+    }
+  }, [trackPathData.length, loading, dimensions])
 
   // Pan and zoom control handlers
   const handleZoomIn = () => {
@@ -314,7 +371,7 @@ export function TrackMap({
   }
 
   return (
-    <div ref={containerRef} className="h-full relative">
+    <div ref={setContainerRef} className="h-full relative">
       {/* Map Controls */}
       <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
         <div className="flex items-center gap-1 bg-zinc-900/90 border border-zinc-700 rounded-lg p-1">
@@ -446,6 +503,9 @@ export function TrackMap({
         scaleFactorMin={0.1}
         scaleFactorMax={10}
         className="border-0"
+        onLoad={() => {
+          setIsViewerReady(true)
+        }}
       >
         <svg viewBox={viewBox} style={{ overflow: "visible" }}>
           {/* 1. Render the track outline from the extracted path data */}
