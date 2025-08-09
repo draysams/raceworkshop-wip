@@ -157,6 +157,18 @@ export function TrackMap({
     fetchAndParseSvg()
   }, [onTrackMapError, trackName])
 
+  // Debug: Log telemetry data structure when received
+  useEffect(() => {
+    if (telemetryData) {
+      console.log(`[TrackMap] Telemetry data received:`, {
+        throttleDataLength: telemetryData.throttle.data.length,
+        brakeDataLength: telemetryData.brake.data.length,
+        throttleSample: telemetryData.throttle.data.slice(0, 3),
+        brakeSample: telemetryData.brake.data.slice(0, 3),
+      })
+    }
+  }, [telemetryData])
+
   // Memoized helper function to get color based on real telemetry data
   const getPointColor = useCallback(
     (distance: number): string => {
@@ -172,11 +184,16 @@ export function TrackMap({
         Math.abs(curr.x - distance) < Math.abs(prev.x - distance) ? curr : prev,
       )
 
-      // Use thresholds to avoid noise
-      if (brakePoint && brakePoint.y > 5) {
+      // Debug logging to see what values we're getting (only log first few points to avoid spam)
+      if (distance < 100) {
+        console.log(`[TrackMap] Distance: ${distance}, Throttle: ${throttlePoint?.y}, Brake: ${brakePoint?.y}`)
+      }
+
+      // Use thresholds to avoid noise - adjust based on actual data range
+      if (brakePoint && brakePoint.y > 0.1) {
         return "#DC3545" // Red for braking
       }
-      if (throttlePoint && throttlePoint.y > 5) {
+      if (throttlePoint && throttlePoint.y > 0.1) {
         return "#198754" // Green for throttle
       }
       return "#808080" // Grey for coasting
@@ -281,13 +298,13 @@ export function TrackMap({
 
   // Reset track map view when zoom range changes
   useEffect(() => {
-    if (viewerRef.current && isViewerReady) {
+    if (viewerRef.current) {
       // Small delay to ensure the viewBox has updated
       setTimeout(() => {
         viewerRef.current.fitToViewer()
       }, 100)
     }
-  }, [viewBox, isViewerReady, zoomRange])
+  }, [viewBox, zoomRange])
 
   // Initial fit when viewer is ready and data is loaded
   useEffect(() => {
