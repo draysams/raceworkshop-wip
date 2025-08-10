@@ -10,7 +10,6 @@ class Event:
 # --- Session Events ---
 @dataclass
 class SessionStarted(Event):
-    # --- REFACTORED to carry IDs instead of raw strings ---
     uid: str
     simulator_id: int
     track_id: int
@@ -19,7 +18,6 @@ class SessionStarted(Event):
     session_type: str
     track_temp: float
     air_temp: float
-    # --- REFACTOR END ---
 
 @dataclass
 class SessionEnded(Event):
@@ -29,6 +27,9 @@ class SessionEnded(Event):
 @dataclass
 class StintStarted(Event):
     lap_number: int
+    # --- CHANGE START: Add setup_id ---
+    setup_id: int | None
+    # --- CHANGE END ---
 
 @dataclass
 class StintEnded(Event):
@@ -37,7 +38,6 @@ class StintEnded(Event):
 # --- Lap Events ---
 @dataclass
 class LapStarted(Event):
-    """Fired when a new lap begins (e.g., first outlap or after crossing S/F)."""
     lap_number: int
 
 @dataclass
@@ -51,7 +51,6 @@ class LapCompleted(Event):
 
 @dataclass
 class LapAborted(Event):
-    """Fired when a lap is aborted mid-way (e.g., Return to Garage)."""
     lap_number: int
     lap_time: float
     sector1_time: float
@@ -62,6 +61,5 @@ class LapAborted(Event):
 # --- Live Data Events ---
 @dataclass
 class TelemetryUpdate(Event):
-    """Event to push live data to the UI."""
     payload: dict
     player_state: str

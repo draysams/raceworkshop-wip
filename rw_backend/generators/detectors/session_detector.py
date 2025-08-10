@@ -19,61 +19,67 @@ class SessionDetector:
 
     def detect(self, raw_data, last_extended_data, last_player_data, player_state):
         extended = raw_data.get('extended')
-        if not extended: return None
+        if not extended:
+            return None, None
 
         was_session_started = last_extended_data.get('mSessionStarted', False)
         
         if extended.mSessionStarted and not was_session_started:
-            self._start_new_session(raw_data)
-            return "IN_GARAGE"
+            session_data = self._build_session_data(raw_data)
+            if session_data:
+                self.event_queue.put(SessionStarted(**session_data))
+                return "IN_GARAGE", session_data
+            return None, None
 
         if not extended.mSessionStarted and was_session_started:
             self.event_queue.put(SessionEnded())
-            return "UNKNOWN"
+            return "UNKNOWN", None
         
         if extended.mSessionStarted and was_session_started:
             player_scoring = next((v for v in raw_data['scoring'].mVehicles if v.mIsPlayer), None)
-            if not player_scoring: return None
+            if not player_scoring: return None, None
             
             laps_reset = player_scoring.mTotalLaps == 0 and last_player_data.get('mTotalLaps', 0) > 0
             if player_state == "IN_GARAGE" and laps_reset:
                 print("[SessionDetector] Restart detected. Cycling session.", flush=True)
                 self.event_queue.put(SessionEnded())
-                self._start_new_session(raw_data)
-                return "IN_GARAGE" 
+                session_data = self._build_session_data(raw_data)
+                if session_data:
+                    self.event_queue.put(SessionStarted(**session_data))
+                    return "IN_GARAGE", session_data
+                return None, None
         
-        return None
+        return None, None
 
-    def _start_new_session(self, raw_data):
+    def _build_session_data(self, raw_data) -> dict | None:
         extended = raw_data.get('extended')
         scoring = raw_data.get('scoring')
         telemetry = raw_data.get('telemetry')
         scoring_info = scoring.mScoringInfo
         player_scoring = next((v for v in scoring.mVehicles if v.mIsPlayer), None)
         
-        if scoring_info and player_scoring and telemetry and extended:
-            simulator, _ = Simulator.get_or_create(name="Le Mans Ultimate")
-            driver, _ = Driver.get_or_create(name=Cbytestring2Python(player_scoring.mDriverName))
-            
-            car_model_str = Cbytestring2Python(player_scoring.mVehicleName) or Cbytestring2Python(telemetry.mVehicleName)
-            car, _ = Car.get_or_create(
-                model=car_model_str,
-                defaults={'car_class': Cbytestring2Python(player_scoring.mVehicleClass)}
-            )
-            
-            # --- CHANGE START: Simplified and robust track lookup ---
-            track_name_from_sim = Cbytestring2Python(scoring_info.mTrackName)
-            track_dist_from_sim = scoring_info.mLapDist
-            
-            # This query finds the track with the same name and the closest length.
-            track = (Track
-                     .select()
-                     .where(Track.display_name == track_name_from_sim)
-                     .order_by(pw.fn.ABS(Track.length_m - track_dist_from_sim)) # Order by smallest difference
-                     .first()) # Get the closest match
-            
-            if not track:
-                # If no seeded track is found, create a new one as a fallback.
+        if not (scoring_info and player_scoring and telemetry and extended):
+            return None
+
+        simulator, _ = Simulator.get_or_create(name="Le Mans Ultimate")
+        driver, _ = Driver.get_or_create(name=Cbytestring2Python(player_scoring.mDriverName))
+        car_model_str = Cbytestring2Python(player_scoring.mVehicleName) or Cbytestring2Python(telemetry.mVehicleName)
+        car, _ = Car.get_or_create(
+            model=car_model_str,
+            defaults={'car_class': Cbytestring2Python(player_scoring.mVehicleClass)}
+        )
+        
+        track_name_from_sim = Cbytestring2Python(scoring_info.mTrackName)
+        track_dist_from_sim = scoring_info.mLapDist
+        
+        track = (Track
+                 .select()
+                 .where(Track.display_name == track_name_from_sim)
+                 .order_by(pw.fn.ABS(Track.length_m - track_dist_from_sim))
+                 .first())
+        
+        if not track:
+             # If no seeded track is found, create a new one as a fallback.
                 print(f"[SessionDetector] WARNING: No seeded track found for '{track_name_from_sim}' with length {track_dist_from_sim:.0f}m. Creating new entry.", flush=True)
                 track_id = f"unseeded-{track_name_from_sim}-{int(track_dist_from_sim)}"
                 
@@ -92,19 +98,17 @@ class SessionDetector:
                         'thumbnail_path': '' # Provide empty string default
                     }
                 )
-            # --- CHANGE END ---
 
-            ticks_uid = extended.mTicksSessionStarted
-            uid = f"{track.display_name}-{ticks_uid}"
-            
-            event = SessionStarted(
-                uid=uid,
-                simulator_id=simulator.id,
-                track_id=track.id,
-                car_id=car.id,
-                driver_id=driver.id,
-                session_type=map_game_phase_to_session_type(scoring_info.mSession),
-                track_temp=scoring_info.mTrackTemp,
-                air_temp=scoring_info.mAmbientTemp
-            )
-            self.event_queue.put(event)
+        ticks_uid = extended.mTicksSessionStarted
+        uid = f"{track.display_name}-{ticks_uid}"
+        
+        return {
+            "uid": uid,
+            "simulator_id": simulator.id,
+            "track_id": track.id,
+            "car_id": car.id,
+            "driver_id": driver.id,
+            "session_type": map_game_phase_to_session_type(scoring_info.mSession),
+            "track_temp": scoring_info.mTrackTemp,
+            "air_temp": scoring_info.mAmbientTemp
+        }

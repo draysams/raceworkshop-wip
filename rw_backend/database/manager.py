@@ -1,7 +1,7 @@
 # rw_backend/database/manager.py
 
 import json
-from .models import db, Session, Stint, Lap, Simulator, Track, Car, Driver, LapTelemetry
+from .models import db, Session, Stint, Lap, Simulator, Track, Car, Driver, LapTelemetry, Setup
 
 # --- NEW: Seed data for the Track table ---
 TRACK_SEED_DATA = [
@@ -64,7 +64,8 @@ def initialize_database():
         db.create_tables([
             Simulator, Track, Car, Driver,
             Session, Stint, Lap, 
-            LapTelemetry
+            LapTelemetry,
+            Setup
         ])
         
         # --- CHANGE START: Call the seeding function ---

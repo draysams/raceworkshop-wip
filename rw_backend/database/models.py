@@ -16,30 +16,15 @@ class BaseModel(pw.Model):
 class Simulator(BaseModel):
     name = pw.CharField(unique=True)
 
-# --- CHANGE START: Expanded the Track model ---
 class Track(BaseModel):
-    """Stores detailed, official information about each track layout."""
-    # We use CharField for the primary key to store the provided string IDs.
     id = pw.CharField(primary_key=True)
-    
-    # This is the name from shared memory, used for lookups.
-    # It is indexed for performance but not unique, as multiple layouts share a name.
     internal_name = pw.CharField(index=True) 
-    
-    # This is the full, user-friendly event name (e.g., "6 Hours of Portimao")
     display_name = pw.CharField()
-    
-    short_name = pw.CharField() # e.g., "Algarve International Circuit 1.17"
-    
-    # Store length in meters for precise matching with shared memory data.
+    short_name = pw.CharField()
     length_m = pw.FloatField(index=True)
-    
-    type = pw.CharField() # e.g., "Road Course"
-    
-    # Paths to image assets.
+    type = pw.CharField()
     image_path = pw.CharField()
     thumbnail_path = pw.CharField()
-# --- CHANGE END ---
 
 class Car(BaseModel):
     model = pw.CharField(unique=True)
@@ -47,6 +32,20 @@ class Car(BaseModel):
 
 class Driver(BaseModel):
     name = pw.CharField(unique=True)
+
+# --- NEW TABLE START ---
+class Setup(BaseModel):
+    """Stores a unique car setup for a specific car/track combination."""
+    car = pw.ForeignKeyField(Car, backref='setups', on_delete='CASCADE')
+    track = pw.ForeignKeyField(Track, backref='setups', on_delete='CASCADE')
+    name = pw.CharField()
+    # Checksum is used for fast, reliable lookup of an identical setup.
+    checksum = pw.CharField(unique=True, index=True)
+    # The full setup data is stored as a JSON text field for detailed viewing.
+    summary_data = pw.TextField() # In SQLite, this is TEXT, which is fine for JSON
+    setup_details = pw.TextField()
+    weather_details = pw.TextField()
+# --- NEW TABLE END ---
 
 class Session(BaseModel):
     simulator = pw.ForeignKeyField(Simulator, backref='sessions', index=True)
@@ -62,6 +61,9 @@ class Session(BaseModel):
 
 class Stint(BaseModel):
     session = pw.ForeignKeyField(Session, backref='stints', on_delete='CASCADE', index=True)
+    # --- CHANGE START: Add link to the Setup table ---
+    setup = pw.ForeignKeyField(Setup, backref='stints', null=True, on_delete='SET NULL')
+    # --- CHANGE END ---
     stint_number = pw.IntegerField()
     started_on_lap = pw.IntegerField()
     ended_on_lap = pw.IntegerField(null=True)
