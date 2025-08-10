@@ -1,10 +1,12 @@
-import { Loader2, AlertCircle, Badge, LayoutGrid, Settings, ZoomIn, ZoomOut, RotateCcw } from "lucide-react"
+import { Loader2, AlertCircle, Badge, LayoutGrid, Settings, ZoomIn, ZoomOut, RotateCcw, BarChart3 } from "lucide-react"
 import { useState, useRef, useEffect, useMemo, useCallback } from "react"
 import { Alert, AlertDescription } from "../../components/ui/alert"
 import { Button } from "../../components/ui/button"
 import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/card"
 import { useChartConfig } from "../../hooks/useChartConfig"
 import { ConfigModal } from "./ConfigModal"
+import { CompareModal } from "./CompareModal"
+import { TelemetryDashboard } from "./TelemetryDashboard"
 import { FeatureNavigation } from "../../components/navigation/FeatureNavigation"
 import { TelemetryChart } from "./TelemetryChart"
 import { TrackMap } from "./TrackMap"
@@ -80,6 +82,7 @@ export default function Telemetry({ sessionId, lapNumber, onBackToSessionDetail 
   const [trackMapError, setTrackMapError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false)
+  const [isCompareModalOpen, setIsCompareModalOpen] = useState(false)
   
   // Comparison mode state
   const [isComparisonMode, setIsComparisonMode] = useState(false)
@@ -93,11 +96,11 @@ export default function Telemetry({ sessionId, lapNumber, onBackToSessionDetail 
   const { chartConfig, saveChartConfig } = useChartConfig()
 
   // Function to load lap comparison data
-  const loadLapComparison = async () => {
+  const loadLapComparison = async (lapId1: number, lapId2: number) => {
     try {
       setComparisonLoading(true)
       console.log("Loading lap comparison...")
-      const data = await api.telemetry.compareLaps(lapNumber, lapNumber + 1)
+      const data = await api.telemetry.compareLaps(lapId1, lapId2)
       console.log("Lap comparison data:", data)
       setComparisonData(data)
       setIsComparisonMode(true)
@@ -409,10 +412,11 @@ export default function Telemetry({ sessionId, lapNumber, onBackToSessionDetail 
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={isComparisonMode ? exitComparisonMode : loadLapComparison}
+                  onClick={isComparisonMode ? exitComparisonMode : () => setIsCompareModalOpen(true)}
                   disabled={comparisonLoading}
                   className="border-zinc-600 bg-transparent text-zinc-300 hover:text-white"
                 >
+                  <BarChart3 className="w-4 h-4 mr-2" />
                   {comparisonLoading ? "Loading..." : isComparisonMode ? "Exit Compare" : "Compare Laps"}
                 </Button>
 
@@ -514,23 +518,33 @@ export default function Telemetry({ sessionId, lapNumber, onBackToSessionDetail 
                   <CardTitle className="text-white">Track Map</CardTitle>
                 </CardHeader>
                 <CardContent className="flex-1 min-h-0">
-                                     <TrackMap
-                     trackPathData={isComparisonMode && comparisonData ? comparisonData.lap1?.trackpath || [] : trackPathData}
-                     hoveredData={hoveredData}
-                     setHoveredData={() => {}} // No direct interaction with track map
-                     zoomRange={zoomRange}
-                     onTrackMapError={setTrackMapError}
-                     telemetryData={trackMapTelemetryData}
-                     trackName={telemetryData ? "Algarve International Circuit" : undefined}
-                     comparisonTrackPathData={isComparisonMode && comparisonData ? comparisonData.lap2?.trackpath || [] : undefined}
-                     isComparisonMode={isComparisonMode}
-                   />
+                  <TrackMap
+                    trackPathData={isComparisonMode && comparisonData ? comparisonData.lap1?.trackpath || [] : trackPathData}
+                    hoveredData={hoveredData}
+                    setHoveredData={() => {}} // No direct interaction with track map
+                    zoomRange={zoomRange}
+                    onTrackMapError={setTrackMapError}
+                    telemetryData={trackMapTelemetryData}
+                    trackName={telemetryData ? "Algarve International Circuit" : undefined}
+                    comparisonTrackPathData={isComparisonMode && comparisonData ? comparisonData.lap2?.trackpath || [] : undefined}
+                    isComparisonMode={isComparisonMode}
+                  />
                 </CardContent>
               </Card>
             </div>
 
             {/* Charts */}
             <div className="w-1/2 min-h-0 overflow-y-auto">
+              {/* Telemetry Dashboard */}
+              <div className="mb-4">
+                <TelemetryDashboard
+                  hoveredDistance={hoveredDistance}
+                  telemetryData={isComparisonMode && comparisonData ? comparisonData.lap1?.telemetry : telemetryData}
+                  isComparisonMode={isComparisonMode}
+                  comparisonData={isComparisonMode && comparisonData ? comparisonData.lap2?.telemetry : undefined}
+                />
+              </div>
+              
               <div className="space-y-4 pr-2">
                 {visibleCharts.map((chartConfig) => {
                   if (isComparisonMode && comparisonData) {
@@ -586,6 +600,15 @@ export default function Telemetry({ sessionId, lapNumber, onBackToSessionDetail 
         onClose={() => setIsConfigModalOpen(false)}
         chartConfig={chartConfig}
         onSave={saveChartConfig}
+      />
+
+      {/* Compare Modal */}
+      <CompareModal
+        isOpen={isCompareModalOpen}
+        onClose={() => setIsCompareModalOpen(false)}
+        sessionId={sessionId}
+        currentLapNumber={lapNumber}
+        onCompareLaps={loadLapComparison}
       />
     </FeatureLayout>
   )

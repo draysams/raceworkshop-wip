@@ -204,27 +204,50 @@ export function TelemetryChart({
     }
   }, [zoomRange])
 
-  // Memoize the closest data point value to prevent recalculation
-  const hoveredValue = useMemo(() => {
+  // Memoize the closest data point values to prevent recalculation
+  const hoveredValues = useMemo(() => {
     if (!hoveredDistance || hoveredDistance < zoomRange.min || hoveredDistance > zoomRange.max) {
       return null
     }
 
-    const closestPoint = data.data.reduce((prev, curr) =>
+    // Find closest point for main data
+    const mainClosestPoint = data.data.reduce((prev, curr) =>
       Math.abs(curr.x - hoveredDistance) < Math.abs(prev.x - hoveredDistance) ? curr : prev,
     )
-    return closestPoint.y.toFixed(data.stepped ? 0 : 2)
-  }, [hoveredDistance, zoomRange, data.data, data.stepped])
+    const mainValue = mainClosestPoint.y.toFixed(data.stepped ? 0 : 2)
+
+    // Find closest point for comparison data if available
+    let comparisonValue: string | null = null
+    if (isComparisonMode && comparisonData) {
+      const comparisonClosestPoint = comparisonData.data.reduce((prev, curr) =>
+        Math.abs(curr.x - hoveredDistance) < Math.abs(prev.x - hoveredDistance) ? curr : prev,
+      )
+      comparisonValue = comparisonClosestPoint.y.toFixed(comparisonData.stepped ? 0 : 2)
+    }
+
+    return {
+      main: mainValue,
+      comparison: comparisonValue
+    }
+  }, [hoveredDistance, zoomRange, data.data, data.stepped, isComparisonMode, comparisonData])
 
   return (
     <Card className="bg-zinc-900/50 border-zinc-800">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-white text-base">{title}</CardTitle>
-          {hoveredValue !== null && (
-            <div className="text-sm">
-              <span className="text-zinc-400">{data.label}: </span>
-              <span className="text-white font-mono">{hoveredValue}</span>
+          {hoveredValues !== null && (
+            <div className="text-sm space-y-1">
+              <div>
+                <span className="text-zinc-400">{data.label}: </span>
+                <span className="text-white font-mono">{hoveredValues.main}</span>
+              </div>
+              {isComparisonMode && hoveredValues.comparison !== null && (
+                <div>
+                  <span className="text-zinc-400">{comparisonData?.label || 'Comparison'}: </span>
+                  <span className="text-white font-mono">{hoveredValues.comparison}</span>
+                </div>
+              )}
             </div>
           )}
         </div>
