@@ -54,19 +54,18 @@ class Lap(BaseModel):
     is_valid = pw.BooleanField()
     timestamp = pw.DateTimeField(default=datetime.now)
 
-# --- DATABASE REFACTOR START ---
-# The old TelemetryChannel, TelemetrySnapshot, and TelemetryValue tables are removed.
-# They are replaced with a single, high-performance "wide" format table.
-
 class LapTelemetry(BaseModel):
-    """
-    Stores a full snapshot of telemetry data at a specific point in a lap.
-    This "wide" format is optimized for fast read performance for lap charts.
-    """
     lap = pw.ForeignKeyField(Lap, backref='telemetry', on_delete='CASCADE', index=True)
     lap_dist = pw.FloatField()
     
-    # Core Channels
+    # --- CHANGE START ---
+    elapsed_time = pw.FloatField()
+    # --- CHANGE END ---
+    
+    pos_x = pw.FloatField(null=True)
+    pos_y = pw.FloatField(null=True)
+    pos_z = pw.FloatField(null=True)
+    
     throttle = pw.FloatField()
     brake = pw.FloatField()
     steering = pw.FloatField()
@@ -75,25 +74,17 @@ class LapTelemetry(BaseModel):
     gear = pw.IntegerField()
     fuel_level = pw.FloatField()
     drs_active = pw.IntegerField()
-
-    # Track position
-    pos_x = pw.FloatField(null=True)
-    pos_y = pw.FloatField(null=True)
-    pos_z = pw.FloatField(null=True)
     
-    # Tire Pressures
     tire_pressure_fl = pw.FloatField()
     tire_pressure_fr = pw.FloatField()
     tire_pressure_rl = pw.FloatField()
     tire_pressure_rr = pw.FloatField()
 
-    # Tire Wear
     tire_wear_fl = pw.FloatField()
     tire_wear_fr = pw.FloatField()
     tire_wear_rl = pw.FloatField()
     tire_wear_rr = pw.FloatField()
 
-    # Tire Temps (Inner/Middle/Outer for each wheel)
     tire_temp_fl_i = pw.FloatField()
     tire_temp_fl_m = pw.FloatField()
     tire_temp_fl_o = pw.FloatField()
@@ -106,4 +97,3 @@ class LapTelemetry(BaseModel):
     tire_temp_rr_i = pw.FloatField()
     tire_temp_rr_m = pw.FloatField()
     tire_temp_rr_o = pw.FloatField()
-# --- DATABASE REFACTOR END ---
