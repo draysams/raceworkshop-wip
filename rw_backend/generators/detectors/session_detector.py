@@ -1,17 +1,16 @@
 # rw_backend/generators/detectors/session_detector.py
 
 from rw_backend.core.events import SessionStarted, SessionEnded
-# --- CHANGE START: Import new models for lookups ---
 from rw_backend.database.models import Simulator, Track, Car, Driver
-# --- CHANGE END ---
 import time
+import peewee as pw # Import peewee for the `fn.ABS` function
 
 def Cbytestring2Python(bytestring):
     try: return bytes(bytestring).partition(b'\0')[0].decode('utf-8').strip()
     except: return ""
 
 def map_game_phase_to_session_type(game_phase: int) -> str:
-    phases = { 5: "Practice", 6: "Qualifying", 7: "Warmup", 8: "Race" }
+    phases = { 0: "Testday", 1: "Practice", 2: "Practice", 3: "Practice", 4: "Practice", 5: "Qualifying", 6: "Qualifying", 7: "Qualifying", 8: "Qualifying", 9: "Warmup", 10: "Race", 11: "Race", 12: "Race", 13: "Race" }
     return phases.get(game_phase, "Unknown")
 
 class SessionDetector:
@@ -46,9 +45,6 @@ class SessionDetector:
         return None
 
     def _start_new_session(self, raw_data):
-        """
-        Looks up/creates records in normalized tables and dispatches a SessionStarted event.
-        """
         extended = raw_data.get('extended')
         scoring = raw_data.get('scoring')
         telemetry = raw_data.get('telemetry')
@@ -56,17 +52,50 @@ class SessionDetector:
         player_scoring = next((v for v in scoring.mVehicles if v.mIsPlayer), None)
         
         if scoring_info and player_scoring and telemetry and extended:
-            # --- REFACTORED to use get_or_create on new tables ---
             simulator, _ = Simulator.get_or_create(name="Le Mans Ultimate")
-            track, _ = Track.get_or_create(name=Cbytestring2Python(scoring_info.mTrackName))
             driver, _ = Driver.get_or_create(name=Cbytestring2Python(player_scoring.mDriverName))
+            
+            car_model_str = Cbytestring2Python(player_scoring.mVehicleName) or Cbytestring2Python(telemetry.mVehicleName)
             car, _ = Car.get_or_create(
-                model=Cbytestring2Python(telemetry.mVehicleName),
+                model=car_model_str,
                 defaults={'car_class': Cbytestring2Python(player_scoring.mVehicleClass)}
             )
+            
+            # --- CHANGE START: Simplified and robust track lookup ---
+            track_name_from_sim = Cbytestring2Python(scoring_info.mTrackName)
+            track_dist_from_sim = scoring_info.mLapDist
+            
+            # This query finds the track with the same name and the closest length.
+            track = (Track
+                     .select()
+                     .where(Track.display_name == track_name_from_sim)
+                     .order_by(pw.fn.ABS(Track.length_m - track_dist_from_sim)) # Order by smallest difference
+                     .first()) # Get the closest match
+            
+            if not track:
+                # If no seeded track is found, create a new one as a fallback.
+                print(f"[SessionDetector] WARNING: No seeded track found for '{track_name_from_sim}' with length {track_dist_from_sim:.0f}m. Creating new entry.", flush=True)
+                track_id = f"unseeded-{track_name_from_sim}-{int(track_dist_from_sim)}"
+                
+                # --- THIS IS THE FIX ---
+                # The 'defaults' dictionary must provide a value for ALL non-nullable columns.
+                # We will provide sensible, empty placeholders.
+                track, _ = Track.get_or_create(
+                    id=track_id,
+                    defaults={
+                        'internal_name': track_name_from_sim,
+                        'display_name': track_name_from_sim,
+                        'short_name': track_name_from_sim,
+                        'length_m': track_dist_from_sim,
+                        'type': 'Unknown',
+                        'image_path': '', # Provide empty string default
+                        'thumbnail_path': '' # Provide empty string default
+                    }
+                )
+            # --- CHANGE END ---
 
             ticks_uid = extended.mTicksSessionStarted
-            uid = f"{track.name}-{ticks_uid}"
+            uid = f"{track.display_name}-{ticks_uid}"
             
             event = SessionStarted(
                 uid=uid,
@@ -74,9 +103,8 @@ class SessionDetector:
                 track_id=track.id,
                 car_id=car.id,
                 driver_id=driver.id,
-                session_type=map_game_phase_to_session_type(scoring_info.mGamePhase),
+                session_type=map_game_phase_to_session_type(scoring_info.mSession),
                 track_temp=scoring_info.mTrackTemp,
                 air_temp=scoring_info.mAmbientTemp
             )
             self.event_queue.put(event)
-            # --- REFACTOR END ---

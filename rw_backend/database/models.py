@@ -16,8 +16,30 @@ class BaseModel(pw.Model):
 class Simulator(BaseModel):
     name = pw.CharField(unique=True)
 
+# --- CHANGE START: Expanded the Track model ---
 class Track(BaseModel):
-    name = pw.CharField(unique=True)
+    """Stores detailed, official information about each track layout."""
+    # We use CharField for the primary key to store the provided string IDs.
+    id = pw.CharField(primary_key=True)
+    
+    # This is the name from shared memory, used for lookups.
+    # It is indexed for performance but not unique, as multiple layouts share a name.
+    internal_name = pw.CharField(index=True) 
+    
+    # This is the full, user-friendly event name (e.g., "6 Hours of Portimao")
+    display_name = pw.CharField()
+    
+    short_name = pw.CharField() # e.g., "Algarve International Circuit 1.17"
+    
+    # Store length in meters for precise matching with shared memory data.
+    length_m = pw.FloatField(index=True)
+    
+    type = pw.CharField() # e.g., "Road Course"
+    
+    # Paths to image assets.
+    image_path = pw.CharField()
+    thumbnail_path = pw.CharField()
+# --- CHANGE END ---
 
 class Car(BaseModel):
     model = pw.CharField(unique=True)
@@ -57,15 +79,10 @@ class Lap(BaseModel):
 class LapTelemetry(BaseModel):
     lap = pw.ForeignKeyField(Lap, backref='telemetry', on_delete='CASCADE', index=True)
     lap_dist = pw.FloatField()
-    
-    # --- CHANGE START ---
     elapsed_time = pw.FloatField()
-    # --- CHANGE END ---
-    
     pos_x = pw.FloatField(null=True)
     pos_y = pw.FloatField(null=True)
     pos_z = pw.FloatField(null=True)
-    
     throttle = pw.FloatField()
     brake = pw.FloatField()
     steering = pw.FloatField()
@@ -74,17 +91,14 @@ class LapTelemetry(BaseModel):
     gear = pw.IntegerField()
     fuel_level = pw.FloatField()
     drs_active = pw.IntegerField()
-    
     tire_pressure_fl = pw.FloatField()
     tire_pressure_fr = pw.FloatField()
     tire_pressure_rl = pw.FloatField()
     tire_pressure_rr = pw.FloatField()
-
     tire_wear_fl = pw.FloatField()
     tire_wear_fr = pw.FloatField()
     tire_wear_rl = pw.FloatField()
     tire_wear_rr = pw.FloatField()
-
     tire_temp_fl_i = pw.FloatField()
     tire_temp_fl_m = pw.FloatField()
     tire_temp_fl_o = pw.FloatField()
