@@ -80,12 +80,39 @@ export default function Telemetry({ sessionId, lapNumber, onBackToSessionDetail 
   const [trackMapError, setTrackMapError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false)
+  
+  // Comparison mode state
+  const [isComparisonMode, setIsComparisonMode] = useState(false)
+  const [comparisonData, setComparisonData] = useState<any>(null)
+  const [comparisonLoading, setComparisonLoading] = useState(false)
 
   // Refs for optimization
   const trackPathLookupRef = useRef<Map<number, TrackPathPoint>>(new Map())
 
   // Custom hook for chart configuration
   const { chartConfig, saveChartConfig } = useChartConfig()
+
+  // Function to load lap comparison data
+  const loadLapComparison = async () => {
+    try {
+      setComparisonLoading(true)
+      console.log("Loading lap comparison...")
+      const data = await api.telemetry.compareLaps(lapNumber, lapNumber + 1)
+      console.log("Lap comparison data:", data)
+      setComparisonData(data)
+      setIsComparisonMode(true)
+    } catch (error) {
+      console.error("Error loading lap comparison:", error)
+    } finally {
+      setComparisonLoading(false)
+    }
+  }
+
+  // Function to exit comparison mode
+  const exitComparisonMode = () => {
+    setIsComparisonMode(false)
+    setComparisonData(null)
+  }
 
   // Build optimized lookup map for track path data
   useEffect(() => {
@@ -346,25 +373,49 @@ export default function Telemetry({ sessionId, lapNumber, onBackToSessionDetail 
           {/* Header */}
           <div className="mb-4 flex-shrink-0">
             <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-3xl font-bold text-white mb-2">Race Engineer</h1>
-                <div className="flex items-center gap-4 text-zinc-400">
-                  <span>Bahrain Paddock Circuit</span>
-                  <span>•</span>
-                  <span>Porsche 911 GT3 R</span>
-                  {sessionId && lapNumber && (
-                    <>
-                      <span>•</span>
-                      <Badge className="bg-red-600">
-                        Session {sessionId}, Lap {lapNumber}
-                      </Badge>
-                    </>
+                             <div>
+                 <h1 className="text-3xl font-bold text-white mb-2">Race Engineer</h1>
+                 <div className="flex items-center gap-4 text-zinc-400">
+                   <span>Bahrain Paddock Circuit</span>
+                   <span>•</span>
+                   <span>Porsche 911 GT3 R</span>
+                   {sessionId && lapNumber && (
+                     <>
+                       <span>•</span>
+                       <Badge className="bg-red-600">
+                         Session {sessionId}, Lap {lapNumber}
+                       </Badge>
+                     </>
+                   )}
+                 </div>
+                 
+                                   {/* Comparison Legend */}
+                  {isComparisonMode && comparisonData && (
+                    <div className="mt-3 flex items-center gap-6 text-sm">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 bg-blue-500 rounded"></div>
+                        <span className="text-zinc-300">Lap {comparisonData.lap1?.lapId || lapNumber} (Original Colors)</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 bg-orange-500 rounded"></div>
+                        <span className="text-zinc-300">Lap {comparisonData.lap2?.lapId || lapNumber + 1} (Contrasting Colors)</span>
+                      </div>
+                    </div>
                   )}
-                </div>
-              </div>
+               </div>
 
               {/* Controls */}
               <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={isComparisonMode ? exitComparisonMode : loadLapComparison}
+                  disabled={comparisonLoading}
+                  className="border-zinc-600 bg-transparent text-zinc-300 hover:text-white"
+                >
+                  {comparisonLoading ? "Loading..." : isComparisonMode ? "Exit Compare" : "Compare Laps"}
+                </Button>
+
                 <Button
                   variant="outline"
                   size="sm"
@@ -464,13 +515,15 @@ export default function Telemetry({ sessionId, lapNumber, onBackToSessionDetail 
                 </CardHeader>
                 <CardContent className="flex-1 min-h-0">
                                      <TrackMap
-                     trackPathData={trackPathData}
+                     trackPathData={isComparisonMode && comparisonData ? comparisonData.lap1?.trackpath || [] : trackPathData}
                      hoveredData={hoveredData}
                      setHoveredData={() => {}} // No direct interaction with track map
                      zoomRange={zoomRange}
                      onTrackMapError={setTrackMapError}
                      telemetryData={trackMapTelemetryData}
                      trackName={telemetryData ? "Algarve International Circuit" : undefined}
+                     comparisonTrackPathData={isComparisonMode && comparisonData ? comparisonData.lap2?.trackpath || [] : undefined}
+                     isComparisonMode={isComparisonMode}
                    />
                 </CardContent>
               </Card>
@@ -480,21 +533,46 @@ export default function Telemetry({ sessionId, lapNumber, onBackToSessionDetail 
             <div className="w-1/2 min-h-0 overflow-y-auto">
               <div className="space-y-4 pr-2">
                 {visibleCharts.map((chartConfig) => {
-                  const dataSet = telemetryData?.[chartConfig.id as keyof TelemetryData]
-                  if (!dataSet) return null
+                  if (isComparisonMode && comparisonData) {
+                    // Comparison mode - show both laps
+                    const lap1Data = comparisonData.lap1?.telemetry?.[chartConfig.id as keyof TelemetryData]
+                    const lap2Data = comparisonData.lap2?.telemetry?.[chartConfig.id as keyof TelemetryData]
+                    
+                    if (!lap1Data && !lap2Data) return null
 
-                  return (
-                    <TelemetryChart
-                      key={chartConfig.id}
-                      title={dataSet.label}
-                      data={dataSet}
-                      height={getChartHeight()}
-                      hoveredDistance={hoveredDistance} // Pass distance instead of full data
-                      zoomRange={zoomRange}
-                      onZoomComplete={handleZoomComplete}
-                      onHover={handleChartHover}
-                    />
-                  )
+                    return (
+                      <TelemetryChart
+                        key={chartConfig.id}
+                        title={lap1Data?.label || chartConfig.id}
+                        data={lap1Data}
+                        comparisonData={lap2Data}
+                        height={getChartHeight()}
+                        hoveredDistance={hoveredDistance}
+                        zoomRange={zoomRange}
+                        onZoomComplete={handleZoomComplete}
+                        onHover={handleChartHover}
+                        isComparisonMode={true}
+                      />
+                    )
+                  } else {
+                    // Single lap mode
+                    const dataSet = telemetryData?.[chartConfig.id as keyof TelemetryData]
+                    if (!dataSet) return null
+
+                    return (
+                      <TelemetryChart
+                        key={chartConfig.id}
+                        title={dataSet.label}
+                        data={dataSet}
+                        height={getChartHeight()}
+                        hoveredDistance={hoveredDistance}
+                        zoomRange={zoomRange}
+                        onZoomComplete={handleZoomComplete}
+                        onHover={handleChartHover}
+                        isComparisonMode={false}
+                      />
+                    )
+                  }
                 })}
               </div>
             </div>

@@ -46,6 +46,8 @@ interface TelemetryChartProps {
   zoomRange: ZoomRange
   onZoomComplete: (min: number, max: number) => void
   onHover?: (distance: number | null) => void
+  comparisonData?: TelemetryDataSet
+  isComparisonMode?: boolean
 }
 
 export function TelemetryChart({
@@ -56,13 +58,15 @@ export function TelemetryChart({
   zoomRange,
   onZoomComplete,
   onHover,
+  comparisonData,
+  isComparisonMode = false,
 }: TelemetryChartProps) {
   const chartRef = useRef<ChartJS<"line">>(null)
 
   // Memoize chart data to prevent unnecessary re-renders
   const chartData = useMemo(
-    () => ({
-      datasets: [
+    () => {
+      const datasets = [
         {
           label: data.label,
           data: data.data,
@@ -74,9 +78,26 @@ export function TelemetryChart({
           tension: data.interpolate ? 0.1 : 0,
           stepped: data.stepped ? ("before" as const) : false,
         },
-      ],
-    }),
-    [data],
+      ]
+
+      // Add comparison data if available
+      if (isComparisonMode && comparisonData) {
+        datasets.push({
+          label: comparisonData.label,
+          data: comparisonData.data,
+          borderColor: comparisonData.borderColor,
+          backgroundColor: comparisonData.borderColor + "20",
+          borderWidth: 2,
+          pointRadius: 0,
+          pointHoverRadius: 4,
+          tension: comparisonData.interpolate ? 0.1 : 0,
+          stepped: comparisonData.stepped ? ("before" as const) : false,
+        })
+      }
+
+      return { datasets }
+    },
+    [data, comparisonData, isComparisonMode],
   )
 
   // Memoize chart options to prevent recreation on every render
@@ -112,7 +133,13 @@ export function TelemetryChart({
       },
       plugins: {
         legend: {
-          display: false,
+          display: isComparisonMode,
+          position: 'top' as const,
+          labels: {
+            color: '#9ca3af',
+            usePointStyle: true,
+            pointStyle: 'line',
+          },
         },
         tooltip: {
           enabled: false,

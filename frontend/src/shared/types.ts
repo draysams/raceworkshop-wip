@@ -128,5 +128,6 @@ export interface IRaceWorkshopAPI {
         stop: () => void;
         onData: (callback: (data: LiveSessionData) => void) => () => void;
         getLapTelemetry: (lapId: number) => Promise<any>; // Define a proper type for telemetry data later
+        compareLaps: (lapId1: number, lapId2: number) => Promise<any>; // Define a proper type for comparison data later
     };
 }

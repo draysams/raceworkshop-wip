@@ -39,6 +39,8 @@ interface TrackMapProps {
     brake: TelemetryDataSet
   } | null
   trackName?: string // Add track name prop
+  comparisonTrackPathData?: TrackPathPoint[]
+  isComparisonMode?: boolean
 }
 
 interface CarPathSegment {
@@ -66,6 +68,8 @@ export function TrackMap({
   onTrackMapError,
   telemetryData,
   trackName,
+  comparisonTrackPathData,
+  isComparisonMode = false,
 }: TrackMapProps) {
   const [trackPathD, setTrackPathD] = useState<string>("")
   const [loading, setLoading] = useState(true)
@@ -157,17 +161,7 @@ export function TrackMap({
     fetchAndParseSvg()
   }, [onTrackMapError, trackName])
 
-  // Debug: Log telemetry data structure when received
-  useEffect(() => {
-    if (telemetryData) {
-      console.log(`[TrackMap] Telemetry data received:`, {
-        throttleDataLength: telemetryData.throttle.data.length,
-        brakeDataLength: telemetryData.brake.data.length,
-        throttleSample: telemetryData.throttle.data.slice(0, 3),
-        brakeSample: telemetryData.brake.data.slice(0, 3),
-      })
-    }
-  }, [telemetryData])
+
 
   // Memoized helper function to get color based on real telemetry data
   const getPointColor = useCallback(
@@ -184,10 +178,7 @@ export function TrackMap({
         Math.abs(curr.x - distance) < Math.abs(prev.x - distance) ? curr : prev,
       )
 
-      // Debug logging to see what values we're getting (only log first few points to avoid spam)
-      if (distance < 100) {
-        console.log(`[TrackMap] Distance: ${distance}, Throttle: ${throttlePoint?.y}, Brake: ${brakePoint?.y}`)
-      }
+
 
       // Use thresholds to avoid noise - adjust based on actual data range
       if (brakePoint && brakePoint.y > 0.1) {
@@ -240,13 +231,38 @@ export function TrackMap({
         d={segment.pathData}
         fill="none"
         stroke={segment.color}
-        strokeWidth="4"
+        strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
         opacity="0.9"
       />
     ))
   }, [carPathSegments])
+
+  // Memoized comparison track path rendering
+  const comparisonPathElements = useMemo(() => {
+    if (!isComparisonMode || !comparisonTrackPathData || comparisonTrackPathData.length === 0) {
+      return []
+    }
+
+    // Create a simple path for comparison (solid orange line)
+    const pathData = comparisonTrackPathData
+      .map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`)
+      .join(' ')
+
+    return [
+      <path
+        key="comparison-path"
+        d={pathData}
+        fill="none"
+        stroke="#FF6B35"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        opacity="0.8"
+      />
+    ]
+  }, [comparisonTrackPathData, isComparisonMode])
 
   // Calculate view box based on zoom range
   const viewBox = useMemo(() => {
@@ -487,18 +503,33 @@ export function TrackMap({
       {/* Color Legend */}
       <div className="absolute bottom-4 left-4 z-10 bg-zinc-900/90 border border-zinc-700 rounded-lg px-3 py-2">
         <div className="flex items-center gap-4 text-xs text-white">
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-3 bg-green-600 rounded"></div>
-            <span>Throttle</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-3 bg-red-600 rounded"></div>
-            <span>Brake</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-3 bg-gray-500 rounded"></div>
-            <span>Coast</span>
-          </div>
+          {isComparisonMode ? (
+            <>
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 bg-blue-500 rounded"></div>
+                <span>Lap 1</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 bg-orange-500 rounded"></div>
+                <span>Lap 2</span>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 bg-green-600 rounded"></div>
+                <span>Throttle</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 bg-red-600 rounded"></div>
+                <span>Brake</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 bg-gray-500 rounded"></div>
+                <span>Coast</span>
+              </div>
+            </>
+          )}
         </div>
       </div>
 
@@ -531,7 +562,10 @@ export function TrackMap({
           {/* 2. Render the car path overlay on top */}
           <g id="car-path">{carPathElements}</g>
 
-          {/* 3. Render the car position marker - Only when hovering */}
+          {/* 3. Render the comparison path overlay */}
+          {isComparisonMode && <g id="comparison-path">{comparisonPathElements}</g>}
+
+          {/* 4. Render the car position marker - Only when hovering */}
           {hoveredData && (
             <circle
               cx={hoveredData.x}

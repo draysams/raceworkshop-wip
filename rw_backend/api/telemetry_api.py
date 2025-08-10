@@ -66,3 +66,105 @@ class TelemetryApi:
         except Exception as e:
             print(f"Error fetching lap telemetry: {e}", flush=True)
             return json.dumps({'telemetry': {}, 'trackpath': []}) # Return empty valid structure on error
+
+    def compareLaps(self, lapId1, lapId2):
+        """
+        Fetches telemetry data for two laps and returns them in a comparison format.
+        """
+        print(f"API CALL: compareLaps for laps {lapId1} and {lapId2}", flush=True)
+        try:
+            lap_id_1_int = int(lapId1)
+            lap_id_2_int = int(lapId2)
+
+            # Fetch data for both laps
+            query1 = (LapTelemetry
+                     .select()
+                     .where(LapTelemetry.lap == lap_id_1_int)
+                     .order_by(LapTelemetry.lap_dist)
+                     .dicts())
+            
+            query2 = (LapTelemetry
+                     .select()
+                     .where(LapTelemetry.lap == lap_id_2_int)
+                     .order_by(LapTelemetry.lap_dist)
+                     .dicts())
+
+            # Initialize the comparison response structure
+            response_data = {
+                'lap1': {
+                    'lapId': lap_id_1_int,
+                    'telemetry': {
+                        'speed':    {'label': 'Speed', 'data': [], 'borderColor': '#007BFF', 'interpolate': True},
+                        'throttle': {'label': 'Throttle', 'data': [], 'borderColor': '#198754', 'interpolate': True},
+                        'brake':    {'label': 'Brake', 'data': [], 'borderColor': '#DC3545', 'interpolate': True},
+                        'rpm':      {'label': 'RPM', 'data': [], 'borderColor': '#6f42c1', 'interpolate': True},
+                        'gear':     {'label': 'Gear', 'data': [], 'borderColor': '#fd7e14', 'interpolate': True, 'stepped': True},
+                        'steering': {'label': 'Steering', 'data': [], 'borderColor': '#0dcaf0', 'interpolate': True},
+                    },
+                    'trackpath': []
+                },
+                'lap2': {
+                    'lapId': lap_id_2_int,
+                    'telemetry': {
+                        'speed':    {'label': 'Speed', 'data': [], 'borderColor': '#FF6B35', 'interpolate': True},
+                        'throttle': {'label': 'Throttle', 'data': [], 'borderColor': '#FFD700', 'interpolate': True},
+                        'brake':    {'label': 'Brake', 'data': [], 'borderColor': '#FF69B4', 'interpolate': True},
+                        'rpm':      {'label': 'RPM', 'data': [], 'borderColor': '#00CED1', 'interpolate': True},
+                        'gear':     {'label': 'Gear', 'data': [], 'borderColor': '#32CD32', 'interpolate': True, 'stepped': True},
+                        'steering': {'label': 'Steering', 'data': [], 'borderColor': '#9370DB', 'interpolate': True},
+                    },
+                    'trackpath': []
+                }
+            }
+
+            # Process lap 1 data
+            all_rows_1 = list(query1)
+            for row in all_rows_1:
+                dist = row['lap_dist']
+                
+                # Append to telemetry channels for lap 1
+                response_data['lap1']['telemetry']['speed']['data'].append({'x': dist, 'y': row['speed']})
+                response_data['lap1']['telemetry']['throttle']['data'].append({'x': dist, 'y': row['throttle']})
+                response_data['lap1']['telemetry']['brake']['data'].append({'x': dist, 'y': row['brake']})
+                response_data['lap1']['telemetry']['rpm']['data'].append({'x': dist, 'y': row['rpm']})
+                response_data['lap1']['telemetry']['gear']['data'].append({'x': dist, 'y': row['gear']})
+                response_data['lap1']['telemetry']['steering']['data'].append({'x': dist, 'y': row['steering']})
+
+                # Append to track path for lap 1
+                response_data['lap1']['trackpath'].append({
+                    'distance': dist,
+                    'x': -row['pos_x'],
+                    'y': row['pos_z']
+                })
+
+            # Process lap 2 data
+            all_rows_2 = list(query2)
+            for row in all_rows_2:
+                dist = row['lap_dist']
+                
+                # Append to telemetry channels for lap 2
+                response_data['lap2']['telemetry']['speed']['data'].append({'x': dist, 'y': row['speed']})
+                response_data['lap2']['telemetry']['throttle']['data'].append({'x': dist, 'y': row['throttle']})
+                response_data['lap2']['telemetry']['brake']['data'].append({'x': dist, 'y': row['brake']})
+                response_data['lap2']['telemetry']['rpm']['data'].append({'x': dist, 'y': row['rpm']})
+                response_data['lap2']['telemetry']['gear']['data'].append({'x': dist, 'y': row['gear']})
+                response_data['lap2']['telemetry']['steering']['data'].append({'x': dist, 'y': row['steering']})
+
+                # Append to track path for lap 2
+                response_data['lap2']['trackpath'].append({
+                    'distance': dist,
+                    'x': -row['pos_x'],
+                    'y': row['pos_z']
+                })
+
+            if not all_rows_1:
+                print(f"No telemetry data found for lap_id: {lap_id_1_int}", flush=True)
+            if not all_rows_2:
+                print(f"No telemetry data found for lap_id: {lap_id_2_int}", flush=True)
+            
+            return json.dumps(response_data)
+
+        except Exception as e:
+            print(f"Error comparing laps: {e}", flush=True)
+            return json.dumps({'lap1': {'lapId': lapId1, 'telemetry': {}, 'trackpath': []}, 
+                             'lap2': {'lapId': lapId2, 'telemetry': {}, 'trackpath': []}})

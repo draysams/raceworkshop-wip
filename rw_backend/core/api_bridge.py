@@ -38,7 +38,10 @@ class ApiBridge:
     def getLapTelemetry(self, lapId):
         return self._telemetry_api.getLapTelemetry(lapId)
     
-        # --- NEW pass-through method ---
+    def compareLaps(self, lapId1, lapId2):
+        return self._telemetry_api.compareLaps(lapId1, lapId2)
+    
+    # --- NEW pass-through method ---
     def getSimulatorList(self):
         return self._simulator_api.getSimulatorList()
         

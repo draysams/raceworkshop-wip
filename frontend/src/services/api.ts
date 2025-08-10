@@ -23,6 +23,7 @@ declare global {
                 getSessionHistory: (filters: SessionFilters) => Promise<string>;
                 getSessionDetail: (sessionId: number) => Promise<string | null>;
                 getLapTelemetry: (lapId: number) => Promise<string>;
+                compareLaps: (lapId1: number, lapId2: number) => Promise<string>;
             };
         };
     }
@@ -138,6 +139,19 @@ export const api: IRaceWorkshopAPI = {
                 throw new Error("Pywebview API not available.");
             } catch (e) {
                 console.error(`Error fetching telemetry for lap ${lapId}:`, e);
+                return {};
+            }
+        },
+        compareLaps: async (lapId1: number, lapId2: number): Promise<any> => {
+            try {
+                if (window.pywebview?.api) {
+                    // Call the top-level method
+                    const jsonString = await window.pywebview.api.compareLaps(lapId1, lapId2);
+                    return JSON.parse(jsonString);
+                }
+                throw new Error("Pywebview API not available.");
+            } catch (e) {
+                console.error(`Error comparing laps ${lapId1} and ${lapId2}:`, e);
                 return {};
             }
         },
