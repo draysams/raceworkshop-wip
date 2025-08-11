@@ -4,11 +4,48 @@
 //                      CORE DATA STRUCTURES
 // =================================================================
 
+// --- NEW: Enhanced Track and Car interfaces ---
+export interface Track {
+    id: string;
+    displayName: string;
+    shortName: string;
+    lengthM?: number;
+    type?: string;
+    imagePath?: string;
+}
+
+export interface Car {
+    id: string;
+    displayName: string;
+    model?: string;
+    class?: string;
+    season?: string;
+    manufacturer?: string;
+    engine?: string;
+    thumbnailUrl?: string;
+}
+
+export interface Setup {
+    id: number;
+    name: string;
+    summary: any;
+    details: any;
+    weather: any;
+}
+
+export interface Stint {
+    id: number;
+    stintNumber: number;
+    startedOnLap: number;
+    endedOnLap: number | null;
+    setup: Setup | null;
+}
+
 export interface SessionSummary {
     id: number;
     simulator: 'lmu' | 'acc' | 'ac' | 'iracing';
-    track: string;
-    car: string;
+    track: Track;
+    car: Car;
     sessionType: 'Practice' | 'Qualifying' | 'Race' | 'Unknown';
     date: string;
     dateEnded: string | null;
@@ -20,11 +57,17 @@ export interface SessionSummary {
     averageLapMs: number | null;
     totalLaps: number;
     validLaps: number;
-    distance: number;
-    fuelUsed: number;
-    weather: string;
-    trackTemp: number;
-    airTemp: number;
+    // Legacy fields for backward compatibility
+    distance?: number;
+    fuelUsed?: number;
+    weather?: string;
+    trackTemp?: number;
+    airTemp?: number;
+}
+
+export interface SessionDetail extends SessionSummary {
+    stints: Stint[];
+    laps: LapData[];
 }
 
 export interface LapData {
@@ -40,10 +83,11 @@ export interface LapData {
     sector3: string;
     sector3Ms: number;
     isValid: boolean;
-    delta: number; // Delta to best lap in milliseconds
-    fuelUsed: number;
-    tyrePressure: { fl: number; fr: number; rl: number; rr: number };
-    speed: { sector1: number; sector2: number; sector3: number; topSpeed: number };
+    // Legacy fields for backward compatibility
+    delta?: number; // Delta to best lap in milliseconds
+    fuelUsed?: number;
+    tyrePressure?: { fl: number; fr: number; rl: number; rr: number };
+    speed?: { sector1: number; sector2: number; sector3: number; topSpeed: number };
 }
 
 export interface LiveSessionData {
@@ -101,6 +145,96 @@ export type ModuleDashboardStats = GlobalDashboardStats;
 
 // --- NEW TYPES END ---
 
+// =================================================================
+//                      TELEMETRY TYPES
+// =================================================================
+
+export interface TelemetryDataPoint {
+    x: number; // Distance along lap
+    y: number; // Value
+}
+
+export interface TelemetryChannel {
+    label: string;
+    data: TelemetryDataPoint[];
+    borderColor: string;
+    interpolate?: boolean;
+    stepped?: boolean;
+}
+
+export interface TrackPathPoint {
+    distance: number;
+    x: number;
+    y: number;
+}
+
+export interface LapTelemetryData {
+    telemetry: {
+        // Core telemetry channels
+        speed: TelemetryChannel;
+        throttle: TelemetryChannel;
+        brake: TelemetryChannel;
+        rpm: TelemetryChannel;
+        gear: TelemetryChannel;
+        steering: TelemetryChannel;
+        fuelLevel: TelemetryChannel;
+        
+        // Tire data
+        tirePressure: {
+            fl: TelemetryChannel;
+            fr: TelemetryChannel;
+            rl: TelemetryChannel;
+            rr: TelemetryChannel;
+        };
+        tireWear: {
+            fl: TelemetryChannel;
+            fr: TelemetryChannel;
+            rl: TelemetryChannel;
+            rr: TelemetryChannel;
+        };
+        tireTemp: {
+            fl: TelemetryChannel;
+            fr: TelemetryChannel;
+            rl: TelemetryChannel;
+            rr: TelemetryChannel;
+        };
+        
+        // Brake temperatures (new)
+        brakeTemp: {
+            fl: TelemetryChannel;
+            fr: TelemetryChannel;
+            rl: TelemetryChannel;
+            rr: TelemetryChannel;
+        };
+        
+        // Ride height (new)
+        rideHeight: {
+            fl: TelemetryChannel;
+            fr: TelemetryChannel;
+            rl: TelemetryChannel;
+            rr: TelemetryChannel;
+        };
+        
+        // Session context fields (new)
+        timeIntoLap: TelemetryChannel;
+        estimatedLapTime: TelemetryChannel;
+        trackEdge: TelemetryChannel;
+    };
+    trackpath: TrackPathPoint[];
+}
+
+export interface LapComparisonData {
+    lap1: {
+        lapId: number;
+        telemetry: LapTelemetryData['telemetry'];
+        trackpath: TrackPathPoint[];
+    };
+    lap2: {
+        lapId: number;
+        telemetry: LapTelemetryData['telemetry'];
+        trackpath: TrackPathPoint[];
+    };
+}
 
 // =================================================================
 //                      MODULE & API DEFINITIONS
@@ -121,13 +255,13 @@ export interface IRaceWorkshopAPI {
     };
     sessions: {
         getSessionHistory: (filters: SessionFilters) => Promise<SessionSummary[]>;
-        getSessionDetail: (sessionId: number) => Promise<{ session: SessionSummary; laps: LapData[] } | null>;
+        getSessionDetail: (sessionId: number) => Promise<SessionDetail | null>;
     };
     telemetry: {
         start: (simulatorId: string) => void;
         stop: () => void;
         onData: (callback: (data: LiveSessionData) => void) => () => void;
-        getLapTelemetry: (lapId: number) => Promise<any>; // Define a proper type for telemetry data later
-        compareLaps: (lapId1: number, lapId2: number) => Promise<any>; // Define a proper type for comparison data later
+        getLapTelemetry: (lapId: number) => Promise<LapTelemetryData>;
+        compareLaps: (lapId1: number, lapId2: number) => Promise<LapComparisonData>;
     };
 }

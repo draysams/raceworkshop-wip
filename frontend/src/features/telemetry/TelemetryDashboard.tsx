@@ -11,6 +11,15 @@ interface TelemetryDashboardProps {
 interface TireData {
   pressure: number
   temperature: number
+  wear: number
+}
+
+interface BrakeData {
+  temperature: number
+}
+
+interface RideHeightData {
+  height: number
 }
 
 interface DashboardData {
@@ -26,9 +35,24 @@ interface DashboardData {
     rl: TireData
     rr: TireData
   }
+  brakes: {
+    fl: BrakeData
+    fr: BrakeData
+    rl: BrakeData
+    rr: BrakeData
+  }
+  rideHeight: {
+    fl: RideHeightData
+    fr: RideHeightData
+    rl: RideHeightData
+    rr: RideHeightData
+  }
   fuelUsed: number
   tc: boolean
   abs: boolean
+  timeIntoLap: number
+  estimatedLapTime: number
+  trackEdge: number
 }
 
 export function TelemetryDashboard({ 
@@ -95,16 +119,40 @@ export function TelemetryDashboard({
     throttle: 0,
     brake: 0,
     tires: {
-      fl: { pressure: 0, temperature: 0 },
-      fr: { pressure: 0, temperature: 0 },
-      rl: { pressure: 0, temperature: 0 },
-      rr: { pressure: 0, temperature: 0 }
+      fl: { pressure: 0, temperature: 0, wear: 0 },
+      fr: { pressure: 0, temperature: 0, wear: 0 },
+      rl: { pressure: 0, temperature: 0, wear: 0 },
+      rr: { pressure: 0, temperature: 0, wear: 0 },
+    },
+    brakes: {
+      fl: { temperature: 0 },
+      fr: { temperature: 0 },
+      rl: { temperature: 0 },
+      rr: { temperature: 0 },
+    },
+    rideHeight: {
+      fl: { height: 0 },
+      fr: { height: 0 },
+      rl: { height: 0 },
+      rr: { height: 0 },
     },
     fuelUsed: 0,
     tc: false,
-    abs: false
+    abs: false,
+    timeIntoLap: 0,
+    estimatedLapTime: 0,
+    trackEdge: 0,
   })
 
+  // Update dashboard data when hovered distance changes
+  useEffect(() => {
+    if (hoveredDistance && telemetryData) {
+      const data = extractDataAtDistance(telemetryData, hoveredDistance)
+      setDashboardData(data)
+    }
+  }, [hoveredDistance, telemetryData])
+
+  // Handle comparison data
   const [comparisonDashboardData, setComparisonDashboardData] = useState<DashboardData>({
     gear: 0,
     speed: 0,
@@ -113,28 +161,34 @@ export function TelemetryDashboard({
     throttle: 0,
     brake: 0,
     tires: {
-      fl: { pressure: 0, temperature: 0 },
-      fr: { pressure: 0, temperature: 0 },
-      rl: { pressure: 0, temperature: 0 },
-      rr: { pressure: 0, temperature: 0 }
+      fl: { pressure: 0, temperature: 0, wear: 0 },
+      fr: { pressure: 0, temperature: 0, wear: 0 },
+      rl: { pressure: 0, temperature: 0, wear: 0 },
+      rr: { pressure: 0, temperature: 0, wear: 0 },
+    },
+    brakes: {
+      fl: { temperature: 0 },
+      fr: { temperature: 0 },
+      rl: { temperature: 0 },
+      rr: { temperature: 0 },
+    },
+    rideHeight: {
+      fl: { height: 0 },
+      fr: { height: 0 },
+      rl: { height: 0 },
+      rr: { height: 0 },
     },
     fuelUsed: 0,
     tc: false,
-    abs: false
+    abs: false,
+    timeIntoLap: 0,
+    estimatedLapTime: 0,
+    trackEdge: 0,
   })
 
-  // Extract data from telemetry at hovered distance
   useEffect(() => {
-    if (hoveredDistance && telemetryData) {
-      const data = extractDataAtDistance(telemetryData, hoveredDistance)
-      setDashboardData(data)
-    }
-  }, [hoveredDistance, telemetryData])
-
-  // Extract comparison data
-  useEffect(() => {
-    if (hoveredDistance && comparisonData && isComparisonMode) {
-      const data = extractDataAtDistance(comparisonData, hoveredDistance)
+    if (hoveredDistance && comparisonData && isComparisonMode && comparisonData.lap2) {
+      const data = extractDataAtDistance(comparisonData.lap2.telemetry, hoveredDistance)
       setComparisonDashboardData(data)
     }
   }, [hoveredDistance, comparisonData, isComparisonMode])
@@ -156,14 +210,45 @@ export function TelemetryDashboard({
       throttle: getClosestValue(data.throttle?.data, distance) || 0,
       brake: getClosestValue(data.brake?.data, distance) || 0,
       tires: {
-        fl: { pressure: 26.4, temperature: 85.4 }, // Placeholder data
-        fr: { pressure: 25.4, temperature: 74.8 },
-        rl: { pressure: 26.1, temperature: 86.0 },
-        rr: { pressure: 25.4, temperature: 79.0 }
+        fl: { 
+          pressure: getClosestValue(data.tirePressure?.fl?.data, distance) || 0,
+          temperature: getClosestValue(data.tireTemp?.fl?.data, distance) || 0,
+          wear: getClosestValue(data.tireWear?.fl?.data, distance) || 0
+        },
+        fr: { 
+          pressure: getClosestValue(data.tirePressure?.fr?.data, distance) || 0,
+          temperature: getClosestValue(data.tireTemp?.fr?.data, distance) || 0,
+          wear: getClosestValue(data.tireWear?.fr?.data, distance) || 0
+        },
+        rl: { 
+          pressure: getClosestValue(data.tirePressure?.rl?.data, distance) || 0,
+          temperature: getClosestValue(data.tireTemp?.rl?.data, distance) || 0,
+          wear: getClosestValue(data.tireWear?.rl?.data, distance) || 0
+        },
+        rr: { 
+          pressure: getClosestValue(data.tirePressure?.rr?.data, distance) || 0,
+          temperature: getClosestValue(data.tireTemp?.rr?.data, distance) || 0,
+          wear: getClosestValue(data.tireWear?.rr?.data, distance) || 0
+        }
       },
-      fuelUsed: 2.90, // Placeholder data
-      tc: false, // Placeholder data
-      abs: false // Placeholder data
+      brakes: {
+        fl: { temperature: getClosestValue(data.brakeTemp?.fl?.data, distance) || 0 },
+        fr: { temperature: getClosestValue(data.brakeTemp?.fr?.data, distance) || 0 },
+        rl: { temperature: getClosestValue(data.brakeTemp?.rl?.data, distance) || 0 },
+        rr: { temperature: getClosestValue(data.brakeTemp?.rr?.data, distance) || 0 }
+      },
+      rideHeight: {
+        fl: { height: getClosestValue(data.rideHeight?.fl?.data, distance) || 0 },
+        fr: { height: getClosestValue(data.rideHeight?.fr?.data, distance) || 0 },
+        rl: { height: getClosestValue(data.rideHeight?.rl?.data, distance) || 0 },
+        rr: { height: getClosestValue(data.rideHeight?.rr?.data, distance) || 0 }
+      },
+      fuelUsed: getClosestValue(data.fuelLevel?.data, distance) || 0,
+      timeIntoLap: getClosestValue(data.timeIntoLap?.data, distance) || 0,
+      estimatedLapTime: getClosestValue(data.estimatedLapTime?.data, distance) || 0,
+      trackEdge: getClosestValue(data.trackEdge?.data, distance) || 0,
+      tc: false, // Placeholder data - not in current model
+      abs: false // Placeholder data - not in current model
     }
   }
 
@@ -185,10 +270,16 @@ export function TelemetryDashboard({
   const formatSteering = (angle: number) => (angle * 180 / Math.PI).toFixed(1)
   const formatThrottle = (throttle: number) => Math.round(throttle * 100)
   const formatBrake = (brake: number) => Math.round(brake * 100)
+  const formatTime = (seconds: number) => {
+    if (seconds === 0) return "0:00.000"
+    const minutes = Math.floor(seconds / 60)
+    const remainingSeconds = seconds % 60
+    return `${minutes}:${remainingSeconds.toFixed(3).padStart(6, '0')}`
+  }
 
   const renderDashboard = (data: DashboardData, isComparison: boolean = false) => (
     <Card className={`bg-zinc-900/50 border-zinc-800 ${isComparison ? 'border-orange-500/50' : ''}`}>
-     <CardContent className="px-2">
+     <CardContent className="px-4">
      <div className="flex items-center justify-between gap-1">
           {/* Speedometer Gauge */}
           <div className="relative w-20 h-20">
@@ -294,36 +385,37 @@ export function TelemetryDashboard({
                   />
                   <div className="text-xs text-white min-w-0 hidden xl:block">
                     <div className="flex items-baseline">
-                      <span className="text-xs">{tire.pressure}</span>
+                      <span className="text-xs">{Math.round(tire.pressure)}</span>
                       <span className="text-[8px] ml-0.5">PSI</span>
                     </div>
                     <div className="flex items-baseline">
-                      <span className="text-xs">{tire.temperature}</span>
+                      <span className="text-xs">{Math.round(tire.temperature)}</span>
                       <span className="text-[8px] ml-0.5">°C</span>
                     </div>
+
                   </div>
                 </div>
               ))}
           </div>
 
-          {/* Vehicle Assists and Fuel */}
+
+
+          {/* Vehicle Assists, Fuel, and Session Data */}
           <div className="flex flex-col gap-1 text-xs text-white">
-            <div className="flex items-center gap-2">
-              <span>TC</span>
-              <span className={data.tc ? 'text-green-500' : 'text-red-500'}>
-                {data.tc ? 'ON' : 'OFF'}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span>ABS</span>
-              <span className={data.abs ? 'text-green-500' : 'text-red-500'}>
-                {data.abs ? 'ON' : 'OFF'}
-              </span>
-            </div>
+
             <div className="flex items-center gap-2">
               <span>Fuel/Lap</span>
-              <span>{data.fuelUsed} L</span>
+              <span>{data.fuelUsed.toFixed(2)} L</span>
             </div>
+            <div className="flex items-center gap-2">
+              <span>Time</span>
+              <span>{formatTime(data.timeIntoLap)}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span>Est. Lap</span>
+              <span>{formatTime(data.estimatedLapTime)}</span>
+            </div>
+
           </div>
         </div>
       </CardContent>
@@ -345,7 +437,7 @@ export function TelemetryDashboard({
   return (
     <div className="space-y-2">
       {renderDashboard(dashboardData, false)}
-      {isComparisonMode && comparisonData && (
+      {isComparisonMode && comparisonData && comparisonData.lap2 && (
         <div className="relative">
           <div className="absolute -top-2 left-2 text-xs text-orange-400 bg-zinc-900 px-2 py-1 rounded">
             Comparison Lap

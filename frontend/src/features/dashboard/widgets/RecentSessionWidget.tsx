@@ -47,14 +47,14 @@ export function RecentSessionsWidget({ sessions, onAnalyse, onViewAll }: RecentS
                                                     <Car className="w-5 h-5 text-red-500" />
                                                 </div>
                                                 <div>
-                                                    <div className="text-white font-semibold">{session.track}</div>
+                                                    <div className="text-white font-semibold">{session.track.displayName}</div>
                                                     <div className="text-zinc-400 text-sm flex items-center gap-2">
                                                         <Calendar className="w-3 h-3" />
                                                         {new Date(session.date).toLocaleDateString()} at {new Date(session.date).toLocaleTimeString()}
                                                     </div>
                                                     {session.car && (
                                                         <div className="text-zinc-500 text-xs mt-1">
-                                                            {session.car}
+                                                            {session.car.displayName}
                                                         </div>
                                                     )}
                                                 </div>

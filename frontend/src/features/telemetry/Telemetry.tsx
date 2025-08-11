@@ -11,41 +11,14 @@ import { FeatureNavigation } from "../../components/navigation/FeatureNavigation
 import { TelemetryChart } from "./TelemetryChart"
 import { TrackMap } from "./TrackMap"
 import { FeatureLayout } from "../../components/layout/FeatureLayout"
-import { LapData } from "../../shared/types"
+import { LapData, LapTelemetryData, LapComparisonData, TelemetryDataPoint, TelemetryChannel, TrackPathPoint } from "../../shared/types"
 import { api } from "../../services/api"
 
 
-// TypeScript interfaces
-interface TelemetryPoint {
-  x: number // Distance in meters
-  y: number // Value (e.g., speed, RPM)
-}
-
-interface TelemetryDataSet {
-  label: string
-  data: TelemetryPoint[]
-  borderColor: string
-  interpolate?: boolean
-  stepped?: boolean
-}
-
-interface TelemetryData {
-  speed: TelemetryDataSet
-  throttle: TelemetryDataSet
-  brake: TelemetryDataSet
-  steering: TelemetryDataSet
-  gear: TelemetryDataSet
-  rpm: TelemetryDataSet
-  tc: TelemetryDataSet
-  abs: TelemetryDataSet
-}
-
-interface TrackPathPoint {
-  distance: number
-  x: number // SVG coordinate
-  y: number // SVG coordinate
-}
-
+// Use the new telemetry data structure from types
+type TelemetryData = LapTelemetryData['telemetry']
+type TelemetryDataSet = TelemetryChannel
+type TelemetryPoint = TelemetryDataPoint
 type TrackPathData = TrackPathPoint[]
 
 interface HoveredData {
@@ -63,11 +36,11 @@ type ChartHeight = "compact" | "comfortable" | "expanded"
 
 interface ITelemetryProps {
     sessionId: number
-    lapNumber: number
+    lapId: number
     onBackToSessionDetail: () => void
 }
 
-export default function Telemetry({ sessionId, lapNumber, onBackToSessionDetail }: ITelemetryProps) {
+export default function Telemetry({ sessionId, lapId, onBackToSessionDetail }: ITelemetryProps) {
 
 
   // State management - Single source of truth for hover distance
@@ -86,7 +59,7 @@ export default function Telemetry({ sessionId, lapNumber, onBackToSessionDetail 
   
   // Comparison mode state
   const [isComparisonMode, setIsComparisonMode] = useState(false)
-  const [comparisonData, setComparisonData] = useState<any>(null)
+  const [comparisonData, setComparisonData] = useState<LapComparisonData | null>(null)
   const [comparisonLoading, setComparisonLoading] = useState(false)
 
   // Refs for optimization
@@ -175,7 +148,7 @@ export default function Telemetry({ sessionId, lapNumber, onBackToSessionDetail 
 
         // Fetch telemetry data from backend
         try {
-          const data = await api.telemetry.getLapTelemetry(lapNumber)
+          const data = await api.telemetry.getLapTelemetry(lapId)
           
           if (data && data.telemetry) {
             setTelemetryData(data.telemetry)
@@ -195,7 +168,7 @@ export default function Telemetry({ sessionId, lapNumber, onBackToSessionDetail 
 
         // Fetch track path data from backend
         try {
-          const data = await api.telemetry.getLapTelemetry(lapNumber)
+          const data = await api.telemetry.getLapTelemetry(lapId)
           if (data && data.trackpath) {
             setTrackPathData(data.trackpath)
           } else {
@@ -211,7 +184,7 @@ export default function Telemetry({ sessionId, lapNumber, onBackToSessionDetail 
     }
 
     fetchData()
-  }, [sessionId, lapNumber])
+  }, [sessionId, lapId])
 
   // Chart zoom handlers
   const handleZoomIn = useCallback(() => {
@@ -267,6 +240,20 @@ export default function Telemetry({ sessionId, lapNumber, onBackToSessionDetail 
     }
   }
 
+  // Helper function to get telemetry data for a given chart ID
+  const getTelemetryDataForChart = (chartId: string, data: TelemetryData) => {
+    if (!data) return null
+    
+    // Handle nested structure (e.g., "tirePressure.fl")
+    if (chartId.includes('.')) {
+      const [parent, child] = chartId.split('.')
+      return data[parent as keyof TelemetryData]?.[child as any]
+    }
+    
+    // Handle flat structure
+    return data[chartId as keyof TelemetryData]
+  }
+
   // Get visible charts based on configuration
   const visibleCharts = useMemo(() => chartConfig.filter((chart) => chart.visible), [chartConfig])
 
@@ -290,7 +277,7 @@ export default function Telemetry({ sessionId, lapNumber, onBackToSessionDetail 
             <Loader2 className="w-8 h-8 animate-spin text-red-500 mx-auto mb-4" />
             <p className="text-white text-lg">Loading telemetry data...</p>
             <p className="text-zinc-400 text-sm">
-              {sessionId && lapNumber ? `Session ${sessionId}, Lap ${lapNumber}` : "Fetching remote data"}
+              {sessionId && lapId ? `Session ${sessionId}, Lap ${lapId}` : "Fetching remote data"}
             </p>
           </div>
         </div>
@@ -382,11 +369,11 @@ export default function Telemetry({ sessionId, lapNumber, onBackToSessionDetail 
                    <span>Bahrain Paddock Circuit</span>
                    <span>•</span>
                    <span>Porsche 911 GT3 R</span>
-                   {sessionId && lapNumber && (
+                   {sessionId && lapId && (
                      <>
                        <span>•</span>
                        <Badge className="bg-red-600">
-                         Session {sessionId}, Lap {lapNumber}
+                         Session {sessionId}, Lap {lapId}
                        </Badge>
                      </>
                    )}
@@ -397,11 +384,11 @@ export default function Telemetry({ sessionId, lapNumber, onBackToSessionDetail 
                     <div className="mt-3 flex items-center gap-6 text-sm">
                       <div className="flex items-center gap-2">
                         <div className="w-3 h-3 bg-blue-500 rounded"></div>
-                        <span className="text-zinc-300">Lap {comparisonData.lap1?.lapId || lapNumber} (Original Colors)</span>
+                        <span className="text-zinc-300">Lap {comparisonData.lap1?.lapId || lapId} (Original Colors)</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <div className="w-3 h-3 bg-orange-500 rounded"></div>
-                        <span className="text-zinc-300">Lap {comparisonData.lap2?.lapId || lapNumber + 1} (Contrasting Colors)</span>
+                        <span className="text-zinc-300">Lap {comparisonData.lap2?.lapId || lapId + 1} (Contrasting Colors)</span>
                       </div>
                     </div>
                   )}
@@ -541,7 +528,7 @@ export default function Telemetry({ sessionId, lapNumber, onBackToSessionDetail 
                   hoveredDistance={hoveredDistance}
                   telemetryData={isComparisonMode && comparisonData ? comparisonData.lap1?.telemetry : telemetryData}
                   isComparisonMode={isComparisonMode}
-                  comparisonData={isComparisonMode && comparisonData ? comparisonData.lap2?.telemetry : undefined}
+                  comparisonData={isComparisonMode && comparisonData ? comparisonData : undefined}
                 />
               </div>
               
@@ -549,16 +536,16 @@ export default function Telemetry({ sessionId, lapNumber, onBackToSessionDetail 
                 {visibleCharts.map((chartConfig) => {
                   if (isComparisonMode && comparisonData) {
                     // Comparison mode - show both laps
-                    const lap1Data = comparisonData.lap1?.telemetry?.[chartConfig.id as keyof TelemetryData]
-                    const lap2Data = comparisonData.lap2?.telemetry?.[chartConfig.id as keyof TelemetryData]
+                    const lap1Data = getTelemetryDataForChart(chartConfig.id, comparisonData.lap1?.telemetry)
+                    const lap2Data = getTelemetryDataForChart(chartConfig.id, comparisonData.lap2?.telemetry)
                     
                     if (!lap1Data && !lap2Data) return null
 
                     return (
                       <TelemetryChart
                         key={chartConfig.id}
-                        title={lap1Data?.label || chartConfig.id}
-                        data={lap1Data}
+                        title={lap1Data?.label || chartConfig.label}
+                        data={lap1Data || { label: chartConfig.label, data: [], borderColor: '#000000' }}
                         comparisonData={lap2Data}
                         height={getChartHeight()}
                         hoveredDistance={hoveredDistance}
@@ -570,7 +557,7 @@ export default function Telemetry({ sessionId, lapNumber, onBackToSessionDetail 
                     )
                   } else {
                     // Single lap mode
-                    const dataSet = telemetryData?.[chartConfig.id as keyof TelemetryData]
+                    const dataSet = getTelemetryDataForChart(chartConfig.id, telemetryData)
                     if (!dataSet) return null
 
                     return (
@@ -607,7 +594,7 @@ export default function Telemetry({ sessionId, lapNumber, onBackToSessionDetail 
         isOpen={isCompareModalOpen}
         onClose={() => setIsCompareModalOpen(false)}
         sessionId={sessionId}
-        currentLapNumber={lapNumber}
+        currentLapId={lapId}
         onCompareLaps={loadLapComparison}
       />
     </FeatureLayout>

@@ -90,13 +90,13 @@ export function GlobalDashboard({ onModuleSelect }: GlobalDashboardProps) {
                                                 <div className="text-2xl">{simConfig?.icon ?? "🏎️"}</div>
                                                 <div>
                                                     <div className="flex items-center gap-3 mb-1">
-                                                        <h4 className="font-medium text-white">{session.track}</h4>
+                                                        <h4 className="font-medium text-white">{session.track.displayName}</h4>
                                                         <span className={`px-2 py-0.5 rounded text-xs font-medium bg-blue-500/20 text-blue-300`}>
                                                             {session.sessionType}
                                                         </span>
                                                     </div>
                                                     <div className="flex items-center gap-4 text-sm text-gray-400">
-                                                        <span>{session.car}</span>
+                                                        <span>{session.car.displayName}</span>
                                                         <span>{simConfig?.name ?? session.simulator}</span>
                                                         <span>{new Date(session.date).toLocaleDateString()}</span>
                                                     </div>

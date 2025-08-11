@@ -210,6 +210,11 @@ export function TelemetryChart({
       return null
     }
 
+    // Check if main data exists and has points
+    if (!data.data || data.data.length === 0) {
+      return null
+    }
+
     // Find closest point for main data
     const mainClosestPoint = data.data.reduce((prev, curr) =>
       Math.abs(curr.x - hoveredDistance) < Math.abs(prev.x - hoveredDistance) ? curr : prev,
@@ -218,7 +223,7 @@ export function TelemetryChart({
 
     // Find closest point for comparison data if available
     let comparisonValue: string | null = null
-    if (isComparisonMode && comparisonData) {
+    if (isComparisonMode && comparisonData && comparisonData.data && comparisonData.data.length > 0) {
       const comparisonClosestPoint = comparisonData.data.reduce((prev, curr) =>
         Math.abs(curr.x - hoveredDistance) < Math.abs(prev.x - hoveredDistance) ? curr : prev,
       )

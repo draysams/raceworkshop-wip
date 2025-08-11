@@ -3,7 +3,7 @@
 from rw_backend.core.events import SessionStarted, SessionEnded
 from rw_backend.database.models import Simulator, Track, Car, Driver
 import time
-import peewee as pw # Import peewee for the `fn.ABS` function
+import peewee as pw
 
 def Cbytestring2Python(bytestring):
     try: return bytes(bytestring).partition(b'\0')[0].decode('utf-8').strip()
@@ -63,12 +63,31 @@ class SessionDetector:
 
         simulator, _ = Simulator.get_or_create(name="Le Mans Ultimate")
         driver, _ = Driver.get_or_create(name=Cbytestring2Python(player_scoring.mDriverName))
-        car_model_str = Cbytestring2Python(player_scoring.mVehicleName) or Cbytestring2Python(telemetry.mVehicleName)
-        car, _ = Car.get_or_create(
-            model=car_model_str,
-            defaults={'car_class': Cbytestring2Python(player_scoring.mVehicleClass)}
-        )
         
+        # --- ROBUST CAR LOOKUP START ---
+        car_name_from_sim = Cbytestring2Python(player_scoring.mVehicleName) or Cbytestring2Python(telemetry.mVehicleName)
+        car = Car.get_or_none(display_name=car_name_from_sim)
+        
+        if not car:
+            print(f"[SessionDetector] WARNING: No seeded car found for '{car_name_from_sim}'. Creating placeholder.", flush=True)
+            car_id = f"unseeded-{car_name_from_sim}"
+            car, _ = Car.get_or_create(
+                id=car_id,
+                defaults={
+                    'internal_name': car_name_from_sim,
+                    'display_name': car_name_from_sim,
+                    'model': 'Unknown',
+                    'car_class': Cbytestring2Python(player_scoring.mVehicleClass),
+                    'season': 'Unknown',
+                    'manufacturer': 'Unknown',
+                    'engine': 'Unknown',
+                    'thumbnail_url': '',
+                    'manufacturer_thumbnail_url': ''
+                }
+            )
+        # --- ROBUST CAR LOOKUP END ---
+        
+        # --- ROBUST TRACK LOOKUP START ---
         track_name_from_sim = Cbytestring2Python(scoring_info.mTrackName)
         track_dist_from_sim = scoring_info.mLapDist
         
@@ -79,25 +98,21 @@ class SessionDetector:
                  .first())
         
         if not track:
-             # If no seeded track is found, create a new one as a fallback.
-                print(f"[SessionDetector] WARNING: No seeded track found for '{track_name_from_sim}' with length {track_dist_from_sim:.0f}m. Creating new entry.", flush=True)
-                track_id = f"unseeded-{track_name_from_sim}-{int(track_dist_from_sim)}"
-                
-                # --- THIS IS THE FIX ---
-                # The 'defaults' dictionary must provide a value for ALL non-nullable columns.
-                # We will provide sensible, empty placeholders.
-                track, _ = Track.get_or_create(
-                    id=track_id,
-                    defaults={
-                        'internal_name': track_name_from_sim,
-                        'display_name': track_name_from_sim,
-                        'short_name': track_name_from_sim,
-                        'length_m': track_dist_from_sim,
-                        'type': 'Unknown',
-                        'image_path': '', # Provide empty string default
-                        'thumbnail_path': '' # Provide empty string default
-                    }
-                )
+            print(f"[SessionDetector] WARNING: No seeded track found for '{track_name_from_sim}'. Creating placeholder.", flush=True)
+            track_id = f"unseeded-{track_name_from_sim}-{int(track_dist_from_sim)}"
+            track, _ = Track.get_or_create(
+                id=track_id,
+                defaults={
+                    'internal_name': track_name_from_sim,
+                    'display_name': track_name_from_sim,
+                    'short_name': track_name_from_sim,
+                    'length_m': track_dist_from_sim,
+                    'type': 'Unknown',
+                    'image_path': '',
+                    'thumbnail_path': ''
+                }
+            )
+        # --- ROBUST TRACK LOOKUP END ---
 
         ticks_uid = extended.mTicksSessionStarted
         uid = f"{track.display_name}-{ticks_uid}"

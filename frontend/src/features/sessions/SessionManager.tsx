@@ -2,22 +2,22 @@
 
 import { useState } from "react"
 import { SessionHistory } from "./SessionHistory"
-import { SessionDetail } from "./SessionDetail"
+import { SessionDetailView } from "./SessionDetail"
 import Telemetry from "../telemetry/Telemetry"
 
 export function SessionManager() {
     const [currentView, setCurrentView] = useState<"history" | "detail" | "telemetry">("history")
     const [selectedSessionId, setSelectedSessionId] = useState<number | null>(null)
-    const [selectedLapNumber, setSelectedLapNumber] = useState<number | null>(null)
+    const [selectedLapId, setSelectedLapId] = useState<number | null>(null)
 
     const handleViewSession = (sessionId: number) => {
         setSelectedSessionId(sessionId)
         setCurrentView("detail")
     }
 
-    const handleViewTelemetry = (lapNumber: number) => {
+    const handleViewTelemetry = (lapId: number) => {
         setCurrentView("telemetry")
-        setSelectedLapNumber(lapNumber)
+        setSelectedLapId(lapId)
     }
 
     const handleBackToHistory = () => {
@@ -27,15 +27,15 @@ export function SessionManager() {
 
     const handleBackToSessionDetail = () => {
         setCurrentView("detail")
-        setSelectedLapNumber(null)
+        setSelectedLapId(null)
     }
 
     if (currentView === "detail" && selectedSessionId) {
-        return <SessionDetail sessionId={selectedSessionId} onBack={handleBackToHistory} onViewTelemetry={handleViewTelemetry} />
+        return <SessionDetailView sessionId={selectedSessionId} onBack={handleBackToHistory} onViewTelemetry={handleViewTelemetry} />
     }
 
-    if (currentView === "telemetry" && selectedSessionId && selectedLapNumber) {
-        return <Telemetry sessionId={selectedSessionId} lapNumber={selectedLapNumber} onBackToSessionDetail={handleBackToSessionDetail} />
+    if (currentView === "telemetry" && selectedSessionId && selectedLapId) {
+        return <Telemetry sessionId={selectedSessionId} lapId={selectedLapId} onBackToSessionDetail={handleBackToSessionDetail} />
     }
 
     return <SessionHistory onViewSession={handleViewSession} />

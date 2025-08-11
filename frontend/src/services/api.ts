@@ -8,7 +8,9 @@ import type {
     LiveSessionData,
     GlobalDashboardStats,
     ModuleDashboardStats,
-    Simulator
+    Simulator,
+    LapTelemetryData,
+    LapComparisonData
 } from '../shared/types';
 
 // --- CHANGE START: Update the global type definition to match the flat API structure ---
@@ -129,7 +131,7 @@ export const api: IRaceWorkshopAPI = {
 
     telemetry: {
         ...telemetryService,
-        getLapTelemetry: async (lapId: number): Promise<any> => {
+        getLapTelemetry: async (lapId: number): Promise<LapTelemetryData> => {
             try {
                 if (window.pywebview?.api) {
                     // Call the top-level method
@@ -139,10 +141,10 @@ export const api: IRaceWorkshopAPI = {
                 throw new Error("Pywebview API not available.");
             } catch (e) {
                 console.error(`Error fetching telemetry for lap ${lapId}:`, e);
-                return {};
+                return { telemetry: {}, trackpath: [] };
             }
         },
-        compareLaps: async (lapId1: number, lapId2: number): Promise<any> => {
+        compareLaps: async (lapId1: number, lapId2: number): Promise<LapComparisonData> => {
             try {
                 if (window.pywebview?.api) {
                     // Call the top-level method
@@ -152,7 +154,10 @@ export const api: IRaceWorkshopAPI = {
                 throw new Error("Pywebview API not available.");
             } catch (e) {
                 console.error(`Error comparing laps ${lapId1} and ${lapId2}:`, e);
-                return {};
+                return { 
+                    lap1: { lapId: lapId1, telemetry: {}, trackpath: [] }, 
+                    lap2: { lapId: lapId2, telemetry: {}, trackpath: [] } 
+                };
             }
         },
     },

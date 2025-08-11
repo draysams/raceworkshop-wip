@@ -454,7 +454,7 @@ useEffect(() => {
                             <div className="lg:col-span-3">
                               <div className="flex items-center gap-2 text-white">
                                 <MapPin className="w-3 h-3 text-red-500" />
-                                <span className="font-semibold text-base">{session.track || "---"}</span>
+                                <span className="font-semibold text-base">{session.track?.displayName || "---"}</span>
                               </div>
                             </div>
 
@@ -462,7 +462,7 @@ useEffect(() => {
                             <div className="lg:col-span-3">
                               <div className="flex items-center gap-2 text-zinc-300 mb-2">
                                 <Car className="w-3 h-3" />
-                                <span className="text-sm">{session.car || "---"}</span>
+                                <span className="text-sm">{session.car?.displayName || "---"}</span>
                               </div>
                               <div className="flex flex-wrap gap-1">
                                 <Badge variant="outline" className="text-sm border-zinc-600 text-zinc-400 px-1 py-0">

@@ -2,7 +2,7 @@
 import { ModuleDashboard } from "../../features/dashboard/ModuleDashboard"
 import { Transponder } from "../../features/transponder/Transponder"
 import { SessionHistory } from "../../features/sessions/SessionHistory"
-import { SessionDetail } from "../../features/sessions/SessionDetail"
+import { SessionDetailView } from "../../features/sessions/SessionDetail"
 import Telemetry from "../../features/telemetry/Telemetry"
 import RaceEngineer from "../../features/engineer/RaceEngineer"
 import { useViewManager } from "../../hooks/useViewManager"
@@ -33,12 +33,12 @@ export function ContentPane() {
                     )
                 }
                 return (
-                    <SessionDetail 
+                    <SessionDetailView 
                         sessionId={viewManager.activeView.sessionId} 
                         onBack={() => viewManager.setActiveSubmodule("sessions")}
-                        onViewTelemetry={(lapNumber) => {
+                        onViewTelemetry={(lapId) => {
                             // Navigate to telemetry view with session and lap data
-                            viewManager.setActiveTelemetry(viewManager.activeView.sessionId!, lapNumber)
+                            viewManager.setActiveTelemetry(viewManager.activeView.sessionId!, lapId)
                         }}
                     />
                 )
@@ -53,7 +53,7 @@ export function ContentPane() {
                 return (
                     <Telemetry 
                         sessionId={viewManager.activeView.telemetryData.sessionId}
-                        lapNumber={viewManager.activeView.telemetryData.lapNumber}
+                        lapId={viewManager.activeView.telemetryData.lapId}
                         onBackToSessionDetail={() => viewManager.setActiveSession(viewManager.activeView.telemetryData!.sessionId)}
                     />
                 )

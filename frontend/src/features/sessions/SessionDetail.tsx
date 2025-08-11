@@ -28,15 +28,15 @@ import { Badge } from "../../components/ui/badge"
 import { Progress } from "../../components/ui/progress"
 import { FeatureLayout } from "../../components/layout/FeatureLayout"
 import { api } from "../../services/api"
-import { LapData, SessionSummary } from "../../shared/types"
+import { LapData, SessionDetail } from "../../shared/types"
 
 interface ISessionDetailProps {
     sessionId: number
     onBack: () => void
-    onViewTelemetry: (lapNumber: number) => void
+    onViewTelemetry: (lapId: number) => void
 }
 
-export function SessionDetail({ sessionId, onBack, onViewTelemetry }: ISessionDetailProps) {
+export function SessionDetailView({ sessionId, onBack, onViewTelemetry }: ISessionDetailProps) {
   const [selectedLap, setSelectedLap] = useState<number | null>(null)
   const [expandedStints, setExpandedStints] = useState<number[]>([1])
 
@@ -44,7 +44,7 @@ export function SessionDetail({ sessionId, onBack, onViewTelemetry }: ISessionDe
     setExpandedStints((prev) => (prev.includes(stintId) ? prev.filter((id) => id !== stintId) : [...prev, stintId]))
   }
 
-  const [sessionData, setSessionData] = useState<{ session: SessionSummary; laps: LapData[] } | null>(null);
+  const [sessionData, setSessionData] = useState<SessionDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [apiSelectedLap, setApiSelectedLap] = useState<LapData | null>(null);
@@ -117,7 +117,7 @@ export function SessionDetail({ sessionId, onBack, onViewTelemetry }: ISessionDe
     </FeatureLayout>
   );
 
-  const session = sessionData.session;
+  const session = sessionData;
   const laps = sessionData.laps;
   const { date, time } = formatSessionDateTime(session.date);
   const invalidLaps = getInvalidLaps(session.totalLaps, session.validLaps);
@@ -181,6 +181,7 @@ export function SessionDetail({ sessionId, onBack, onViewTelemetry }: ISessionDe
         incidents: 0,
         laps: stintLaps.map(lap => ({
           lap: lap.lapNumber,
+          lapId: lap.id,
           time: lap.lapTime || "---",
           sector1: lap.sector1 || "---",
           sector2: lap.sector2 || "---",
@@ -211,7 +212,7 @@ export function SessionDetail({ sessionId, onBack, onViewTelemetry }: ISessionDe
                       <div className="w-10 h-10 bg-red-600/10 rounded-lg flex items-center justify-center">
                         <Activity className="w-5 h-5 text-red-500" />
                       </div>
-                      {session.track || "---"} - {session.sessionType || "---"}
+                      {session.track?.displayName || "---"} - {session.sessionType || "---"}
                     </CardTitle>
                     <div className="flex flex-wrap items-center gap-4 text-zinc-400">
                       <div className="flex items-center gap-2">
@@ -222,7 +223,7 @@ export function SessionDetail({ sessionId, onBack, onViewTelemetry }: ISessionDe
                       </div>
                       <div className="flex items-center gap-2">
                         <Car className="w-4 h-4" />
-                        <span>{session.car || "---"}</span>
+                        <span>{session.car?.displayName || "---"}</span>
                       </div>
                       <Badge variant="outline" className="border-zinc-600 text-zinc-400">
                         ---
@@ -609,7 +610,7 @@ export function SessionDetail({ sessionId, onBack, onViewTelemetry }: ISessionDe
                                         className="border-zinc-600 text-zinc-300 hover:text-white bg-transparent text-xs px-2 py-1 h-6 ml-auto"
                                         asChild
                                       >
-                                        <a onClick={() => onViewTelemetry(lap.lap)}>
+                                        <a onClick={() => onViewTelemetry(lap.lapId)}>
                                           Analyze
                                         </a>
                                       </Button>

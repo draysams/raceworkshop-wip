@@ -19,8 +19,6 @@ class TelemetryApi:
                      .order_by(LapTelemetry.lap_dist)
                      .dicts())
 
-            # --- CHANGE START: Implement the new BFF data structure ---
-
             # Initialize the final JSON structure with separate keys
             response_data = {
                 'telemetry': {
@@ -30,7 +28,40 @@ class TelemetryApi:
                     'rpm':      {'label': 'RPM', 'data': [], 'borderColor': '#6f42c1', 'interpolate': True},
                     'gear':     {'label': 'Gear', 'data': [], 'borderColor': '#fd7e14', 'interpolate': True, 'stepped': True},
                     'steering': {'label': 'Steering', 'data': [], 'borderColor': '#0dcaf0', 'interpolate': True},
-                    # Note: TC and ABS are not in our DB model yet, they can be added later.
+                    'fuelLevel': {'label': 'Fuel Level', 'data': [], 'borderColor': '#FF6B35', 'interpolate': True},
+                    'tirePressure': {
+                        'fl': {'label': 'Tire Pressure FL', 'data': [], 'borderColor': '#28a745', 'interpolate': True},
+                        'fr': {'label': 'Tire Pressure FR', 'data': [], 'borderColor': '#17a2b8', 'interpolate': True},
+                        'rl': {'label': 'Tire Pressure RL', 'data': [], 'borderColor': '#ffc107', 'interpolate': True},
+                        'rr': {'label': 'Tire Pressure RR', 'data': [], 'borderColor': '#dc3545', 'interpolate': True}
+                    },
+                    'tireWear': {
+                        'fl': {'label': 'Tire Wear FL', 'data': [], 'borderColor': '#28a745', 'interpolate': True},
+                        'fr': {'label': 'Tire Wear FR', 'data': [], 'borderColor': '#17a2b8', 'interpolate': True},
+                        'rl': {'label': 'Tire Wear RL', 'data': [], 'borderColor': '#ffc107', 'interpolate': True},
+                        'rr': {'label': 'Tire Wear RR', 'data': [], 'borderColor': '#dc3545', 'interpolate': True}
+                    },
+                    'tireTemp': {
+                        'fl': {'label': 'Tire Temp FL', 'data': [], 'borderColor': '#28a745', 'interpolate': True},
+                        'fr': {'label': 'Tire Temp FR', 'data': [], 'borderColor': '#17a2b8', 'interpolate': True},
+                        'rl': {'label': 'Tire Temp RL', 'data': [], 'borderColor': '#ffc107', 'interpolate': True},
+                        'rr': {'label': 'Tire Temp RR', 'data': [], 'borderColor': '#dc3545', 'interpolate': True}
+                    },
+                    'brakeTemp': {
+                        'fl': {'label': 'Brake Temp FL', 'data': [], 'borderColor': '#28a745', 'interpolate': True},
+                        'fr': {'label': 'Brake Temp FR', 'data': [], 'borderColor': '#17a2b8', 'interpolate': True},
+                        'rl': {'label': 'Brake Temp RL', 'data': [], 'borderColor': '#ffc107', 'interpolate': True},
+                        'rr': {'label': 'Brake Temp RR', 'data': [], 'borderColor': '#dc3545', 'interpolate': True}
+                    },
+                    'rideHeight': {
+                        'fl': {'label': 'Ride Height FL', 'data': [], 'borderColor': '#28a745', 'interpolate': True},
+                        'fr': {'label': 'Ride Height FR', 'data': [], 'borderColor': '#17a2b8', 'interpolate': True},
+                        'rl': {'label': 'Ride Height RL', 'data': [], 'borderColor': '#ffc107', 'interpolate': True},
+                        'rr': {'label': 'Ride Height RR', 'data': [], 'borderColor': '#dc3545', 'interpolate': True}
+                    },
+                    'timeIntoLap': {'label': 'Time Into Lap', 'data': [], 'borderColor': '#6f42c1', 'interpolate': True},
+                    'estimatedLapTime': {'label': 'Estimated Lap Time', 'data': [], 'borderColor': '#fd7e14', 'interpolate': True},
+                    'trackEdge': {'label': 'Track Edge', 'data': [], 'borderColor': '#0dcaf0', 'interpolate': True},
                 },
                 'trackpath': []
             }
@@ -49,6 +80,42 @@ class TelemetryApi:
                 response_data['telemetry']['rpm']['data'].append({'x': dist, 'y': row['rpm']})
                 response_data['telemetry']['gear']['data'].append({'x': dist, 'y': row['gear']})
                 response_data['telemetry']['steering']['data'].append({'x': dist, 'y': row['steering']})
+                response_data['telemetry']['fuelLevel']['data'].append({'x': dist, 'y': row['fuel_level']})
+                
+                # Tire pressures
+                response_data['telemetry']['tirePressure']['fl']['data'].append({'x': dist, 'y': row['tire_pressure_fl']})
+                response_data['telemetry']['tirePressure']['fr']['data'].append({'x': dist, 'y': row['tire_pressure_fr']})
+                response_data['telemetry']['tirePressure']['rl']['data'].append({'x': dist, 'y': row['tire_pressure_rl']})
+                response_data['telemetry']['tirePressure']['rr']['data'].append({'x': dist, 'y': row['tire_pressure_rr']})
+                
+                # Tire wear
+                response_data['telemetry']['tireWear']['fl']['data'].append({'x': dist, 'y': row['tire_wear_fl']})
+                response_data['telemetry']['tireWear']['fr']['data'].append({'x': dist, 'y': row['tire_wear_fr']})
+                response_data['telemetry']['tireWear']['rl']['data'].append({'x': dist, 'y': row['tire_wear_rl']})
+                response_data['telemetry']['tireWear']['rr']['data'].append({'x': dist, 'y': row['tire_wear_rr']})
+                
+                # Tire temps
+                response_data['telemetry']['tireTemp']['fl']['data'].append({'x': dist, 'y': row['tire_temp_fl']})
+                response_data['telemetry']['tireTemp']['fr']['data'].append({'x': dist, 'y': row['tire_temp_fr']})
+                response_data['telemetry']['tireTemp']['rl']['data'].append({'x': dist, 'y': row['tire_temp_rl']})
+                response_data['telemetry']['tireTemp']['rr']['data'].append({'x': dist, 'y': row['tire_temp_rr']})
+                
+                # Brake temps
+                response_data['telemetry']['brakeTemp']['fl']['data'].append({'x': dist, 'y': row['brake_temp_fl']})
+                response_data['telemetry']['brakeTemp']['fr']['data'].append({'x': dist, 'y': row['brake_temp_fr']})
+                response_data['telemetry']['brakeTemp']['rl']['data'].append({'x': dist, 'y': row['brake_temp_rl']})
+                response_data['telemetry']['brakeTemp']['rr']['data'].append({'x': dist, 'y': row['brake_temp_rr']})
+                
+                # Ride height
+                response_data['telemetry']['rideHeight']['fl']['data'].append({'x': dist, 'y': row['ride_height_fl']})
+                response_data['telemetry']['rideHeight']['fr']['data'].append({'x': dist, 'y': row['ride_height_fr']})
+                response_data['telemetry']['rideHeight']['rl']['data'].append({'x': dist, 'y': row['ride_height_rl']})
+                response_data['telemetry']['rideHeight']['rr']['data'].append({'x': dist, 'y': row['ride_height_rr']})
+                
+                # Session context fields
+                response_data['telemetry']['timeIntoLap']['data'].append({'x': dist, 'y': row['time_into_lap']})
+                response_data['telemetry']['estimatedLapTime']['data'].append({'x': dist, 'y': row['estimated_lap_time']})
+                response_data['telemetry']['trackEdge']['data'].append({'x': dist, 'y': row['track_edge']})
 
                 # Append to the track path
                 response_data['trackpath'].append({
@@ -61,7 +128,6 @@ class TelemetryApi:
                 print(f"No telemetry data found for lap_id: {lap_id_int}", flush=True)
             
             return json.dumps(response_data)
-            # --- CHANGE END ---
 
         except Exception as e:
             print(f"Error fetching lap telemetry: {e}", flush=True)
@@ -100,6 +166,40 @@ class TelemetryApi:
                         'rpm':      {'label': 'RPM', 'data': [], 'borderColor': '#6f42c1', 'interpolate': True},
                         'gear':     {'label': 'Gear', 'data': [], 'borderColor': '#fd7e14', 'interpolate': True, 'stepped': True},
                         'steering': {'label': 'Steering', 'data': [], 'borderColor': '#0dcaf0', 'interpolate': True},
+                        'fuelLevel': {'label': 'Fuel Level', 'data': [], 'borderColor': '#FF6B35', 'interpolate': True},
+                        'tirePressure': {
+                            'fl': {'label': 'Tire Pressure FL', 'data': [], 'borderColor': '#28a745', 'interpolate': True},
+                            'fr': {'label': 'Tire Pressure FR', 'data': [], 'borderColor': '#17a2b8', 'interpolate': True},
+                            'rl': {'label': 'Tire Pressure RL', 'data': [], 'borderColor': '#ffc107', 'interpolate': True},
+                            'rr': {'label': 'Tire Pressure RR', 'data': [], 'borderColor': '#dc3545', 'interpolate': True}
+                        },
+                        'tireWear': {
+                            'fl': {'label': 'Tire Wear FL', 'data': [], 'borderColor': '#28a745', 'interpolate': True},
+                            'fr': {'label': 'Tire Wear FR', 'data': [], 'borderColor': '#17a2b8', 'interpolate': True},
+                            'rl': {'label': 'Tire Wear RL', 'data': [], 'borderColor': '#ffc107', 'interpolate': True},
+                            'rr': {'label': 'Tire Wear RR', 'data': [], 'borderColor': '#dc3545', 'interpolate': True}
+                        },
+                        'tireTemp': {
+                            'fl': {'label': 'Tire Temp FL', 'data': [], 'borderColor': '#28a745', 'interpolate': True},
+                            'fr': {'label': 'Tire Temp FR', 'data': [], 'borderColor': '#17a2b8', 'interpolate': True},
+                            'rl': {'label': 'Tire Temp RL', 'data': [], 'borderColor': '#ffc107', 'interpolate': True},
+                            'rr': {'label': 'Tire Temp RR', 'data': [], 'borderColor': '#dc3545', 'interpolate': True}
+                        },
+                        'brakeTemp': {
+                            'fl': {'label': 'Brake Temp FL', 'data': [], 'borderColor': '#28a745', 'interpolate': True},
+                            'fr': {'label': 'Brake Temp FR', 'data': [], 'borderColor': '#17a2b8', 'interpolate': True},
+                            'rl': {'label': 'Brake Temp RL', 'data': [], 'borderColor': '#ffc107', 'interpolate': True},
+                            'rr': {'label': 'Brake Temp RR', 'data': [], 'borderColor': '#dc3545', 'interpolate': True}
+                        },
+                        'rideHeight': {
+                            'fl': {'label': 'Ride Height FL', 'data': [], 'borderColor': '#28a745', 'interpolate': True},
+                            'fr': {'label': 'Ride Height FR', 'data': [], 'borderColor': '#17a2b8', 'interpolate': True},
+                            'rl': {'label': 'Ride Height RL', 'data': [], 'borderColor': '#ffc107', 'interpolate': True},
+                            'rr': {'label': 'Ride Height RR', 'data': [], 'borderColor': '#dc3545', 'interpolate': True}
+                        },
+                        'timeIntoLap': {'label': 'Time Into Lap', 'data': [], 'borderColor': '#6f42c1', 'interpolate': True},
+                        'estimatedLapTime': {'label': 'Estimated Lap Time', 'data': [], 'borderColor': '#fd7e14', 'interpolate': True},
+                        'trackEdge': {'label': 'Track Edge', 'data': [], 'borderColor': '#0dcaf0', 'interpolate': True},
                     },
                     'trackpath': []
                 },
@@ -112,6 +212,40 @@ class TelemetryApi:
                         'rpm':      {'label': 'RPM', 'data': [], 'borderColor': '#00CED1', 'interpolate': True},
                         'gear':     {'label': 'Gear', 'data': [], 'borderColor': '#32CD32', 'interpolate': True, 'stepped': True},
                         'steering': {'label': 'Steering', 'data': [], 'borderColor': '#9370DB', 'interpolate': True},
+                        'fuelLevel': {'label': 'Fuel Level', 'data': [], 'borderColor': '#FF6B35', 'interpolate': True},
+                        'tirePressure': {
+                            'fl': {'label': 'Tire Pressure FL', 'data': [], 'borderColor': '#28a745', 'interpolate': True},
+                            'fr': {'label': 'Tire Pressure FR', 'data': [], 'borderColor': '#17a2b8', 'interpolate': True},
+                            'rl': {'label': 'Tire Pressure RL', 'data': [], 'borderColor': '#ffc107', 'interpolate': True},
+                            'rr': {'label': 'Tire Pressure RR', 'data': [], 'borderColor': '#dc3545', 'interpolate': True}
+                        },
+                        'tireWear': {
+                            'fl': {'label': 'Tire Wear FL', 'data': [], 'borderColor': '#28a745', 'interpolate': True},
+                            'fr': {'label': 'Tire Wear FR', 'data': [], 'borderColor': '#17a2b8', 'interpolate': True},
+                            'rl': {'label': 'Tire Wear RL', 'data': [], 'borderColor': '#ffc107', 'interpolate': True},
+                            'rr': {'label': 'Tire Wear RR', 'data': [], 'borderColor': '#dc3545', 'interpolate': True}
+                        },
+                        'tireTemp': {
+                            'fl': {'label': 'Tire Temp FL', 'data': [], 'borderColor': '#28a745', 'interpolate': True},
+                            'fr': {'label': 'Tire Temp FR', 'data': [], 'borderColor': '#17a2b8', 'interpolate': True},
+                            'rl': {'label': 'Tire Temp RL', 'data': [], 'borderColor': '#ffc107', 'interpolate': True},
+                            'rr': {'label': 'Tire Temp RR', 'data': [], 'borderColor': '#dc3545', 'interpolate': True}
+                        },
+                        'brakeTemp': {
+                            'fl': {'label': 'Brake Temp FL', 'data': [], 'borderColor': '#28a745', 'interpolate': True},
+                            'fr': {'label': 'Brake Temp FR', 'data': [], 'borderColor': '#17a2b8', 'interpolate': True},
+                            'rl': {'label': 'Brake Temp RL', 'data': [], 'borderColor': '#ffc107', 'interpolate': True},
+                            'rr': {'label': 'Brake Temp RR', 'data': [], 'borderColor': '#dc3545', 'interpolate': True}
+                        },
+                        'rideHeight': {
+                            'fl': {'label': 'Ride Height FL', 'data': [], 'borderColor': '#28a745', 'interpolate': True},
+                            'fr': {'label': 'Ride Height FR', 'data': [], 'borderColor': '#17a2b8', 'interpolate': True},
+                            'rl': {'label': 'Ride Height RL', 'data': [], 'borderColor': '#ffc107', 'interpolate': True},
+                            'rr': {'label': 'Ride Height RR', 'data': [], 'borderColor': '#dc3545', 'interpolate': True}
+                        },
+                        'timeIntoLap': {'label': 'Time Into Lap', 'data': [], 'borderColor': '#6f42c1', 'interpolate': True},
+                        'estimatedLapTime': {'label': 'Estimated Lap Time', 'data': [], 'borderColor': '#fd7e14', 'interpolate': True},
+                        'trackEdge': {'label': 'Track Edge', 'data': [], 'borderColor': '#0dcaf0', 'interpolate': True},
                     },
                     'trackpath': []
                 }
@@ -129,6 +263,42 @@ class TelemetryApi:
                 response_data['lap1']['telemetry']['rpm']['data'].append({'x': dist, 'y': row['rpm']})
                 response_data['lap1']['telemetry']['gear']['data'].append({'x': dist, 'y': row['gear']})
                 response_data['lap1']['telemetry']['steering']['data'].append({'x': dist, 'y': row['steering']})
+                response_data['lap1']['telemetry']['fuelLevel']['data'].append({'x': dist, 'y': row['fuel_level']})
+                
+                # Tire pressures
+                response_data['lap1']['telemetry']['tirePressure']['fl']['data'].append({'x': dist, 'y': row['tire_pressure_fl']})
+                response_data['lap1']['telemetry']['tirePressure']['fr']['data'].append({'x': dist, 'y': row['tire_pressure_fr']})
+                response_data['lap1']['telemetry']['tirePressure']['rl']['data'].append({'x': dist, 'y': row['tire_pressure_rl']})
+                response_data['lap1']['telemetry']['tirePressure']['rr']['data'].append({'x': dist, 'y': row['tire_pressure_rr']})
+                
+                # Tire wear
+                response_data['lap1']['telemetry']['tireWear']['fl']['data'].append({'x': dist, 'y': row['tire_wear_fl']})
+                response_data['lap1']['telemetry']['tireWear']['fr']['data'].append({'x': dist, 'y': row['tire_wear_fr']})
+                response_data['lap1']['telemetry']['tireWear']['rl']['data'].append({'x': dist, 'y': row['tire_wear_rl']})
+                response_data['lap1']['telemetry']['tireWear']['rr']['data'].append({'x': dist, 'y': row['tire_wear_rr']})
+                
+                # Tire temps
+                response_data['lap1']['telemetry']['tireTemp']['fl']['data'].append({'x': dist, 'y': row['tire_temp_fl']})
+                response_data['lap1']['telemetry']['tireTemp']['fr']['data'].append({'x': dist, 'y': row['tire_temp_fr']})
+                response_data['lap1']['telemetry']['tireTemp']['rl']['data'].append({'x': dist, 'y': row['tire_temp_rl']})
+                response_data['lap1']['telemetry']['tireTemp']['rr']['data'].append({'x': dist, 'y': row['tire_temp_rr']})
+                
+                # Brake temps
+                response_data['lap1']['telemetry']['brakeTemp']['fl']['data'].append({'x': dist, 'y': row['brake_temp_fl']})
+                response_data['lap1']['telemetry']['brakeTemp']['fr']['data'].append({'x': dist, 'y': row['brake_temp_fr']})
+                response_data['lap1']['telemetry']['brakeTemp']['rl']['data'].append({'x': dist, 'y': row['brake_temp_rl']})
+                response_data['lap1']['telemetry']['brakeTemp']['rr']['data'].append({'x': dist, 'y': row['brake_temp_rr']})
+                
+                # Ride height
+                response_data['lap1']['telemetry']['rideHeight']['fl']['data'].append({'x': dist, 'y': row['ride_height_fl']})
+                response_data['lap1']['telemetry']['rideHeight']['fr']['data'].append({'x': dist, 'y': row['ride_height_fr']})
+                response_data['lap1']['telemetry']['rideHeight']['rl']['data'].append({'x': dist, 'y': row['ride_height_rl']})
+                response_data['lap1']['telemetry']['rideHeight']['rr']['data'].append({'x': dist, 'y': row['ride_height_rr']})
+                
+                # Session context fields
+                response_data['lap1']['telemetry']['timeIntoLap']['data'].append({'x': dist, 'y': row['time_into_lap']})
+                response_data['lap1']['telemetry']['estimatedLapTime']['data'].append({'x': dist, 'y': row['estimated_lap_time']})
+                response_data['lap1']['telemetry']['trackEdge']['data'].append({'x': dist, 'y': row['track_edge']})
 
                 # Append to track path for lap 1
                 response_data['lap1']['trackpath'].append({
@@ -149,6 +319,42 @@ class TelemetryApi:
                 response_data['lap2']['telemetry']['rpm']['data'].append({'x': dist, 'y': row['rpm']})
                 response_data['lap2']['telemetry']['gear']['data'].append({'x': dist, 'y': row['gear']})
                 response_data['lap2']['telemetry']['steering']['data'].append({'x': dist, 'y': row['steering']})
+                response_data['lap2']['telemetry']['fuelLevel']['data'].append({'x': dist, 'y': row['fuel_level']})
+                
+                # Tire pressures
+                response_data['lap2']['telemetry']['tirePressure']['fl']['data'].append({'x': dist, 'y': row['tire_pressure_fl']})
+                response_data['lap2']['telemetry']['tirePressure']['fr']['data'].append({'x': dist, 'y': row['tire_pressure_fr']})
+                response_data['lap2']['telemetry']['tirePressure']['rl']['data'].append({'x': dist, 'y': row['tire_pressure_rl']})
+                response_data['lap2']['telemetry']['tirePressure']['rr']['data'].append({'x': dist, 'y': row['tire_pressure_rr']})
+                
+                # Tire wear
+                response_data['lap2']['telemetry']['tireWear']['fl']['data'].append({'x': dist, 'y': row['tire_wear_fl']})
+                response_data['lap2']['telemetry']['tireWear']['fr']['data'].append({'x': dist, 'y': row['tire_wear_fr']})
+                response_data['lap2']['telemetry']['tireWear']['rl']['data'].append({'x': dist, 'y': row['tire_wear_rl']})
+                response_data['lap2']['telemetry']['tireWear']['rr']['data'].append({'x': dist, 'y': row['tire_wear_rr']})
+                
+                # Tire temps
+                response_data['lap2']['telemetry']['tireTemp']['fl']['data'].append({'x': dist, 'y': row['tire_temp_fl']})
+                response_data['lap2']['telemetry']['tireTemp']['fr']['data'].append({'x': dist, 'y': row['tire_temp_fr']})
+                response_data['lap2']['telemetry']['tireTemp']['rl']['data'].append({'x': dist, 'y': row['tire_temp_rl']})
+                response_data['lap2']['telemetry']['tireTemp']['rr']['data'].append({'x': dist, 'y': row['tire_temp_rr']})
+                
+                # Brake temps
+                response_data['lap2']['telemetry']['brakeTemp']['fl']['data'].append({'x': dist, 'y': row['brake_temp_fl']})
+                response_data['lap2']['telemetry']['brakeTemp']['fr']['data'].append({'x': dist, 'y': row['brake_temp_fr']})
+                response_data['lap2']['telemetry']['brakeTemp']['rl']['data'].append({'x': dist, 'y': row['brake_temp_rl']})
+                response_data['lap2']['telemetry']['brakeTemp']['rr']['data'].append({'x': dist, 'y': row['brake_temp_rr']})
+                
+                # Ride height
+                response_data['lap2']['telemetry']['rideHeight']['fl']['data'].append({'x': dist, 'y': row['ride_height_fl']})
+                response_data['lap2']['telemetry']['rideHeight']['fr']['data'].append({'x': dist, 'y': row['ride_height_fr']})
+                response_data['lap2']['telemetry']['rideHeight']['rl']['data'].append({'x': dist, 'y': row['ride_height_rl']})
+                response_data['lap2']['telemetry']['rideHeight']['rr']['data'].append({'x': dist, 'y': row['ride_height_rr']})
+                
+                # Session context fields
+                response_data['lap2']['telemetry']['timeIntoLap']['data'].append({'x': dist, 'y': row['time_into_lap']})
+                response_data['lap2']['telemetry']['estimatedLapTime']['data'].append({'x': dist, 'y': row['estimated_lap_time']})
+                response_data['lap2']['telemetry']['trackEdge']['data'].append({'x': dist, 'y': row['track_edge']})
 
                 # Append to track path for lap 2
                 response_data['lap2']['trackpath'].append({

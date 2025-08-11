@@ -8,7 +8,7 @@ export interface ViewState {
     sessionId?: number | null
     telemetryData?: {
         sessionId: number
-        lapNumber: number
+        lapId: number
     } | null
 }
 
@@ -17,7 +17,7 @@ export interface ViewManager {
     setActiveModule: (moduleId: string) => void
     setActiveSubmodule: (submoduleId: string) => void
     setActiveSession: (sessionId: number) => void
-    setActiveTelemetry: (sessionId: number, lapNumber: number) => void
+    setActiveTelemetry: (sessionId: number, lapId: number) => void
     goToDashboard: () => void
 }
 
@@ -62,14 +62,14 @@ export function ViewManagerProvider({ children }: ViewManagerProviderProps) {
         }))
     }, [])
 
-    const setActiveTelemetry = useCallback((sessionId: number, lapNumber: number) => {
+    const setActiveTelemetry = useCallback((sessionId: number, lapId: number) => {
         setActiveView((prev) => ({
             ...prev,
             submodule: "telemetry",
             sessionId: null,
             telemetryData: {
                 sessionId,
-                lapNumber,
+                lapId,
             },
         }))
     }, [])

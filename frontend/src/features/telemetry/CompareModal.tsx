@@ -2,14 +2,14 @@ import { Trophy, Clock, CheckCircle } from "lucide-react"
 import { useState, useEffect } from "react"
 import { Button } from "../../components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../../components/ui/dialog"
-import { LapData, SessionSummary } from "../../shared/types"
+import { LapData, SessionDetail } from "../../shared/types"
 import { api } from "../../services/api"
 
 interface CompareModalProps {
   isOpen: boolean
   onClose: () => void
   sessionId: number
-  currentLapNumber: number
+  currentLapId: number
   onCompareLaps: (lapId1: number, lapId2: number) => void
 }
 
@@ -17,10 +17,10 @@ export function CompareModal({
   isOpen, 
   onClose, 
   sessionId, 
-  currentLapNumber,
+  currentLapId,
   onCompareLaps
 }: CompareModalProps) {
-  const [sessionData, setSessionData] = useState<{ session: SessionSummary; laps: LapData[] } | null>(null)
+  const [sessionData, setSessionData] = useState<SessionDetail | null>(null)
   const [loading, setLoading] = useState(false)
   const [selectedLapId, setSelectedLapId] = useState<number | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -47,11 +47,11 @@ export function CompareModal({
   }
 
   const handleCompareWithBest = () => {
-    if (sessionData?.session.bestLapMs) {
+    if (sessionData?.bestLapMs) {
       // Find the lap ID that corresponds to the best lap time
-      const bestLap = sessionData.laps.find(lap => lap.lapTimeMs === sessionData.session.bestLapMs)
+      const bestLap = sessionData.laps.find(lap => lap.lapTimeMs === sessionData.bestLapMs)
       if (bestLap) {
-        onCompareLaps(currentLapNumber, bestLap.id)
+        onCompareLaps(currentLapId, bestLap.id)
         onClose()
       }
     }
@@ -59,7 +59,7 @@ export function CompareModal({
 
   const handleCompareWithSelected = () => {
     if (selectedLapId) {
-      onCompareLaps(currentLapNumber, selectedLapId)
+      onCompareLaps(currentLapId, selectedLapId)
       onClose()
     }
   }
@@ -77,9 +77,21 @@ export function CompareModal({
   }
 
   const getBestLapId = (): number | null => {
-    if (!sessionData?.session.bestLapMs) return null
-    const bestLap = sessionData.laps.find(lap => lap.lapTimeMs === sessionData.session.bestLapMs)
+    if (!sessionData?.bestLapMs) return null
+    const bestLap = sessionData.laps.find(lap => lap.lapTimeMs === sessionData.bestLapMs)
     return bestLap?.id || null
+  }
+
+  const calculateLapDelta = (lapTimeMs: number): number => {
+    if (!selectedLapId) return 0
+    const selectedLap = sessionData?.laps.find(lap => lap.id === selectedLapId)
+    if (!selectedLap) return 0
+    return lapTimeMs - selectedLap.lapTimeMs
+  }
+
+  const formatDelta = (delta: number): string => {
+    const sign = delta > 0 ? '+' : ''
+    return `${sign}${formatLapTime(Math.abs(delta))}`
   }
 
   if (loading) {
@@ -152,16 +164,16 @@ export function CompareModal({
             <h3 className="text-white font-medium mb-2">Session Information</h3>
             <div className="grid grid-cols-2 gap-4 text-sm text-zinc-300">
               <div>
-                <span className="text-zinc-400">Track:</span> {sessionData.session.track}
+                <span className="text-zinc-400">Track:</span> {sessionData.track.displayName}
               </div>
               <div>
-                <span className="text-zinc-400">Car:</span> {sessionData.session.car}
+                <span className="text-zinc-400">Car:</span> {sessionData.car.displayName}
               </div>
               <div>
-                <span className="text-zinc-400">Total Laps:</span> {sessionData.session.totalLaps}
+                <span className="text-zinc-400">Total Laps:</span> {sessionData.totalLaps}
               </div>
               <div>
-                <span className="text-zinc-400">Best Lap:</span> {sessionData.session.bestLap}
+                <span className="text-zinc-400">Best Lap:</span> {sessionData.bestLap}
               </div>
             </div>
           </div>
@@ -179,13 +191,13 @@ export function CompareModal({
                     <div>
                       <div className="text-white font-medium">Compare with Best Lap</div>
                       <div className="text-sm text-zinc-400">
-                        Compare current lap with the session's best lap ({sessionData.session.bestLap})
+                        Compare current lap with the session's best lap ({sessionData.bestLap})
                       </div>
                     </div>
                   </div>
                   <Button
                     onClick={() => {
-                      onCompareLaps(currentLapNumber, bestLapId)
+                      onCompareLaps(currentLapId, bestLapId)
                       onClose()
                     }}
                     className="bg-red-600 hover:bg-red-700"
@@ -252,11 +264,16 @@ export function CompareModal({
                       <div className="text-white font-mono text-sm">
                         {formatLapTime(lap.lapTimeMs)}
                       </div>
-                      {lap.delta !== 0 && (
-                        <div className={`text-xs ${lap.delta > 0 ? 'text-red-400' : 'text-green-400'}`}>
-                          {lap.delta > 0 ? '+' : ''}{formatLapTime(Math.abs(lap.delta))}
-                        </div>
-                      )}
+                                             {selectedLapId && selectedLapId !== lap.id && (
+                         (() => {
+                           const delta = calculateLapDelta(lap.lapTimeMs)
+                           return (
+                             <div className={`text-xs ${delta > 0 ? 'text-red-400' : 'text-green-400'}`}>
+                               {formatDelta(delta)}
+                             </div>
+                           )
+                         })()
+                       )}
                     </div>
                   </div>
                 </div>
