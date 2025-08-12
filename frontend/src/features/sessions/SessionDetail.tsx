@@ -122,80 +122,8 @@ export function SessionDetailView({ sessionId, onBack, onViewTelemetry }: ISessi
   const { date, time } = formatSessionDateTime(session.date);
   const invalidLaps = getInvalidLaps(session.totalLaps, session.validLaps);
 
-  // Create stints from the laps data grouped by stintId
-  const createStintsFromLaps = (laps: LapData[]) => {
-    if (laps.length === 0) return [];
-
-    // Group laps by stintId
-    const lapsByStint = laps.reduce((acc, lap) => {
-      const stintId = lap.stintId;
-      if (!acc[stintId]) {
-        acc[stintId] = [];
-      }
-      acc[stintId].push(lap);
-      return acc;
-    }, {} as Record<number, LapData[]>);
-
-    // Create stint objects from grouped laps
-    return Object.entries(lapsByStint).map(([stintId, stintLaps]) => {
-      const validLaps = stintLaps.filter(l => l.isValid);
-      const invalidLaps = stintLaps.filter(l => !l.isValid);
-      
-      // Find best lap time from valid laps
-      const bestLap = validLaps.length > 0 
-        ? validLaps
-            .filter(l => l.lapTimeMs > 0)
-            .sort((a, b) => a.lapTimeMs - b.lapTimeMs)[0]?.lapTime || "---"
-        : "---";
-
-      // Calculate average lap time from valid laps
-      const avgLap = validLaps.filter(l => l.lapTimeMs > 0).length > 0 
-        ? (validLaps
-            .filter(l => l.lapTimeMs > 0)
-            .reduce((sum, l) => sum + l.lapTimeMs, 0) / 
-           validLaps.filter(l => l.lapTimeMs > 0).length / 1000).toFixed(3)
-        : "---";
-
-      // Find start and end lap numbers
-      const startLap = Math.min(...stintLaps.map(l => l.lapNumber));
-      const endLap = Math.max(...stintLaps.map(l => l.lapNumber));
-
-      return {
-        id: parseInt(stintId),
-        name: `Stint ${stintId}`,
-        startLap,
-        endLap,
-        totalLaps: stintLaps.length,
-        validLaps: validLaps.length,
-        invalidLaps: invalidLaps.length,
-        bestLap,
-        avgLap,
-        optimalLap: "---",
-        totalFuel: "---",
-        avgFuelPerLap: "---",
-        startFuel: "---",
-        endFuel: "---",
-        tyreDegradation: "---",
-        trackEvolution: "---",
-        weather: session.weather || "---",
-        incidents: 0,
-        laps: stintLaps.map(lap => ({
-          lap: lap.lapNumber,
-          lapId: lap.id,
-          time: lap.lapTime || "---",
-          sector1: lap.sector1 || "---",
-          sector2: lap.sector2 || "---",
-          sector3: lap.sector3 || "---",
-          fuel: "---",
-          tireTemp: "---",
-          valid: lap.isValid,
-          position: "---",
-        }))
-      };
-    }).sort((a, b) => a.id - b.id); // Sort by stint ID
-  };
-
-  const stints = createStintsFromLaps(laps);
+  // Use the stints from the DTO instead of creating them from laps
+  const stints = session.stints || [];
 
   return (
     <FeatureLayout header={<FeatureNavigation />}>
@@ -226,7 +154,7 @@ export function SessionDetailView({ sessionId, onBack, onViewTelemetry }: ISessi
                         <span>{session.car?.displayName || "---"}</span>
                       </div>
                       <Badge variant="outline" className="border-zinc-600 text-zinc-400">
-                        ---
+                        {session.car?.class || "---"}
                       </Badge>
                       <Badge variant="secondary">{session.simulator || "---"}</Badge>
                     </div>
@@ -261,7 +189,7 @@ export function SessionDetailView({ sessionId, onBack, onViewTelemetry }: ISessi
                     </div>
                     <div className="flex items-center gap-2">
                       <Droplets className="w-3 h-3 text-blue-500" />
-                      <span className="text-zinc-300">---</span>
+                      <span className="text-zinc-300">{session.weather || "---"}</span>
                     </div>
                   </div>
                 </div>
@@ -292,22 +220,8 @@ export function SessionDetailView({ sessionId, onBack, onViewTelemetry }: ISessi
                     <Target className="w-4 h-4 text-green-500" />
                   </div>
                   <div>
-                    <div className="text-white font-mono text-base">---</div>
+                    <div className="text-white font-mono text-base">{session.analytics?.optimalLap || "---"}</div>
                     <div className="text-zinc-400 text-xs">Optimal Lap</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-zinc-900/50 border-zinc-800">
-              <CardContent className="p-3">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-blue-600/10 rounded-lg flex items-center justify-center">
-                    <Flag className="w-4 h-4 text-blue-500" />
-                  </div>
-                  <div>
-                    <div className="text-white text-base font-semibold">{session.totalLaps || "---"}</div>
-                    <div className="text-zinc-400 text-xs">Total Laps</div>
                   </div>
                 </div>
               </CardContent>
@@ -362,8 +276,8 @@ export function SessionDetailView({ sessionId, onBack, onViewTelemetry }: ISessi
                     <Fuel className="w-4 h-4 text-orange-500" />
                   </div>
                   <div>
-                    <div className="text-white text-base font-semibold">---</div>
-                    <div className="text-zinc-400 text-xs">Total Fuel</div>
+                    <div className="text-white text-base font-semibold">{session.analytics?.fuelUsed?.toFixed(1) || "---"}</div>
+                    <div className="text-zinc-400 text-xs">Total Fuel (L)</div>
                   </div>
                 </div>
               </CardContent>
@@ -376,12 +290,28 @@ export function SessionDetailView({ sessionId, onBack, onViewTelemetry }: ISessi
                     <Zap className="w-4 h-4 text-cyan-500" />
                   </div>
                   <div>
-                    <div className="text-white text-base font-semibold">---</div>
+                    <div className="text-white text-base font-semibold">{session.stints?.length || "---"}</div>
                     <div className="text-zinc-400 text-xs">Stints</div>
                   </div>
                 </div>
               </CardContent>
             </Card>
+
+            {session.analytics?.distanceCovered && (
+              <Card className="bg-zinc-900/50 border-zinc-800">
+                <CardContent className="p-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 bg-purple-600/10 rounded-lg flex items-center justify-center">
+                      <Activity className="w-4 h-4 text-purple-500" />
+                    </div>
+                    <div>
+                      <div className="text-white text-base font-semibold">{session.analytics.distanceCovered.toFixed(1)}</div>
+                      <div className="text-zinc-400 text-xs">Distance (km)</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
 
           {/* Stint Analysis - Scrollable */}
@@ -415,20 +345,15 @@ export function SessionDetailView({ sessionId, onBack, onViewTelemetry }: ISessi
                                   <ChevronRight className="w-4 h-4 text-zinc-400" />
                                 )}
                                 <div>
-                                  <h3 className="text-white font-semibold text-base">{stint.name}</h3>
+                                  <h3 className="text-white font-semibold text-base">Stint {stint.stintNumber}</h3>
                                   <div className="flex items-center gap-3 text-xs text-zinc-400">
                                     <span>
-                                      Laps {stint.startLap}-{stint.endLap}
+                                      Laps {stint.startedOnLap}-{stint.endedOnLap || "---"}
                                     </span>
                                     <div className="flex items-center gap-1">
-                                      {getWeatherIcon(stint.weather)}
-                                      <span>{stint.weather}</span>
+                                      <Droplets className="w-3 h-3 text-blue-500" />
+                                      <span>{session.weather || "---"}</span>
                                     </div>
-                                    {stint.incidents > 0 && (
-                                      <Badge variant="destructive" className="text-xs px-1 py-0">
-                                        {stint.incidents} incident{stint.incidents > 1 ? "s" : ""}
-                                      </Badge>
-                                    )}
                                   </div>
                                 </div>
                               </div>
@@ -436,35 +361,31 @@ export function SessionDetailView({ sessionId, onBack, onViewTelemetry }: ISessi
                               {/* Stint Summary Stats */}
                               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 text-sm">
                                 <div className="text-center">
-                                  <div className="text-white font-semibold">{stint.totalLaps}</div>
+                                  <div className="text-white font-semibold">{stint.endedOnLap ? stint.endedOnLap - stint.startedOnLap : "---"}</div>
                                   <div className="text-zinc-500 text-xs">Total Laps</div>
                                 </div>
                                 <div className="text-center">
                                   <div className="text-purple-400 font-mono font-semibold flex items-center gap-1">
                                     <Trophy className="w-3 h-3" />
-                                    {stint.bestLap}
+                                    {stint.bestLap || "---"}
                                   </div>
                                   <div className="text-zinc-500 text-xs">Best Lap</div>
                                 </div>
                                 <div className="text-center">
-                                  <div className="text-blue-400 font-mono">{stint.avgLap}</div>
+                                  <div className="text-blue-400 font-mono">{stint.averageLap || "---"}</div>
                                   <div className="text-zinc-500 text-xs">Avg Lap</div>
                                 </div>
                                 <div className="text-center">
-                                  <div className="text-green-400 font-mono">{stint.optimalLap}</div>
+                                  <div className="text-green-400 font-mono">{stint.optimalLap || "---"}</div>
                                   <div className="text-zinc-500 text-xs">Optimal</div>
                                 </div>
                                 <div className="text-center">
-                                  <div className="text-orange-400">{stint.totalFuel}</div>
-                                  <div className="text-zinc-500 text-xs">Fuel Used</div>
+                                  <div className="text-orange-400">{stint.fuelUsed?.toFixed(1) || "---"}</div>
+                                  <div className="text-zinc-500 text-xs">Fuel Used (L)</div>
                                 </div>
                                 <div className="text-center">
-                                  <div className="flex items-center justify-center gap-2">
-                                    <span className="text-green-400">{stint.validLaps}</span>
-                                    <span className="text-zinc-500">/</span>
-                                    <span className="text-red-400">{stint.invalidLaps}</span>
-                                  </div>
-                                  <div className="text-zinc-500 text-xs">Valid/Invalid</div>
+                                  <div className="text-green-400">{stint.consistency || "---"}</div>
+                                  <div className="text-zinc-500 text-xs">Consistency</div>
                                 </div>
                               </div>
                             </div>
@@ -478,57 +399,61 @@ export function SessionDetailView({ sessionId, onBack, onViewTelemetry }: ISessi
                             <div className="p-4 bg-zinc-800/30">
                               <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-sm">
                                 <div>
-                                  <div className="text-zinc-400 mb-1">Fuel Management</div>
+                                  <div className="text-zinc-400 mb-1">Timing</div>
                                   <div className="space-y-1">
                                     <div className="flex justify-between">
-                                      <span className="text-zinc-300">Per Lap:</span>
-                                      <span className="text-orange-400 font-mono">{stint.avgFuelPerLap}</span>
+                                      <span className="text-zinc-300">Best Lap:</span>
+                                      <span className="text-purple-400 font-mono">{stint.bestLap || "---"}</span>
                                     </div>
                                     <div className="flex justify-between">
-                                      <span className="text-zinc-300">Start:</span>
-                                      <span className="text-green-400">{stint.startFuel}</span>
+                                      <span className="text-zinc-300">Avg Lap:</span>
+                                      <span className="text-blue-400 font-mono">{stint.averageLap || "---"}</span>
                                     </div>
                                     <div className="flex justify-between">
-                                      <span className="text-zinc-300">End:</span>
-                                      <span className="text-yellow-400">{stint.endFuel}</span>
+                                      <span className="text-zinc-300">Optimal:</span>
+                                      <span className="text-green-400 font-mono">{stint.optimalLap || "---"}</span>
                                     </div>
                                   </div>
                                 </div>
 
                                 <div>
-                                  <div className="text-zinc-400 mb-1">Performance</div>
+                                  <div className="text-zinc-400 mb-1">Fuel & Consistency</div>
                                   <div className="space-y-1">
                                     <div className="flex justify-between">
-                                      <span className="text-zinc-300">Tyre Deg:</span>
-                                      <span className="text-zinc-400">{stint.tyreDegradation}</span>
+                                      <span className="text-zinc-300">Fuel Used:</span>
+                                      <span className="text-orange-400">{stint.fuelUsed?.toFixed(1) || "---"} L</span>
                                     </div>
                                     <div className="flex justify-between">
-                                      <span className="text-zinc-300">Track Evo:</span>
-                                      <span className="text-zinc-400">{stint.trackEvolution}</span>
+                                      <span className="text-zinc-300">Consistency:</span>
+                                      <span className="text-green-400">{stint.consistency || "---"}</span>
                                     </div>
                                   </div>
                                 </div>
 
                                 <div>
-                                  <div className="text-zinc-400 mb-1">Consistency</div>
+                                  <div className="text-zinc-400 mb-1">Session Info</div>
                                   <div className="space-y-1">
-                                    <Progress value={stint.totalLaps > 0 ? (stint.validLaps / stint.totalLaps) * 100 : 0} className="h-2" />
-                                    <div className="text-xs text-zinc-500">
-                                      {stint.totalLaps > 0 ? Math.round((stint.validLaps / stint.totalLaps) * 100) : 0}% valid laps
+                                    <div className="flex justify-between">
+                                      <span className="text-zinc-300">Start Time:</span>
+                                      <span className="text-zinc-400">{stint.startTime ? new Date(stint.startTime).toLocaleTimeString() : "---"}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="text-zinc-300">End Time:</span>
+                                      <span className="text-zinc-400">{stint.endTime ? new Date(stint.endTime).toLocaleTimeString() : "---"}</span>
                                     </div>
                                   </div>
                                 </div>
 
                                 <div>
-                                  <div className="text-zinc-400 mb-1">Gap to Optimal</div>
+                                  <div className="text-zinc-400 mb-1">Lap Range</div>
                                   <div className="space-y-1">
                                     <div className="flex justify-between">
-                                      <span className="text-zinc-300">Best:</span>
-                                      <span className="text-purple-400 font-mono">---</span>
+                                      <span className="text-zinc-300">Started:</span>
+                                      <span className="text-green-400">Lap {stint.startedOnLap}</span>
                                     </div>
                                     <div className="flex justify-between">
-                                      <span className="text-zinc-300">Avg:</span>
-                                      <span className="text-blue-400 font-mono">---</span>
+                                      <span className="text-zinc-300">Ended:</span>
+                                      <span className="text-red-400">Lap {stint.endedOnLap || "---"}</span>
                                     </div>
                                   </div>
                                 </div>
@@ -538,19 +463,21 @@ export function SessionDetailView({ sessionId, onBack, onViewTelemetry }: ISessi
                             {/* Lap List */}
                             <div className="p-4 space-y-2 max-h-96 overflow-y-auto">
                               <div className="text-sm font-medium text-zinc-300 mb-3">Lap Details</div>
-                              {stint.laps.map((lap) => (
+                              {laps
+                                .filter(lap => lap.stintId === stint.id)
+                                .map((lap) => (
                                 <div
-                                  key={lap.lap}
+                                  key={lap.id}
                                   className={`p-3 rounded-lg border transition-all duration-200 ${
-                                    lap.time === stint.bestLap
+                                    lap.lapTime === stint.bestLap
                                       ? "bg-purple-600/10 border-purple-600/30"
                                       : "bg-zinc-800/30 border-zinc-700 hover:border-zinc-600"
                                   }`}
                                 >
-                                  <div className="grid grid-cols-2 md:grid-cols-6 lg:grid-cols-9 gap-4 items-center text-sm">
+                                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 items-center text-sm">
                                     <div className="flex items-center gap-2">
-                                      <span className="text-zinc-400">L{lap.lap}</span>
-                                      {lap.time === stint.bestLap && (
+                                      <span className="text-zinc-400">L{lap.lapNumber}</span>
+                                      {lap.lapTime === stint.bestLap && (
                                         <Badge variant="default" className="bg-purple-600 text-xs px-1 py-0">
                                           BEST
                                         </Badge>
@@ -559,9 +486,9 @@ export function SessionDetailView({ sessionId, onBack, onViewTelemetry }: ISessi
 
                                     <div>
                                       <div
-                                        className={`font-mono ${lap.time === stint.bestLap ? "text-purple-400 font-bold" : "text-white"}`}
+                                        className={`font-mono ${lap.lapTime === stint.bestLap ? "text-purple-400 font-bold" : "text-white"}`}
                                       >
-                                        {lap.time}
+                                        {lap.lapTime}
                                       </div>
                                       <div className="text-xs text-zinc-500">Lap Time</div>
                                     </div>
@@ -581,26 +508,11 @@ export function SessionDetailView({ sessionId, onBack, onViewTelemetry }: ISessi
                                       <div className="text-zinc-500 text-xs">S3</div>
                                     </div>
 
-                                    <div>
-                                      <div className="text-orange-400 text-xs">{lap.fuel}</div>
-                                      <div className="text-zinc-500 text-xs">Fuel</div>
-                                    </div>
-
-                                    <div>
-                                      <div className="text-red-400 text-xs">{lap.tireTemp}</div>
-                                      <div className="text-zinc-500 text-xs">Tyre</div>
-                                    </div>
-
-                                    <div className="text-center">
-                                      <div className="text-blue-400 text-xs">{lap.position}</div>
-                                      <div className="text-zinc-500 text-xs">Pos</div>
-                                    </div>
-
                                     <div className="flex items-center justify-between">
                                       {/* Valid/Invalid Dot */}
                                       <div
-                                        className={`w-2 h-2 rounded-full ${lap.valid ? "bg-green-500" : "bg-red-500"}`}
-                                        title={lap.valid ? "Valid lap" : "Invalid lap"}
+                                        className={`w-2 h-2 rounded-full ${lap.isValid ? "bg-green-500" : "bg-red-500"}`}
+                                        title={lap.isValid ? "Valid lap" : "Invalid lap"}
                                       />
 
                                       {/* Analyze Button */}
@@ -610,7 +522,7 @@ export function SessionDetailView({ sessionId, onBack, onViewTelemetry }: ISessi
                                         className="border-zinc-600 text-zinc-300 hover:text-white bg-transparent text-xs px-2 py-1 h-6 ml-auto"
                                         asChild
                                       >
-                                        <a onClick={() => onViewTelemetry(lap.lapId)}>
+                                        <a onClick={() => onViewTelemetry(lap.id)}>
                                           Analyze
                                         </a>
                                       </Button>

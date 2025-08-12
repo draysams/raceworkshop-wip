@@ -82,7 +82,23 @@ export const api: IRaceWorkshopAPI = {
                 throw new Error("Pywebview API not available.");
             } catch (e) {
                 console.error("Failed to get global dashboard stats:", e);
-                return { totalSessions: 0, totalLaps: 0, totalDriveTime: "00:00:00", recentSessions: [] };
+                return { 
+                    analytics: {
+                        total_sessions: 0,
+                        total_laps: 0,
+                        track_time: "00:00:00",
+                        total_distance_driven_km: 0,
+                        most_driven_car: "N/A",
+                        most_driven_track: "N/A",
+                        favorite_combo: "N/A",
+                        new_pbs_last_7_days: 0,
+                        on_fire_track: "N/A",
+                        consistency_score: "N/A",
+                        average_laps_per_session: 0,
+                        most_active_day: "N/A"
+                    }, 
+                    recentSessions: [] 
+                };
             }
         },
         getModuleDashboardStats: async (simulatorId: number): Promise<ModuleDashboardStats> => {
@@ -94,7 +110,23 @@ export const api: IRaceWorkshopAPI = {
                 throw new Error("Pywebview API not available.");
             } catch (e) {
                 console.error(`Failed to get module dashboard stats for sim ${simulatorId}:`, e);
-                return { totalSessions: 0, totalLaps: 0, totalDriveTime: "00:00:00", recentSessions: [] };
+                return { 
+                    analytics: {
+                        total_sessions: 0,
+                        total_laps: 0,
+                        track_time: "00:00:00",
+                        total_distance_driven_km: 0,
+                        most_driven_car: "N/A",
+                        most_driven_track: "N/A",
+                        favorite_combo: "N/A",
+                        new_pbs_last_7_days: 0,
+                        on_fire_track: "N/A",
+                        consistency_score: "N/A",
+                        average_laps_per_session: 0,
+                        most_active_day: "N/A"
+                    }, 
+                    recentSessions: [] 
+                };
             }
         },
     },

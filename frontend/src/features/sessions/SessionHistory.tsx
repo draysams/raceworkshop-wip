@@ -466,7 +466,7 @@ useEffect(() => {
                               </div>
                               <div className="flex flex-wrap gap-1">
                                 <Badge variant="outline" className="text-sm border-zinc-600 text-zinc-400 px-1 py-0">
-                                  ---
+                                  {session.car?.class || "---"}
                                 </Badge>
                                 <Badge className={`text-sm px-1 py-0 ${getSessionTypeColor(session.sessionType)}`}>
                                   {session.sessionType === "Practice"
@@ -481,12 +481,13 @@ useEffect(() => {
                               </div>
                             </div>
 
-                            {/* Temperature */}
+                            {/* Weather & Conditions */}
                             <div className="lg:col-span-1">
                               <div className="flex items-center gap-2 text-zinc-400">
                                 <Thermometer className="w-3 h-3" />
                                 <div className="text-sm">
-                                  <div>{session.airTemp ? `${session.airTemp}°C` : "---"}</div>
+                                  <div>{session.weather || "---"}</div>
+                                  <div className="text-xs text-zinc-500">A: {session.airTemp ? `${session.airTemp}°C` : "---"}</div>
                                   <div className="text-xs text-zinc-500">T: {session.trackTemp ? `${session.trackTemp}°C` : "---"}</div>
                                 </div>
                               </div>
@@ -529,6 +530,12 @@ useEffect(() => {
                                 <div className="text-white font-semibold text-base">{session.totalLaps || "---"}</div>
                                 <div className="text-zinc-400 text-sm">laps</div>
                                 <div className="text-zinc-400 text-sm">{session.duration || "---"}</div>
+                                {session.distance > 0 && (
+                                  <div className="text-zinc-400 text-xs">{session.distance.toFixed(1)} km</div>
+                                )}
+                                {session.fuelUsed > 0 && (
+                                  <div className="text-zinc-400 text-xs">{session.fuelUsed.toFixed(1)} L</div>
+                                )}
                               </div>
                             </div>
                           </div>

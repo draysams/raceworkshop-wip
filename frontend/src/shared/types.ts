@@ -39,6 +39,14 @@ export interface Stint {
     startedOnLap: number;
     endedOnLap: number | null;
     setup: Setup | null;
+    // New enhanced fields
+    bestLap: string | null;
+    averageLap: string | null;
+    optimalLap: string | null;
+    consistency: string; // percentage like "95.2%"
+    fuelUsed: number;
+    startTime: string | null; // ISO timestamp
+    endTime: string | null; // ISO timestamp
 }
 
 export interface SessionSummary {
@@ -57,21 +65,27 @@ export interface SessionSummary {
     averageLapMs: number | null;
     totalLaps: number;
     validLaps: number;
-    // Legacy fields for backward compatibility
-    distance?: number;
-    fuelUsed?: number;
-    weather?: string;
-    trackTemp?: number;
-    airTemp?: number;
+    // New fields from enhanced DTO
+    distance: number;
+    fuelUsed: number;
+    weather: string;
+    trackTemp: number;
+    airTemp: number;
 }
 
 export interface SessionDetail extends SessionSummary {
     stints: Stint[];
     laps: LapData[];
+    // New analytics object
+    analytics: {
+        optimalLap: string | null;
+        fuelUsed: number;
+        distanceCovered: number; // in kilometers
+    };
 }
 
 export interface LapData {
-    id: number
+    id: number;
     stintId: number;
     lapNumber: number;
     lapTime: string; // "3:28.456" format
@@ -132,10 +146,24 @@ export interface Simulator {
     name: string;
 }
 
+// New analytics data structure based on the backend DashboardAnalytics service
+export interface DashboardAnalytics {
+    total_sessions: number;
+    total_laps: number;
+    track_time: string; // Formatted as "HH:MM:SS"
+    total_distance_driven_km: number;
+    most_driven_car: string;
+    most_driven_track: string;
+    favorite_combo: string;
+    new_pbs_last_7_days: number;
+    on_fire_track: string;
+    consistency_score: string; // Formatted as "XX.X%"
+    average_laps_per_session: number;
+    most_active_day: string;
+}
+
 export interface GlobalDashboardStats {
-    totalSessions: number;
-    totalLaps: number;
-    totalDriveTime: string; // Formatted as "HH:MM:SS"
+    analytics: DashboardAnalytics;
     recentSessions: SessionSummary[];
 }
 

@@ -50,7 +50,7 @@ export function GlobalDashboard({ onModuleSelect }: GlobalDashboardProps) {
                             <h3 className="text-lg font-semibold text-white">Total Sessions</h3>
                         </div>
                         {/* Use state data, with a "..." fallback for the initial loading state */}
-                        <div className="text-3xl font-bold text-white mb-1">{stats?.totalSessions ?? "..."}</div>
+                        <div className="text-3xl font-bold text-white mb-1">{stats?.analytics?.total_sessions ?? "..."}</div>
                         <p className="text-gray-400 text-sm">Across all simulators</p>
                     </div>
 
@@ -59,7 +59,7 @@ export function GlobalDashboard({ onModuleSelect }: GlobalDashboardProps) {
                             <div className="w-8 h-8 bg-green-500/20 rounded-full flex items-center justify-center"><svg className="w-4 h-4 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></div>
                             <h3 className="text-lg font-semibold text-white">Drive Time</h3>
                         </div>
-                        <div className="text-3xl font-bold text-white mb-1">{stats?.totalDriveTime ?? "..."}</div>
+                        <div className="text-3xl font-bold text-white mb-1">{stats?.analytics?.track_time ?? "..."}</div>
                         <p className="text-gray-400 text-sm">Time behind the wheel</p>
                     </div>
 
@@ -68,7 +68,7 @@ export function GlobalDashboard({ onModuleSelect }: GlobalDashboardProps) {
                             <div className="w-8 h-8 bg-blue-500/20 rounded-full flex items-center justify-center"><svg className="w-4 h-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg></div>
                             <h3 className="text-lg font-semibold text-white">Total Laps</h3>
                         </div>
-                        <div className="text-3xl font-bold text-white mb-1">{stats?.totalLaps.toLocaleString() ?? "..."}</div>
+                        <div className="text-3xl font-bold text-white mb-1">{stats?.analytics?.total_laps?.toLocaleString() ?? "..."}</div>
                         <p className="text-gray-400 text-sm">Laps completed</p>
                     </div>
                 </div>
