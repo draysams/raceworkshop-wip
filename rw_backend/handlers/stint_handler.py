@@ -4,9 +4,9 @@ from rw_backend.core.events import StintStarted, StintEnded, SessionStarted, Ses
 from rw_backend.database.models import Stint
 
 class StintHandler:
-    def __init__(self, session_handler, event_queue): # <-- Add event_queue
+    def __init__(self, session_handler, event_queue):
         self.session_handler = session_handler
-        self.event_queue = event_queue # <-- Store event_queue
+        self.event_queue = event_queue
         self.current_stint_model = None
 
     def handle_event(self, event):
@@ -30,19 +30,18 @@ class StintHandler:
         if last_stint:
             stint_num = last_stint.stint_number + 1
         
-        print(f"[StintHandler] Starting Stint #{stint_num}", flush=True)
+        print(f"[StintHandler] Starting Stint #{stint_num} with Setup ID #{event.setup_id}", flush=True)
+        # --- CHANGE START: Add the setup_id to the new record ---
         self.current_stint_model = Stint.create(
             session=session,
+            setup_id=event.setup_id,
             stint_number=stint_num,
             started_on_lap=event.lap_number
         )
+        # --- CHANGE END ---
         
-        # --- EVENT CHAINING START ---
-        # A new stint always begins with a new lap (the out-lap).
-        # We fire this event here to guarantee it happens *after* the stint record is created.
         print(f"[StintHandler] Firing LapStarted for lap #{event.lap_number}", flush=True)
         self.event_queue.put(LapStarted(lap_number=event.lap_number))
-        # --- EVENT CHAINING END ---
 
     def on_stint_ended(self, event: StintEnded):
         if self.current_stint_model:

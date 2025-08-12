@@ -9,6 +9,7 @@ from .detectors.session_detector import SessionDetector
 from .detectors.lap_detector import LapDetector
 from .detectors.stint_detector import StintDetector
 from .detectors.player_state_detector import PlayerStateDetector
+from .detectors.setup_detector import SetupDetector
 
 class EventGenerator(threading.Thread):
     def __init__(self, raw_data_queue: Queue, event_queue: Queue):
@@ -23,6 +24,9 @@ class EventGenerator(threading.Thread):
         self.session_detector = SessionDetector(self.event_queue)
         self.lap_detector = LapDetector(self.event_queue)
         self.stint_detector = StintDetector(self.event_queue)
+        self.setup_detector = SetupDetector()
+        self.current_session_car_id = None
+        self.current_session_track_id = None
 
     def run(self):
         print("[Event Generator] Thread started.", flush=True)
@@ -34,11 +38,18 @@ class EventGenerator(threading.Thread):
             extended = raw_data.get('extended')
             
             old_player_state = self.player_state
-            session_state_change = self.session_detector.detect(raw_data, self.last_extended_data, self.last_player_data, old_player_state)
-            if session_state_change:
-                self.player_state = session_state_change
+            new_state, session_data = self.session_detector.detect(raw_data, self.last_extended_data, self.last_player_data, old_player_state)
+            
+            if new_state:
+                self.player_state = new_state
+            
+            # If the detector returned new session data, we update our internal state.
+            if session_data:
+                self.current_session_car_id = session_data['car_id']
+                self.current_session_track_id = session_data['track_id']
                 if self.player_state == "IN_GARAGE" and old_player_state == "UNKNOWN":
                     self.lap_detector.reset_for_new_session(raw_data.get('telemetry'))
+             # --- CHANGE END ---
 
             if not extended or not extended.mSessionStarted:
                 scoring = raw_data.get('scoring'); player_scoring = next((v for v in scoring.mVehicles if v.mIsPlayer), None) if scoring else None
@@ -67,8 +78,10 @@ class EventGenerator(threading.Thread):
             # Dependent events (like LapStarted) are now chained by the handlers.
             self.lap_detector.detect(player_scoring, self.last_player_data, telemetry, self.player_state)
 
+            # --- CHANGE START: Pass setup_id to stint detector ---
             if pit_stop_completed:
-                self.stint_detector.handle_pit_stop(player_scoring, self.last_player_data)
+                setup_id = self.setup_detector.get_setup_for_stint(self.current_session_car_id, self.current_session_track_id)
+                self.stint_detector.handle_pit_stop(player_scoring, self.last_player_data, setup_id)
             
             if state_has_changed:
                 if old_state == 'ON_TRACK' and new_state == 'IN_GARAGE' and not is_lap_completed:
@@ -79,8 +92,11 @@ class EventGenerator(threading.Thread):
                 if old_state == 'IN_PITS' and new_state == 'ON_TRACK':
                     self.lap_detector.reset_for_next_lap(player_scoring.mLapStartET)
 
+                # The orchestrator's job is to gather context and delegate.
+                # We fetch the setup_id here and pass it unconditionally.
+                setup_id = self.setup_detector.get_setup_for_stint(self.current_session_car_id, self.current_session_track_id)
                 self.stint_detector.handle_state_transition(
-                    self.player_state_detector.state_history, player_scoring
+                    self.player_state_detector.state_history, player_scoring, setup_id
                 )
             # --- CHANGE END ---
             

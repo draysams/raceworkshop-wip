@@ -5,10 +5,9 @@ import defaultConfig from "shadcn/ui/tailwind.config"
 export default {
     ...defaultConfig,
 
-
     content: [
         "./index.html",
-        "./src/ui/**/*.{js,ts,jsx,tsx}",
+        "./src/**/*.{js,ts,jsx,tsx}",
     ],
     theme: {
         ...defaultConfig.theme,
@@ -17,30 +16,44 @@ export default {
                 sans: ['Geist', ...fontFamily.sans],
                 mono: ['Geist Mono', ...fontFamily.mono],
             },
-            // Define our semantic color palette directly with hex codes.
             colors: {
                 ...defaultConfig.theme.extend.colors,
-                primary: "#000000", // True black like Vercel
-                secondary: "#0a0a0a", // Very dark grey for content areas
-                surface: "#171717", // Dark grey for elevated elements
-                border: "#1f1f1f", // Much dimmer border color - dark grey instead of bright
+                // Use CSS custom properties from index.css
+                background: "hsl(var(--background))",
+                foreground: "hsl(var(--foreground))",
+                card: {
+                    DEFAULT: "hsl(var(--card))",
+                    foreground: "hsl(var(--card-foreground))",
+                },
+                popover: {
+                    DEFAULT: "hsl(var(--popover))",
+                    foreground: "hsl(var(--popover-foreground))",
+                },
+                primary: {
+                    DEFAULT: "hsl(var(--primary))",
+                    foreground: "hsl(var(--primary-foreground))",
+                },
+                secondary: {
+                    DEFAULT: "hsl(var(--secondary))",
+                    foreground: "hsl(var(--secondary-foreground))",
+                },
+                muted: {
+                    DEFAULT: "hsl(var(--muted))",
+                    foreground: "hsl(var(--muted-foreground))",
+                },
                 accent: {
-                    DEFAULT: "#8b5cf6", // Purple accent
-                    hover: "#7c3aed", // Darker purple for hover
-                    secondary: "#10b981", // Green accent for positive states
+                    DEFAULT: "hsl(var(--accent))",
                     foreground: "hsl(var(--accent-foreground))",
                 },
-                foreground: {
-                    DEFAULT: "#fafafa", // Primary text - very light
-                    secondary: "#a1a1aa", // Secondary text - medium grey
-                    tertiary: "#71717a", // Tertiary text - darker grey
+                destructive: {
+                    DEFAULT: "hsl(var(--destructive))",
+                    foreground: "hsl(var(--destructive-foreground))",
                 },
-                // Add these for immediate use
-                "text-primary": "#fafafa",
-                "text-secondary": "#a1a1aa",
-                "text-tertiary": "#71717a",
+                border: "hsl(var(--border))",
+                input: "hsl(var(--input))",
+                ring: "hsl(var(--ring))",
                 sidebar: {
-                    DEFAULT: "hsl(var(--sidebar-background))",
+                    DEFAULT: "hsl(var(--sidebar))",
                     foreground: "hsl(var(--sidebar-foreground))",
                     primary: "hsl(var(--sidebar-primary))",
                     "primary-foreground": "hsl(var(--sidebar-primary-foreground))",
@@ -92,9 +105,9 @@ export default {
                 ...defaultConfig.theme.extend.animation,
                 "accordion-down": "accordion-down 0.2s ease-out",
                 "accordion-up": "accordion-up 0.2s ease-out",
-                pulse: "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite", // Added pulse animation
+                pulse: "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
             },
         },
     },
-    plugins: [...defaultConfig.plugins, require("tailwindcss-animate")], // Plugins remain unchanged
+    plugins: [...defaultConfig.plugins, require("tailwindcss-animate")],
 }

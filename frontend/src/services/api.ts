@@ -8,7 +8,9 @@ import type {
     LiveSessionData,
     GlobalDashboardStats,
     ModuleDashboardStats,
-    Simulator
+    Simulator,
+    LapTelemetryData,
+    LapComparisonData
 } from '../shared/types';
 
 // --- CHANGE START: Update the global type definition to match the flat API structure ---
@@ -23,6 +25,7 @@ declare global {
                 getSessionHistory: (filters: SessionFilters) => Promise<string>;
                 getSessionDetail: (sessionId: number) => Promise<string | null>;
                 getLapTelemetry: (lapId: number) => Promise<string>;
+                compareLaps: (lapId1: number, lapId2: number) => Promise<string>;
             };
         };
     }
@@ -79,7 +82,23 @@ export const api: IRaceWorkshopAPI = {
                 throw new Error("Pywebview API not available.");
             } catch (e) {
                 console.error("Failed to get global dashboard stats:", e);
-                return { totalSessions: 0, totalLaps: 0, totalDriveTime: "00:00:00", recentSessions: [] };
+                return { 
+                    analytics: {
+                        total_sessions: 0,
+                        total_laps: 0,
+                        track_time: "00:00:00",
+                        total_distance_driven_km: 0,
+                        most_driven_car: "N/A",
+                        most_driven_track: "N/A",
+                        favorite_combo: "N/A",
+                        new_pbs_last_7_days: 0,
+                        on_fire_track: "N/A",
+                        consistency_score: "N/A",
+                        average_laps_per_session: 0,
+                        most_active_day: "N/A"
+                    }, 
+                    recentSessions: [] 
+                };
             }
         },
         getModuleDashboardStats: async (simulatorId: number): Promise<ModuleDashboardStats> => {
@@ -91,7 +110,23 @@ export const api: IRaceWorkshopAPI = {
                 throw new Error("Pywebview API not available.");
             } catch (e) {
                 console.error(`Failed to get module dashboard stats for sim ${simulatorId}:`, e);
-                return { totalSessions: 0, totalLaps: 0, totalDriveTime: "00:00:00", recentSessions: [] };
+                return { 
+                    analytics: {
+                        total_sessions: 0,
+                        total_laps: 0,
+                        track_time: "00:00:00",
+                        total_distance_driven_km: 0,
+                        most_driven_car: "N/A",
+                        most_driven_track: "N/A",
+                        favorite_combo: "N/A",
+                        new_pbs_last_7_days: 0,
+                        on_fire_track: "N/A",
+                        consistency_score: "N/A",
+                        average_laps_per_session: 0,
+                        most_active_day: "N/A"
+                    }, 
+                    recentSessions: [] 
+                };
             }
         },
     },
@@ -128,7 +163,7 @@ export const api: IRaceWorkshopAPI = {
 
     telemetry: {
         ...telemetryService,
-        getLapTelemetry: async (lapId: number): Promise<any> => {
+        getLapTelemetry: async (lapId: number): Promise<LapTelemetryData> => {
             try {
                 if (window.pywebview?.api) {
                     // Call the top-level method
@@ -138,7 +173,23 @@ export const api: IRaceWorkshopAPI = {
                 throw new Error("Pywebview API not available.");
             } catch (e) {
                 console.error(`Error fetching telemetry for lap ${lapId}:`, e);
-                return {};
+                return { telemetry: {}, trackpath: [] };
+            }
+        },
+        compareLaps: async (lapId1: number, lapId2: number): Promise<LapComparisonData> => {
+            try {
+                if (window.pywebview?.api) {
+                    // Call the top-level method
+                    const jsonString = await window.pywebview.api.compareLaps(lapId1, lapId2);
+                    return JSON.parse(jsonString);
+                }
+                throw new Error("Pywebview API not available.");
+            } catch (e) {
+                console.error(`Error comparing laps ${lapId1} and ${lapId2}:`, e);
+                return { 
+                    lap1: { lapId: lapId1, telemetry: {}, trackpath: [] }, 
+                    lap2: { lapId: lapId2, telemetry: {}, trackpath: [] } 
+                };
             }
         },
     },
