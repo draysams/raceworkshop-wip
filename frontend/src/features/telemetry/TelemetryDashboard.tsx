@@ -293,38 +293,6 @@ export function TelemetryDashboard({
                 stroke="#374151"
                 strokeWidth="4"
               />
-              
-              {/* Speedometer arc with progressive colors */}
-              <defs>
-                <linearGradient id="speedGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#EF4444" /> {/* Red */}
-                  <stop offset="17%" stopColor="#EF4444" /> {/* Red ends at 60/360 */}
-                  <stop offset="17%" stopColor="#EAB308" /> {/* Yellow starts */}
-                  <stop offset="58%" stopColor="#EAB308" /> {/* Yellow ends at 210/360 */}
-                  <stop offset="58%" stopColor="#10B981" /> {/* Green starts */}
-                  <stop offset="100%" stopColor="#10B981" /> {/* Green */}
-                </linearGradient>
-              </defs>
-              
-              {/* Background arc (gray) */}
-              <path
-                d="M 50 5 A 45 45 0 1 1 50 95"
-                fill="none"
-                stroke="#374151"
-                strokeWidth="4"
-                strokeLinecap="round"
-              />
-              
-              {/* Active speed indicator - colored arc that grows */}
-              <path
-                d="M 50 5 A 45 45 0 1 1 50 95"
-                fill="none"
-                stroke="url(#speedGradient)"
-                strokeWidth="4"
-                strokeLinecap="round"
-                strokeDasharray={`${(Math.abs(data.speed) / 360) * 283} 283`}
-                strokeDashoffset="0"
-              />
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
               <div className="text-xs font-bold">{data.gear || "---"}</div>

@@ -38,7 +38,7 @@ export function NavBar() {
               <div className="w-8 h-8 bg-gradient-to-br from-red-600 to-red-800 rounded-lg flex items-center justify-center">
                 <Activity className="w-4 h-4 text-white" />
               </div>
-              <h1 className="text-xl font-bold text-white">Porsche Racing Studio</h1>
+              <h1 className="text-xl font-bold text-white">raceworkshop</h1>
             </div>
           </div>
 
