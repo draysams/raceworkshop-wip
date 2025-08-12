@@ -38,7 +38,7 @@ interface TrackMapProps {
     throttle: TelemetryDataSet
     brake: TelemetryDataSet
   } | null
-  trackName?: string // Add track name prop
+  trackId?: string // Use track ID instead of track name
   comparisonTrackPathData?: TrackPathPoint[]
   isComparisonMode?: boolean
 }
@@ -48,16 +48,9 @@ interface CarPathSegment {
   color: string
 }
 
-// Track name to SVG file mapping
-const TRACK_SVG_MAP: Record<string, string> = {
-  'Algarve International Circuit': '/assets/tracks/6 Hours of Portimao - Algarve International Circuit.svg',
-  'Fuji Speedway': '/assets/tracks/6 Hours of Fuji - Fuji Speedway.svg',
-  'Imola': '/assets/tracks/6 Hours of Imola - Autodromo Enzo e Dino Ferrari.svg',
-}
-
-// Helper function to get track SVG path
-const getTrackSvgPath = (trackName: string): string => {
-  return TRACK_SVG_MAP[trackName] || '/assets/tracks/default-track.svg'
+// Helper function to get track SVG path using track ID
+const getTrackSvgPath = (trackId: string): string => {
+  return `/assets/tracks/${trackId}.svg`
 }
 
 export function TrackMap({
@@ -67,7 +60,7 @@ export function TrackMap({
   zoomRange,
   onTrackMapError,
   telemetryData,
-  trackName,
+  trackId,
   comparisonTrackPathData,
   isComparisonMode = false,
 }: TrackMapProps) {
@@ -117,7 +110,7 @@ export function TrackMap({
         setError(null)
 
         // Get the SVG path based on track name
-        const svgPath = trackName ? getTrackSvgPath(trackName) : '/assets/tracks/default-track.svg'
+        const svgPath = trackId ? getTrackSvgPath(trackId) : '/assets/tracks/default-track.svg'
         
         const response = await fetch(svgPath)
         if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`)
@@ -159,7 +152,7 @@ export function TrackMap({
     }
 
     fetchAndParseSvg()
-  }, [onTrackMapError, trackName])
+  }, [onTrackMapError, trackId])
 
 
 

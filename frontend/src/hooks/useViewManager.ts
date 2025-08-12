@@ -9,6 +9,7 @@ export interface ViewState {
     telemetryData?: {
         sessionId: number
         lapId: number
+        sessionData?: any // Add session data to avoid redundant API calls
     } | null
 }
 
@@ -17,8 +18,9 @@ export interface ViewManager {
     setActiveModule: (moduleId: string) => void
     setActiveSubmodule: (submoduleId: string) => void
     setActiveSession: (sessionId: number) => void
-    setActiveTelemetry: (sessionId: number, lapId: number) => void
+    setActiveTelemetry: (sessionId: number, lapId: number, sessionData?: any) => void
     goToDashboard: () => void
+    goBack: () => void
 }
 
 const ViewManagerContext = createContext<ViewManager | null>(null)
@@ -35,53 +37,74 @@ export function ViewManagerProvider({ children }: ViewManagerProviderProps) {
         telemetryData: null,
     })
 
+    const [navigationHistory, setNavigationHistory] = useState<ViewState[]>([])
+
     const setActiveModule = useCallback((moduleId: string) => {
-        setActiveView({
+        const newView = {
             module: moduleId,
             submodule: null,
             sessionId: null,
             telemetryData: null,
-        })
-    }, [])
+        }
+        setNavigationHistory(prev => [...prev, activeView])
+        setActiveView(newView)
+    }, [activeView])
 
     const setActiveSubmodule = useCallback((submoduleId: string) => {
-        setActiveView((prev) => ({
-            ...prev,
+        const newView = {
+            ...activeView,
             submodule: submoduleId,
             sessionId: null,
             telemetryData: null,
-        }))
-    }, [])
+        }
+        setNavigationHistory(prev => [...prev, activeView])
+        setActiveView(newView)
+    }, [activeView])
 
     const setActiveSession = useCallback((sessionId: number) => {
-        setActiveView((prev) => ({
-            ...prev,
+        const newView = {
+            ...activeView,
             submodule: "session-detail",
             sessionId: sessionId,
             telemetryData: null,
-        }))
-    }, [])
+        }
+        setNavigationHistory(prev => [...prev, activeView])
+        setActiveView(newView)
+    }, [activeView])
 
-    const setActiveTelemetry = useCallback((sessionId: number, lapId: number) => {
-        setActiveView((prev) => ({
-            ...prev,
+    const setActiveTelemetry = useCallback((sessionId: number, lapId: number, sessionData?: any) => {
+        const newView = {
+            ...activeView,
             submodule: "telemetry",
             sessionId: null,
             telemetryData: {
                 sessionId,
                 lapId,
+                sessionData,
             },
-        }))
-    }, [])
+        }
+        setNavigationHistory(prev => [...prev, activeView])
+        setActiveView(newView)
+    }, [activeView])
 
     const goToDashboard = useCallback(() => {
-        setActiveView((prev) => ({
-            ...prev,
+        const newView = {
+            ...activeView,
             submodule: null,
             sessionId: null,
             telemetryData: null,
-        }))
-    }, [])
+        }
+        setNavigationHistory(prev => [...prev, activeView])
+        setActiveView(newView)
+    }, [activeView])
+
+    const goBack = useCallback(() => {
+        if (navigationHistory.length > 0) {
+            const previousView = navigationHistory[navigationHistory.length - 1]
+            setActiveView(previousView)
+            setNavigationHistory(prev => prev.slice(0, -1))
+        }
+    }, [navigationHistory])
 
     const viewManager: ViewManager = {
         activeView,
@@ -90,6 +113,7 @@ export function ViewManagerProvider({ children }: ViewManagerProviderProps) {
         setActiveSession,
         setActiveTelemetry,
         goToDashboard,
+        goBack,
     }
 
     return React.createElement(ViewManagerContext.Provider, { value: viewManager }, children)

@@ -11,7 +11,7 @@ import { FeatureNavigation } from "../../components/navigation/FeatureNavigation
 import { TelemetryChart } from "./TelemetryChart"
 import { TrackMap } from "./TrackMap"
 import { FeatureLayout } from "../../components/layout/FeatureLayout"
-import { LapData, LapTelemetryData, LapComparisonData, TelemetryDataPoint, TelemetryChannel, TrackPathPoint } from "../../shared/types"
+import { LapData, LapTelemetryData, LapComparisonData, TelemetryDataPoint, TelemetryChannel, TrackPathPoint, SessionDetail } from "../../shared/types"
 import { api } from "../../services/api"
 
 
@@ -37,11 +37,11 @@ type ChartHeight = "compact" | "comfortable" | "expanded"
 interface ITelemetryProps {
     sessionId: number
     lapId: number
+    sessionData?: SessionDetail
     onBackToSessionDetail: () => void
 }
 
-export default function Telemetry({ sessionId, lapId, onBackToSessionDetail }: ITelemetryProps) {
-
+export default function Telemetry({ sessionId, lapId, sessionData, onBackToSessionDetail }: ITelemetryProps) {
 
   // State management - Single source of truth for hover distance
   const [telemetryData, setTelemetryData] = useState<TelemetryData | null>(null)
@@ -512,7 +512,7 @@ export default function Telemetry({ sessionId, lapId, onBackToSessionDetail }: I
                     zoomRange={zoomRange}
                     onTrackMapError={setTrackMapError}
                     telemetryData={trackMapTelemetryData}
-                    trackName={telemetryData ? "Algarve International Circuit" : undefined}
+                    trackId={sessionData?.track?.id}
                     comparisonTrackPathData={isComparisonMode && comparisonData ? comparisonData.lap2?.trackpath || [] : undefined}
                     isComparisonMode={isComparisonMode}
                   />

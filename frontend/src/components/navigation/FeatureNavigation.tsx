@@ -12,6 +12,7 @@ import {
   Palette,
   Users,
   Badge,
+  ArrowLeft,
 } from "lucide-react"
 import { Button } from "../ui/button";
 import { useViewManager } from "../../hooks/useViewManager";
@@ -36,11 +37,26 @@ export function FeatureNavigation() {
     { view: "teams", label: "Teams", icon: Users },
   ]
 
+  // Show back button if not on dashboard
+  const showBackButton = viewManager.activeView.submodule !== null;
+
   return (
     <header className="border-b border-zinc-800 bg-zinc-900/50 backdrop-blur-sm flex-shrink-0">
       <div className="px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-6">
+            {/* Back Button */}
+            {showBackButton && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={viewManager.goBack}
+                className="text-zinc-400 hover:text-white hover:bg-zinc-800"
+              >
+                <ArrowLeft className="h-4" />
+              </Button>
+            )}
+            
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 bg-gradient-to-br from-red-600 to-red-800 rounded-lg flex items-center justify-center">
                 <Activity className="w-4 h-4 text-white" />

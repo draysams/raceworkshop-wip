@@ -33,7 +33,7 @@ import { LapData, SessionDetail } from "../../shared/types"
 interface ISessionDetailProps {
     sessionId: number
     onBack: () => void
-    onViewTelemetry: (lapId: number) => void
+    onViewTelemetry: (lapId: number, sessionData: SessionDetail) => void
 }
 
 export function SessionDetailView({ sessionId, onBack, onViewTelemetry }: ISessionDetailProps) {
@@ -164,13 +164,13 @@ export function SessionDetailView({ sessionId, onBack, onViewTelemetry }: ISessi
                 <div className="flex flex-col gap-3">
                   <div className="flex flex-col sm:flex-row gap-3">
                     <Button asChild variant="outline" className="border-zinc-600 bg-transparent">
-                      <a onClick={() => onViewTelemetry(3)}>
+                      <a onClick={() => onViewTelemetry(3, sessionData)}>
                         <BarChart3 className="w-4 h-4 mr-2" />
                         Race Engineer
                       </a>
                     </Button>
                     <Button asChild className="bg-red-600 hover:bg-red-700">
-                      <a onClick={() => onViewTelemetry(3)}>
+                      <a onClick={() => onViewTelemetry(3, sessionData)}>
                         <Activity className="w-4 h-4 mr-2" />
                         Analyze Best Lap
                       </a>
@@ -522,7 +522,7 @@ export function SessionDetailView({ sessionId, onBack, onViewTelemetry }: ISessi
                                         className="border-zinc-600 text-zinc-300 hover:text-white bg-transparent text-xs px-2 py-1 h-6 ml-auto"
                                         asChild
                                       >
-                                        <a onClick={() => onViewTelemetry(lap.id)}>
+                                        <a onClick={() => onViewTelemetry(lap.id, sessionData)}>
                                           Analyze
                                         </a>
                                       </Button>

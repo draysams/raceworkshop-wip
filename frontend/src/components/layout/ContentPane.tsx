@@ -36,9 +36,9 @@ export function ContentPane() {
                     <SessionDetailView 
                         sessionId={viewManager.activeView.sessionId} 
                         onBack={() => viewManager.setActiveSubmodule("sessions")}
-                        onViewTelemetry={(lapId) => {
+                        onViewTelemetry={(lapId, sessionData) => {
                             // Navigate to telemetry view with session and lap data
-                            viewManager.setActiveTelemetry(viewManager.activeView.sessionId!, lapId)
+                            viewManager.setActiveTelemetry(viewManager.activeView.sessionId!, lapId, sessionData)
                         }}
                     />
                 )
@@ -54,6 +54,7 @@ export function ContentPane() {
                     <Telemetry 
                         sessionId={viewManager.activeView.telemetryData.sessionId}
                         lapId={viewManager.activeView.telemetryData.lapId}
+                        sessionData={viewManager.activeView.telemetryData.sessionData}
                         onBackToSessionDetail={() => viewManager.setActiveSession(viewManager.activeView.telemetryData!.sessionId)}
                     />
                 )

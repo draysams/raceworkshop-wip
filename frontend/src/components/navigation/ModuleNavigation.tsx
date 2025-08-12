@@ -1,5 +1,5 @@
 import { Avatar, AvatarImage, AvatarFallback } from "@radix-ui/react-avatar";
-import { Activity, Search, Bell, Settings, Home, Timer, Radio, BarChart3, Palette, Users } from "lucide-react";
+import { Activity, Search, Bell, Settings, Home, Timer, Radio, BarChart3, Palette, Users, ArrowLeft } from "lucide-react";
 import { Button } from "../ui/button";
 import { useViewManager } from "../../hooks/useViewManager";
 
