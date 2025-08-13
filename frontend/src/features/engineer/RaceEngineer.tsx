@@ -1,17 +1,20 @@
 "use client"
 
 import { useState } from "react"
-
-import { Search, ChevronDown, ChevronUp, Target, Clock, Trophy, MapPin, Car, Settings, TrendingUp } from "lucide-react"
+import { TrendingUp, MapPin, Car, Settings, Clock, Target } from "lucide-react"
 import { Badge } from "../../components/ui/badge"
 import { Button } from "../../components/ui/button"
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../../components/ui/card"
-import { Input } from "../../components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select"
-import { Progress } from "../../components/ui/progress"
 import { FeatureNavigation } from "../../components/navigation/FeatureNavigation"
 import { FeatureLayout } from "../../components/layout/FeatureLayout"
+import {
+  ExpandableCard,
+  FilterControls,
+  PerformanceMetrics,
+  ExpandableTabs,
+  DataList,
+  EmptyState,
+} from "./components"
 
 const mockTracks = [
   {
@@ -615,129 +618,85 @@ export default function RaceEngineer() {
               <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
                 <h2 className="text-2xl font-semibold">Track Performance Analysis</h2>
 
-                <div className="flex flex-wrap gap-2">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                    <Input
-                      placeholder="Search tracks..."
-                      value={trackSearch}
-                      onChange={(e) => setTrackSearch(e.target.value)}
-                      className="pl-10 w-[200px]"
-                    />
-                  </div>
-
-                  <Select value={trackCountryFilter} onValueChange={setTrackCountryFilter}>
-                    <SelectTrigger className="w-[140px]">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Countries</SelectItem>
-                      <SelectItem value="Germany">Germany</SelectItem>
-                      <SelectItem value="United Kingdom">United Kingdom</SelectItem>
-                      <SelectItem value="Belgium">Belgium</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  <Select value={trackCarFilter} onValueChange={setTrackCarFilter}>
-                    <SelectTrigger className="w-[140px]">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Cars</SelectItem>
-                      <SelectItem value="911 GT3 RS">911 GT3 RS</SelectItem>
-                      <SelectItem value="718 Cayman GT4">718 Cayman GT4</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  <Select value={trackSortBy} onValueChange={setTrackSortBy}>
-                    <SelectTrigger className="w-[160px]">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="bestLapTime">Best Lap Time</SelectItem>
-                      <SelectItem value="avgLapTime">Average Lap Time</SelectItem>
-                      <SelectItem value="validLaps">Total Laps</SelectItem>
-                      <SelectItem value="distance">Total Distance</SelectItem>
-                      <SelectItem value="wins">Wins</SelectItem>
-                      <SelectItem value="sessions">Sessions</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                <FilterControls
+                  searchPlaceholder="Search tracks..."
+                  searchValue={trackSearch}
+                  onSearchChange={setTrackSearch}
+                  filters={[
+                    {
+                      key: "country",
+                      label: "Country",
+                      value: trackCountryFilter,
+                      options: [
+                        { value: "all", label: "All Countries" },
+                        { value: "Germany", label: "Germany" },
+                        { value: "United Kingdom", label: "United Kingdom" },
+                        { value: "Belgium", label: "Belgium" },
+                      ],
+                      onValueChange: setTrackCountryFilter,
+                    },
+                    {
+                      key: "car",
+                      label: "Car",
+                      value: trackCarFilter,
+                      options: [
+                        { value: "all", label: "All Cars" },
+                        { value: "911 GT3 RS", label: "911 GT3 RS" },
+                        { value: "718 Cayman GT4", label: "718 Cayman GT4" },
+                      ],
+                      onValueChange: setTrackCarFilter,
+                    },
+                    {
+                      key: "sort",
+                      label: "Sort By",
+                      value: trackSortBy,
+                      options: [
+                        { value: "bestLapTime", label: "Best Lap Time" },
+                        { value: "avgLapTime", label: "Average Lap Time" },
+                        { value: "validLaps", label: "Total Laps" },
+                        { value: "distance", label: "Total Distance" },
+                        { value: "wins", label: "Wins" },
+                        { value: "sessions", label: "Sessions" },
+                      ],
+                      onValueChange: setTrackSortBy,
+                      width: "w-[160px]",
+                    },
+                  ]}
+                />
               </div>
             </div>
 
             <div className="h-[calc(100vh-280px)] overflow-y-auto py-6 space-y-6">
               {sortedTracks.map((track) => (
-                <Card
+                <ExpandableCard
                   key={track.id}
-                  className="overflow-hidden cursor-pointer transition-all duration-200 hover:shadow-md bg-zinc-900/50 border-zinc-800 hover:border-red-800/50"
-                  onClick={() => handleCardClick(`track-${track.id}`)}
+                  id={`track-${track.id}`}
+                  title={track.name}
+                  subtitle={`${track.country} • ${track.length}km`}
+                  badges={[
+                    { text: `${track.totalDistance.toFixed(1)}km total` },
+                    { text: `${track.sessions} Sessions`, variant: "secondary" },
+                  ]}
+                  metrics={[
+                    { value: track.bestLapTime, label: "Best Lap", color: "font-mono" },
+                    { value: track.totalValidLaps, label: "Valid Laps", color: "text-green-600" },
+                    { value: track.wins, label: "Wins", color: "text-blue-600" },
+                    { value: track.podiums, label: "Podiums", color: "text-purple-600" },
+                  ]}
+                  isExpanded={expandedCard === `track-${track.id}`}
+                  onToggle={() => handleCardClick(`track-${track.id}`)}
+                  showTrophy={true}
+                  trophyCount={track.wins}
                 >
-                  <CardHeader className="pb-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <div>
-                          <CardTitle className="text-xl flex items-center gap-2">
-                            {track.name}
-                            {track.wins > 0 && <Trophy className="w-5 h-5 text-yellow-500" />}
-                          </CardTitle>
-                          <CardDescription className="flex items-center gap-4">
-                            <span>
-                              {track.country} • {track.length}km
-                            </span>
-                            <Badge variant="outline" className="text-xs">
-                              {track.totalDistance.toFixed(1)}km total
-                            </Badge>
-                          </CardDescription>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="secondary">{track.sessions} Sessions</Badge>
-                        <div className="p-2">
-                          {expandedCard === `track-${track.id}` ? (
-                            <ChevronUp className="w-4 h-4" />
-                          ) : (
-                            <ChevronDown className="w-4 h-4" />
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </CardHeader>
-
-                  <CardContent className="space-y-6">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div className="text-center p-3 bg-muted/50 rounded-lg">
-                        <div className="text-lg font-bold font-mono">{track.bestLapTime}</div>
-                        <div className="text-xs text-muted-foreground">Best Lap</div>
-                      </div>
-                      <div className="text-center p-3 bg-muted/50 rounded-lg">
-                        <div className="text-lg font-bold text-green-600">{track.totalValidLaps}</div>
-                        <div className="text-xs text-muted-foreground">Valid Laps</div>
-                      </div>
-                      <div className="text-center p-3 bg-muted/50 rounded-lg">
-                        <div className="text-lg font-bold text-blue-600">{track.wins}</div>
-                        <div className="text-xs text-muted-foreground">Wins</div>
-                      </div>
-                      <div className="text-center p-3 bg-muted/50 rounded-lg">
-                        <div className="text-lg font-bold text-purple-600">{track.podiums}</div>
-                        <div className="text-xs text-muted-foreground">Podiums</div>
-                      </div>
-                    </div>
-
-                    {expandedCard === `track-${track.id}` && (
-                      <div
-                        className="space-y-4 animate-in slide-in-from-top-2 duration-300"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <Tabs value={activeCardTab} onValueChange={setActiveCardTab} className="w-full">
-                          <TabsList className="grid w-full grid-cols-3" onClick={(e) => e.stopPropagation()}>
-                            <TabsTrigger value="performance">Performance</TabsTrigger>
-                            <TabsTrigger value="cars">Cars</TabsTrigger>
-                            <TabsTrigger value="sessions">Sessions</TabsTrigger>
-                          </TabsList>
-
-                          <TabsContent value="performance" className="space-y-4 mt-4">
-                            {/* Additional Performance Metrics */}
+                  <ExpandableTabs
+                    value={activeCardTab}
+                    onValueChange={setActiveCardTab}
+                    tabs={[
+                      {
+                        value: "performance",
+                        label: "Performance",
+                        content: (
+                          <>
                             <div className="grid grid-cols-2 gap-4">
                               <div className="text-center p-3 bg-muted/50 rounded-lg">
                                 <div className="text-lg font-bold text-red-600">{track.totalInvalidLaps}</div>
@@ -749,106 +708,73 @@ export default function RaceEngineer() {
                               </div>
                             </div>
 
-                            {/* Performance vs World Record */}
-                            <div className="bg-muted/30 p-4 rounded-lg">
-                              <div className="flex items-center justify-between mb-2">
-                                <span className="text-sm font-medium">Performance vs World Record</span>
-                                <span className="text-sm text-muted-foreground">
-                                  +{getPerformanceGap(track.bestLapTime, track.worldRecord)}%
-                                </span>
-                              </div>
-                              <div className="space-y-2">
-                                <div className="flex justify-between text-xs">
-                                  <span>World Record: {track.worldRecord}</span>
-                                  <span>Your Best: {track.bestLapTime}</span>
-                                </div>
-                                <Progress
-                                  value={
-                                    100 - Number.parseFloat(getPerformanceGap(track.bestLapTime, track.worldRecord))
-                                  }
-                                  className="h-2"
-                                />
-                              </div>
-                            </div>
-                          </TabsContent>
-
-                          <TabsContent value="cars" className="space-y-4 mt-4">
-                            {/* Car Performance Breakdown */}
-                            <div className="space-y-3">
-                              <h4 className="font-medium text-sm">Car Performance</h4>
-                              {track.cars.map((car, idx) => (
-                                <div key={idx} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                                  <div className="flex items-center gap-3">
-                                    <Badge variant="outline">{car.name}</Badge>
-                                    <div className="text-sm space-x-4">
-                                      <span className="text-green-600">{car.validLaps} valid</span>
-                                      <span className="text-red-600">{car.invalidLaps} invalid</span>
-                                      <span className="text-muted-foreground">{car.distance}km</span>
-                                    </div>
-                                  </div>
-                                  <div className="flex items-center gap-4">
-                                    <div className="text-right">
-                                      <div className="font-mono text-sm">{car.bestLap}</div>
-                                      <div className="text-xs text-muted-foreground">Best Lap</div>
-                                    </div>
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={(e) => {
-                                        e.stopPropagation()
-                                        // Navigate to telemetry page
-                                      }}
-                                    >
-                                      <Target className="w-4 h-4 mr-2" />
-                                      View Lap
-                                    </Button>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </TabsContent>
-
-                          <TabsContent value="sessions" className="space-y-4 mt-4">
-                            {/* Recent Sessions */}
-                            <div className="space-y-3">
-                              <h4 className="font-medium text-sm">Recent Sessions</h4>
-                              {track.recentSessions?.map((session, idx) => (
-                                <div key={idx} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                                  <div className="flex items-center gap-3">
-                                    <Badge variant={session.type === "Race" ? "default" : "secondary"}>
-                                      {session.type}
-                                    </Badge>
-                                    <div className="text-sm">
-                                      <div className="font-medium">{session.date}</div>
-                                      <div className="text-muted-foreground">{session.car}</div>
-                                    </div>
-                                  </div>
-                                  <div className="text-right">
-                                    <div className="font-mono text-sm">{session.bestLap}</div>
-                                    <div className="text-xs text-muted-foreground">{session.laps} laps</div>
-                                  </div>
-                                </div>
-                              )) || (
-                                <div className="text-center py-4 text-muted-foreground">
-                                  No recent sessions available
-                                </div>
-                              )}
-                            </div>
-                          </TabsContent>
-                        </Tabs>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+                            <PerformanceMetrics
+                              metrics={[
+                                {
+                                  label: "Performance vs World Record",
+                                  value: 100 - Number.parseFloat(getPerformanceGap(track.bestLapTime, track.worldRecord)),
+                                  description: `World Record: ${track.worldRecord} • Your Best: ${track.bestLapTime}`,
+                                },
+                              ]}
+                              columns={1}
+                            />
+                          </>
+                        ),
+                      },
+                      {
+                        value: "cars",
+                        label: "Cars",
+                        content: (
+                          <DataList
+                            items={track.cars.map((car, idx) => ({
+                              id: idx,
+                              title: car.name,
+                              badges: [{ text: car.name, variant: "outline" }],
+                              metrics: [
+                                { label: "Best Lap", value: car.bestLap, color: "font-mono" },
+                              ],
+                              actions: [
+                                {
+                                  label: "View Lap",
+                                  onClick: () => {
+                                    // Navigate to telemetry page
+                                  },
+                                  icon: <Target className="w-4 h-4 mr-2" />,
+                                },
+                              ],
+                            }))}
+                            emptyMessage="No cars available"
+                          />
+                        ),
+                      },
+                      {
+                        value: "sessions",
+                        label: "Sessions",
+                        content: (
+                          <DataList
+                            items={track.recentSessions?.map((session, idx) => ({
+                              id: idx,
+                              title: session.date,
+                              subtitle: session.car,
+                              badges: [
+                                { text: session.type, variant: session.type === "Race" ? "default" : "secondary" },
+                              ],
+                              metrics: [
+                                { label: "laps", value: session.laps },
+                                { label: "Best Lap", value: session.bestLap, color: "font-mono" },
+                              ],
+                            })) || []}
+                            emptyMessage="No recent sessions available"
+                          />
+                        ),
+                      },
+                    ]}
+                  />
+                </ExpandableCard>
               ))}
 
               {sortedTracks.length === 0 && (
-                <Card className="p-8 text-center">
-                  <div className="text-muted-foreground">
-                    <MapPin className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                    <p>No tracks found matching your filters.</p>
-                  </div>
-                </Card>
+                <EmptyState icon={MapPin} message="No tracks found matching your filters." />
               )}
             </div>
           </TabsContent>
@@ -858,97 +784,60 @@ export default function RaceEngineer() {
               <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
                 <h2 className="text-2xl font-semibold">Car Performance Analysis</h2>
 
-                <div className="flex gap-2">
-                  <Select value={carSortBy} onValueChange={setCarSortBy}>
-                    <SelectTrigger className="w-[160px]">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="totalDistance">Total Distance</SelectItem>
-                      <SelectItem value="validLaps">Valid Laps</SelectItem>
-                      <SelectItem value="reliability">Reliability</SelectItem>
-                      <SelectItem value="winRate">Win Rate</SelectItem>
-                      <SelectItem value="podiumRate">Podium Rate</SelectItem>
-                      <SelectItem value="bestLap">Best Lap Time</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                <FilterControls
+                  filters={[
+                    {
+                      key: "sort",
+                      label: "Sort By",
+                      value: carSortBy,
+                      options: [
+                        { value: "totalDistance", label: "Total Distance" },
+                        { value: "validLaps", label: "Valid Laps" },
+                        { value: "reliability", label: "Reliability" },
+                        { value: "winRate", label: "Win Rate" },
+                        { value: "podiumRate", label: "Podium Rate" },
+                        { value: "bestLap", label: "Best Lap Time" },
+                      ],
+                      onValueChange: setCarSortBy,
+                      width: "w-[160px]",
+                    },
+                  ]}
+                />
               </div>
             </div>
 
             <div className="h-[calc(100vh-280px)] overflow-y-auto py-6 space-y-6">
               {sortedCars.map((car) => (
-                <Card
+                <ExpandableCard
                   key={car.id}
-                  className="overflow-hidden cursor-pointer transition-all duration-200 hover:shadow-md bg-zinc-900/50 border-zinc-800 hover:border-red-800/50"
-                  onClick={() => handleCardClick(`car-${car.id}`)}
+                  id={`car-${car.id}`}
+                  title={car.name}
+                  subtitle={car.manufacturer}
+                  badges={[
+                    { text: `${car.totalDistance.toFixed(1)}km total` },
+                    { text: `${car.reliability.toFixed(1)}% reliability` },
+                    { text: `${car.sessions} Sessions`, variant: "secondary" },
+                  ]}
+                  metrics={[
+                    { value: car.bestOverallLap, label: "Best Lap", color: "font-mono" },
+                    { value: `${car.totalDistance.toFixed(0)}km`, label: "Total Distance" },
+                    { value: car.validLaps, label: "Valid Laps", color: "text-green-600" },
+                    { value: car.wins, label: "Wins", color: "text-blue-600" },
+                  ]}
+                  isExpanded={expandedCard === `car-${car.id}`}
+                  onToggle={() => handleCardClick(`car-${car.id}`)}
+                  showTrophy={true}
+                  trophyCount={car.wins}
                 >
-                  <CardHeader className="pb-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <div>
-                          <CardTitle className="text-xl flex items-center gap-2">
-                            {car.name}
-                            {car.wins > 0 && <Trophy className="w-5 h-5 text-yellow-500" />}
-                          </CardTitle>
-                          <CardDescription className="flex items-center gap-4">
-                            <span>{car.manufacturer}</span>
-                            <Badge variant="outline" className="text-xs">
-                              {car.totalDistance.toFixed(1)}km total
-                            </Badge>
-                            <Badge variant="outline" className="text-xs">
-                              {car.reliability.toFixed(1)}% reliability
-                            </Badge>
-                          </CardDescription>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="secondary">{car.sessions} Sessions</Badge>
-                        <div className="p-2">
-                          {expandedCard === `car-${car.id}` ? (
-                            <ChevronUp className="w-4 h-4" />
-                          ) : (
-                            <ChevronDown className="w-4 h-4" />
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </CardHeader>
-
-                  <CardContent className="space-y-6">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div className="text-center p-3 bg-muted/50 rounded-lg">
-                        <div className="text-lg font-bold font-mono">{car.bestOverallLap}</div>
-                        <div className="text-xs text-muted-foreground">Best Lap</div>
-                      </div>
-                      <div className="text-center p-3 bg-muted/50 rounded-lg">
-                        <div className="text-lg font-bold">{car.totalDistance.toFixed(0)}km</div>
-                        <div className="text-xs text-muted-foreground">Total Distance</div>
-                      </div>
-                      <div className="text-center p-3 bg-muted/50 rounded-lg">
-                        <div className="text-lg font-bold text-green-600">{car.validLaps}</div>
-                        <div className="text-xs text-muted-foreground">Valid Laps</div>
-                      </div>
-                      <div className="text-center p-3 bg-muted/50 rounded-lg">
-                        <div className="text-lg font-bold text-blue-600">{car.wins}</div>
-                        <div className="text-xs text-muted-foreground">Wins</div>
-                      </div>
-                    </div>
-
-                    {expandedCard === `car-${car.id}` && (
-                      <div
-                        className="space-y-4 animate-in slide-in-from-top-2 duration-300"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <Tabs value={activeCardTab} onValueChange={setActiveCardTab} className="w-full">
-                          <TabsList className="grid w-full grid-cols-3" onClick={(e) => e.stopPropagation()}>
-                            <TabsTrigger value="performance">Performance</TabsTrigger>
-                            <TabsTrigger value="tracks">Tracks</TabsTrigger>
-                            <TabsTrigger value="sessions">Sessions</TabsTrigger>
-                          </TabsList>
-
-                          <TabsContent value="performance" className="space-y-4 mt-4">
-                            {/* Additional Performance Metrics */}
+                  <ExpandableTabs
+                    value={activeCardTab}
+                    onValueChange={setActiveCardTab}
+                    tabs={[
+                      {
+                        value: "performance",
+                        label: "Performance",
+                        content: (
+                          <>
                             <div className="grid grid-cols-2 gap-4">
                               <div className="text-center p-3 bg-muted/50 rounded-lg">
                                 <div className="text-lg font-bold text-purple-600">{car.podiums}</div>
@@ -960,32 +849,27 @@ export default function RaceEngineer() {
                               </div>
                             </div>
 
-                            {/* Success Rates */}
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                              <div className="bg-muted/30 p-4 rounded-lg">
-                                <div className="flex items-center justify-between mb-2">
-                                  <span className="text-sm font-medium">Win Rate</span>
-                                  <span className="text-sm text-muted-foreground">{car.winRate.toFixed(1)}%</span>
-                                </div>
-                                <Progress value={car.winRate} className="h-2" />
-                              </div>
-                              <div className="bg-muted/30 p-4 rounded-lg">
-                                <div className="flex items-center justify-between mb-2">
-                                  <span className="text-sm font-medium">Podium Rate</span>
-                                  <span className="text-sm text-muted-foreground">{car.podiumRate.toFixed(1)}%</span>
-                                </div>
-                                <Progress value={car.podiumRate} className="h-2" />
-                              </div>
-                              <div className="bg-muted/30 p-4 rounded-lg">
-                                <div className="flex items-center justify-between mb-2">
-                                  <span className="text-sm font-medium">Reliability</span>
-                                  <span className="text-sm text-muted-foreground">{car.reliability.toFixed(1)}%</span>
-                                </div>
-                                <Progress value={car.reliability} className="h-2" />
-                              </div>
-                            </div>
+                            <PerformanceMetrics
+                              metrics={[
+                                {
+                                  label: "Win Rate",
+                                  value: car.winRate,
+                                  description: "Percentage of sessions won",
+                                },
+                                {
+                                  label: "Podium Rate",
+                                  value: car.podiumRate,
+                                  description: "Percentage of sessions on podium",
+                                },
+                                {
+                                  label: "Reliability",
+                                  value: car.reliability,
+                                  description: "Valid lap completion rate",
+                                },
+                              ]}
+                              columns={3}
+                            />
 
-                            {/* Top Track Performance */}
                             <div className="bg-muted/30 p-4 rounded-lg">
                               <h4 className="font-medium text-sm mb-3">Top Track Performance</h4>
                               <div className="flex items-center justify-between">
@@ -1008,92 +892,85 @@ export default function RaceEngineer() {
                                 </Button>
                               </div>
                             </div>
-                          </TabsContent>
-
-                          <TabsContent value="tracks" className="space-y-4 mt-4">
-                            {/* Track Performance Breakdown */}
-                            <div className="space-y-4">
-                              <h4 className="font-medium">Track Performance Breakdown</h4>
-                              <div className="grid gap-4">
-                                {car.trackPerformance.map((track, idx) => (
-                                  <div key={idx} className="p-4 bg-muted/20 rounded-lg">
-                                    <div className="flex items-center justify-between mb-3">
-                                      <div>
-                                        <h5 className="font-medium">{track.track}</h5>
-                                        <p className="text-sm text-muted-foreground">{track.country}</p>
-                                      </div>
-                                      <div className="flex items-center gap-2">
-                                        {track.wins > 0 && (
-                                          <Badge variant="default" className="text-xs">
-                                            {track.wins}W
-                                          </Badge>
-                                        )}
-                                        {track.podiums > 0 && (
-                                          <Badge variant="secondary" className="text-xs">
-                                            {track.podiums}P
-                                          </Badge>
-                                        )}
-                                      </div>
+                          </>
+                        ),
+                      },
+                      {
+                        value: "tracks",
+                        label: "Tracks",
+                        content: (
+                          <div className="space-y-4">
+                            <h4 className="font-medium">Track Performance Breakdown</h4>
+                            <div className="grid gap-4">
+                              {car.trackPerformance.map((track, idx) => (
+                                <div key={idx} className="p-4 bg-muted/20 rounded-lg">
+                                  <div className="flex items-center justify-between mb-3">
+                                    <div>
+                                      <h5 className="font-medium">{track.track}</h5>
+                                      <p className="text-sm text-muted-foreground">{track.country}</p>
                                     </div>
-
-                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
-                                      <div className="text-center p-2 /50 rounded">
-                                        <div className="font-mono text-sm">{track.bestLap}</div>
-                                        <div className="text-xs text-muted-foreground">Best Lap</div>
-                                      </div>
-                                      <div className="text-center p-2 /50 rounded">
-                                        <div className="text-sm font-medium">{track.validLaps}</div>
-                                        <div className="text-xs text-muted-foreground">Valid Laps</div>
-                                      </div>
-                                      <div className="text-center p-2 /50 rounded">
-                                        <div className="text-sm font-medium">{track.distance.toFixed(1)}km</div>
-                                        <div className="text-xs text-muted-foreground">Distance</div>
-                                      </div>
-                                      <div className="text-center p-2 /50 rounded">
-                                        <div className="text-sm font-medium">{track.improvement}</div>
-                                        <div className="text-xs text-muted-foreground">Improvement</div>
-                                      </div>
+                                    <div className="flex items-center gap-2">
+                                      {track.wins > 0 && (
+                                        <Badge variant="default" className="text-xs">
+                                          {track.wins}W
+                                        </Badge>
+                                      )}
+                                      {track.podiums > 0 && (
+                                        <Badge variant="secondary" className="text-xs">
+                                          {track.podiums}P
+                                        </Badge>
+                                      )}
                                     </div>
                                   </div>
-                                ))}
-                              </div>
-                            </div>
-                          </TabsContent>
 
-                          <TabsContent value="sessions" className="space-y-4 mt-4">
-                            {/* Recent Session History */}
-                            <div className="space-y-3">
-                              <h4 className="font-medium text-sm">Recent Session History</h4>
-                              {car.recentSessions?.map((session, idx) => (
-                                <div key={idx} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                                  <div className="flex items-center gap-3">
-                                    <Badge variant={session.type === "Race" ? "default" : "secondary"}>
-                                      {session.type}
-                                    </Badge>
-                                    <div className="text-sm">
-                                      <div className="font-medium">{session.track}</div>
-                                      <div className="text-muted-foreground">{session.date}</div>
+                                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
+                                    <div className="text-center p-2 bg-muted/50 rounded">
+                                      <div className="font-mono text-sm">{track.bestLap}</div>
+                                      <div className="text-xs text-muted-foreground">Best Lap</div>
                                     </div>
-                                  </div>
-                                  <div className="text-right">
-                                    <div className="font-mono text-sm">{session.bestLap}</div>
-                                    <div className="text-xs text-muted-foreground">
-                                      {session.result && session.result !== "-" ? session.result : "Practice"}
+                                    <div className="text-center p-2 bg-muted/50 rounded">
+                                      <div className="text-sm font-medium">{track.validLaps}</div>
+                                      <div className="text-xs text-muted-foreground">Valid Laps</div>
+                                    </div>
+                                    <div className="text-center p-2 bg-muted/50 rounded">
+                                      <div className="text-sm font-medium">{track.distance.toFixed(1)}km</div>
+                                      <div className="text-xs text-muted-foreground">Distance</div>
+                                    </div>
+                                    <div className="text-center p-2 bg-muted/50 rounded">
+                                      <div className="text-sm font-medium">{track.improvement}</div>
+                                      <div className="text-xs text-muted-foreground">Improvement</div>
                                     </div>
                                   </div>
                                 </div>
-                              )) || (
-                                <div className="text-center py-4 text-muted-foreground">
-                                  No recent sessions available
-                                </div>
-                              )}
+                              ))}
                             </div>
-                          </TabsContent>
-                        </Tabs>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+                          </div>
+                        ),
+                      },
+                      {
+                        value: "sessions",
+                        label: "Sessions",
+                        content: (
+                          <DataList
+                            items={car.recentSessions?.map((session, idx) => ({
+                              id: idx,
+                              title: session.track,
+                              subtitle: session.date,
+                              badges: [
+                                { text: session.type, variant: session.type === "Race" ? "default" : "secondary" },
+                              ],
+                              metrics: [
+                                { label: "Best Lap", value: session.bestLap, color: "font-mono" },
+                                { label: "Result", value: session.result && session.result !== "-" ? session.result : "Practice" },
+                              ],
+                            })) || []}
+                            emptyMessage="No recent sessions available"
+                          />
+                        ),
+                      },
+                    ]}
+                  />
+                </ExpandableCard>
               ))}
             </div>
           </TabsContent>
@@ -1103,128 +980,92 @@ export default function RaceEngineer() {
               <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
                 <h2 className="text-2xl font-semibold">Setup Performance Analysis</h2>
 
-                <div className="flex flex-wrap gap-2">
-                  <Select value={setupCarFilter} onValueChange={setSetupCarFilter}>
-                    <SelectTrigger className="w-[140px]">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Cars</SelectItem>
-                      <SelectItem value="911-gt3-rs">911 GT3 RS</SelectItem>
-                      <SelectItem value="718-cayman-gt4">718 Cayman GT4</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  <Select value={setupTrackFilter} onValueChange={setSetupTrackFilter}>
-                    <SelectTrigger className="w-[140px]">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Tracks</SelectItem>
-                      <SelectItem value="nurburgring">Nürburgring GP</SelectItem>
-                      <SelectItem value="silverstone">Silverstone Circuit</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  <Select value={setupCategoryFilter} onValueChange={setSetupCategoryFilter}>
-                    <SelectTrigger className="w-[140px]">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Categories</SelectItem>
-                      <SelectItem value="Qualifying">Qualifying</SelectItem>
-                      <SelectItem value="Race">Race</SelectItem>
-                      <SelectItem value="Practice">Practice</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  <Select value={setupSortBy} onValueChange={setSetupSortBy}>
-                    <SelectTrigger className="w-[160px]">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="bestLapTime">Best Lap Time</SelectItem>
-                      <SelectItem value="consistency">Consistency</SelectItem>
-                      <SelectItem value="reliability">Reliability</SelectItem>
-                      <SelectItem value="fuelEfficiency">Fuel Efficiency</SelectItem>
-                      <SelectItem value="totalDistance">Total Distance</SelectItem>
-                      <SelectItem value="lastUsed">Last Used</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                <FilterControls
+                  filters={[
+                    {
+                      key: "car",
+                      label: "Car",
+                      value: setupCarFilter,
+                      options: [
+                        { value: "all", label: "All Cars" },
+                        { value: "911-gt3-rs", label: "911 GT3 RS" },
+                        { value: "718-cayman-gt4", label: "718 Cayman GT4" },
+                      ],
+                      onValueChange: setSetupCarFilter,
+                    },
+                    {
+                      key: "track",
+                      label: "Track",
+                      value: setupTrackFilter,
+                      options: [
+                        { value: "all", label: "All Tracks" },
+                        { value: "nurburgring", label: "Nürburgring GP" },
+                        { value: "silverstone", label: "Silverstone Circuit" },
+                      ],
+                      onValueChange: setSetupTrackFilter,
+                    },
+                    {
+                      key: "category",
+                      label: "Category",
+                      value: setupCategoryFilter,
+                      options: [
+                        { value: "all", label: "All Categories" },
+                        { value: "Qualifying", label: "Qualifying" },
+                        { value: "Race", label: "Race" },
+                        { value: "Practice", label: "Practice" },
+                      ],
+                      onValueChange: setSetupCategoryFilter,
+                    },
+                    {
+                      key: "sort",
+                      label: "Sort By",
+                      value: setupSortBy,
+                      options: [
+                        { value: "bestLapTime", label: "Best Lap Time" },
+                        { value: "consistency", label: "Consistency" },
+                        { value: "reliability", label: "Reliability" },
+                        { value: "fuelEfficiency", label: "Fuel Efficiency" },
+                        { value: "totalDistance", label: "Total Distance" },
+                        { value: "lastUsed", label: "Last Used" },
+                      ],
+                      onValueChange: setSetupSortBy,
+                      width: "w-[160px]",
+                    },
+                  ]}
+                />
               </div>
             </div>
 
             <div className="h-[calc(100vh-280px)] overflow-y-auto py-6 space-y-6">
               {sortedSetups.map((setup) => (
-                <Card
+                <ExpandableCard
                   key={setup.id}
-                  className="overflow-hidden cursor-pointer transition-all duration-200 hover:shadow-md bg-zinc-900/50 border-zinc-800 hover:border-red-800/50"
-                  onClick={() => handleCardClick(`setup-${setup.id}`)}
+                  id={`setup-${setup.id}`}
+                  title={setup.name}
+                  subtitle={setup.car}
+                  badges={[
+                    { text: setup.category },
+                    { text: setup.track },
+                    { text: `${setup.sessions} Sessions`, variant: "secondary" },
+                  ]}
+                  metrics={[
+                    { value: setup.bestLapTime, label: "Best Lap", color: "font-mono" },
+                    { value: setup.validLaps, label: "Valid Laps", color: "text-green-600" },
+                    { value: `${setup.consistency.toFixed(1)}%`, label: "Consistency" },
+                    { value: `${setup.totalDistance.toFixed(0)}km`, label: "Distance" },
+                  ]}
+                  isExpanded={expandedCard === `setup-${setup.id}`}
+                  onToggle={() => handleCardClick(`setup-${setup.id}`)}
                 >
-                  <CardHeader className="pb-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <div>
-                          <CardTitle className="text-xl flex items-center gap-2">{setup.name}</CardTitle>
-                          <CardDescription className="flex items-center gap-4">
-                            <span>{setup.car}</span>
-                            <Badge variant="outline" className="text-xs">
-                              {setup.category}
-                            </Badge>
-                            <Badge variant="outline" className="text-xs">
-                              {setup.track}
-                            </Badge>
-                          </CardDescription>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="secondary">{setup.sessions} Sessions</Badge>
-                        <div className="p-2">
-                          {expandedCard === `setup-${setup.id}` ? (
-                            <ChevronUp className="w-4 h-4" />
-                          ) : (
-                            <ChevronDown className="w-4 h-4" />
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </CardHeader>
-
-                  <CardContent className="space-y-6">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div className="text-center p-3 bg-muted/50 rounded-lg">
-                        <div className="text-lg font-bold font-mono">{setup.bestLapTime}</div>
-                        <div className="text-xs text-muted-foreground">Best Lap</div>
-                      </div>
-                      <div className="text-center p-3 bg-muted/50 rounded-lg">
-                        <div className="text-lg font-bold text-green-600">{setup.validLaps}</div>
-                        <div className="text-xs text-muted-foreground">Valid Laps</div>
-                      </div>
-                      <div className="text-center p-3 bg-muted/50 rounded-lg">
-                        <div className="text-lg font-bold">{setup.consistency.toFixed(1)}%</div>
-                        <div className="text-xs text-muted-foreground">Consistency</div>
-                      </div>
-                      <div className="text-center p-3 bg-muted/50 rounded-lg">
-                        <div className="text-lg font-bold">{setup.totalDistance.toFixed(0)}km</div>
-                        <div className="text-xs text-muted-foreground">Distance</div>
-                      </div>
-                    </div>
-
-                    {expandedCard === `setup-${setup.id}` && (
-                      <div
-                        className="space-y-4 animate-in slide-in-from-top-2 duration-300"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <Tabs value={activeCardTab} onValueChange={setActiveCardTab} className="w-full">
-                          <TabsList className="grid w-full grid-cols-3" onClick={(e) => e.stopPropagation()}>
-                            <TabsTrigger value="performance">Performance</TabsTrigger>
-                            <TabsTrigger value="configuration">Configuration</TabsTrigger>
-                            <TabsTrigger value="conditions">Conditions</TabsTrigger>
-                          </TabsList>
-
-                          <TabsContent value="performance" className="space-y-4 mt-4">
-                            {/* Additional Performance Metrics */}
+                  <ExpandableTabs
+                    value={activeCardTab}
+                    onValueChange={setActiveCardTab}
+                    tabs={[
+                      {
+                        value: "performance",
+                        label: "Performance",
+                        content: (
+                          <>
                             <div className="grid grid-cols-2 gap-4">
                               <div className="text-center p-3 bg-muted/50 rounded-lg">
                                 <div className="text-lg font-bold font-mono">{setup.optimalTime}</div>
@@ -1236,42 +1077,27 @@ export default function RaceEngineer() {
                               </div>
                             </div>
 
-                            {/* Performance Analysis */}
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                              <div className="bg-muted/30 p-4 rounded-lg">
-                                <div className="flex items-center justify-between mb-2">
-                                  <span className="text-sm font-medium">Consistency</span>
-                                  <span className="text-sm text-muted-foreground">{setup.consistency.toFixed(1)}%</span>
-                                </div>
-                                <Progress value={setup.consistency} className="h-2" />
-                                <div className="text-xs text-muted-foreground mt-1">Laps within 1% of best time</div>
-                              </div>
-                              <div className="bg-muted/30 p-4 rounded-lg">
-                                <div className="flex items-center justify-between mb-2">
-                                  <span className="text-sm font-medium">Reliability</span>
-                                  <span className="text-sm text-muted-foreground">{setup.reliability.toFixed(1)}%</span>
-                                </div>
-                                <Progress value={setup.reliability} className="h-2" />
-                                <div className="text-xs text-muted-foreground mt-1">Valid lap completion rate</div>
-                              </div>
-                              <div className="bg-muted/30 p-4 rounded-lg">
-                                <div className="flex items-center justify-between mb-2">
-                                  <span className="text-sm font-medium">vs World Record</span>
-                                  <span className="text-sm text-muted-foreground">
-                                    +{getPerformanceGap(setup.bestLapTime, setup.worldRecord)}%
-                                  </span>
-                                </div>
-                                <Progress
-                                  value={
-                                    100 - Number.parseFloat(getPerformanceGap(setup.bestLapTime, setup.worldRecord))
-                                  }
-                                  className="h-2"
-                                />
-                                <div className="text-xs text-muted-foreground mt-1">Gap to world record</div>
-                              </div>
-                            </div>
+                            <PerformanceMetrics
+                              metrics={[
+                                {
+                                  label: "Consistency",
+                                  value: setup.consistency,
+                                  description: "Laps within 1% of best time",
+                                },
+                                {
+                                  label: "Reliability",
+                                  value: setup.reliability,
+                                  description: "Valid lap completion rate",
+                                },
+                                {
+                                  label: "vs World Record",
+                                  value: 100 - Number.parseFloat(getPerformanceGap(setup.bestLapTime, setup.worldRecord)),
+                                  description: "Gap to world record",
+                                },
+                              ]}
+                              columns={3}
+                            />
 
-                            {/* Quick Actions */}
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                 <span>Last used: {setup.lastUsed}</span>
@@ -1303,114 +1129,99 @@ export default function RaceEngineer() {
                                 </Button>
                               </div>
                             </div>
-                          </TabsContent>
-
-                          <TabsContent value="configuration" className="space-y-4 mt-4">
-                            {/* Setup Configuration */}
-                            <div className="space-y-4">
-                              <h4 className="font-medium">Setup Configuration</h4>
-                              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                <div className="p-3 bg-muted/20 rounded-lg">
-                                  <div className="text-sm font-medium">Aerodynamics</div>
-                                  <div className="text-xs text-muted-foreground mt-1">
-                                    Front Wing: {setup.setupDetails.frontWing} • Rear Wing:{" "}
-                                    {setup.setupDetails.rearWing}
-                                  </div>
+                          </>
+                        ),
+                      },
+                      {
+                        value: "configuration",
+                        label: "Configuration",
+                        content: (
+                          <div className="space-y-4">
+                            <h4 className="font-medium">Setup Configuration</h4>
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                              <div className="p-3 bg-muted/20 rounded-lg">
+                                <div className="text-sm font-medium">Aerodynamics</div>
+                                <div className="text-xs text-muted-foreground mt-1">
+                                  Front Wing: {setup.setupDetails.frontWing} • Rear Wing: {setup.setupDetails.rearWing}
                                 </div>
-                                <div className="p-3 bg-muted/20 rounded-lg">
-                                  <div className="text-sm font-medium">Suspension</div>
-                                  <div className="text-xs text-muted-foreground mt-1">
-                                    {setup.setupDetails.suspension}
-                                  </div>
+                              </div>
+                              <div className="p-3 bg-muted/20 rounded-lg">
+                                <div className="text-sm font-medium">Suspension</div>
+                                <div className="text-xs text-muted-foreground mt-1">
+                                  {setup.setupDetails.suspension}
                                 </div>
-                                <div className="p-3 bg-muted/20 rounded-lg">
-                                  <div className="text-sm font-medium">Gearing</div>
-                                  <div className="text-xs text-muted-foreground mt-1">{setup.setupDetails.gearing}</div>
+                              </div>
+                              <div className="p-3 bg-muted/20 rounded-lg">
+                                <div className="text-sm font-medium">Gearing</div>
+                                <div className="text-xs text-muted-foreground mt-1">{setup.setupDetails.gearing}</div>
+                              </div>
+                              <div className="p-3 bg-muted/20 rounded-lg">
+                                <div className="text-sm font-medium">Brake Balance</div>
+                                <div className="text-xs text-muted-foreground mt-1">
+                                  {setup.setupDetails.brakeBalance}%
                                 </div>
-                                <div className="p-3 bg-muted/20 rounded-lg">
-                                  <div className="text-sm font-medium">Brake Balance</div>
-                                  <div className="text-xs text-muted-foreground mt-1">
-                                    {setup.setupDetails.brakeBalance}%
-                                  </div>
-                                </div>
-                                <div className="p-3 bg-muted/20 rounded-lg">
-                                  <div className="text-sm font-medium">Differential</div>
-                                  <div className="text-xs text-muted-foreground mt-1">
-                                    {setup.setupDetails.differential}
-                                  </div>
+                              </div>
+                              <div className="p-3 bg-muted/20 rounded-lg">
+                                <div className="text-sm font-medium">Differential</div>
+                                <div className="text-xs text-muted-foreground mt-1">
+                                  {setup.setupDetails.differential}
                                 </div>
                               </div>
                             </div>
-                          </TabsContent>
-
-                          <TabsContent value="conditions" className="space-y-4 mt-4">
-                            {/* Track Conditions & Progression */}
-                            <div className="space-y-4">
-                              <h4 className="font-medium">Track Conditions</h4>
-                              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                <div className="p-3 bg-muted/20 rounded-lg">
-                                  <div className="text-sm font-medium">Weather</div>
-                                  <div className="text-xs text-muted-foreground mt-1">{setup.conditions.weather}</div>
-                                </div>
-                                <div className="p-3 bg-muted/20 rounded-lg">
-                                  <div className="text-sm font-medium">Temperature</div>
-                                  <div className="text-xs text-muted-foreground mt-1">
-                                    Air: {setup.conditions.temperature}°C
-                                  </div>
-                                </div>
-                                <div className="p-3 bg-muted/20 rounded-lg">
-                                  <div className="text-sm font-medium">Track Temp</div>
-                                  <div className="text-xs text-muted-foreground mt-1">
-                                    {setup.conditions.trackTemp}°C
-                                  </div>
-                                </div>
-                                <div className="p-3 bg-muted/20 rounded-lg">
-                                  <div className="text-sm font-medium">Grip Level</div>
-                                  <div className="text-xs text-muted-foreground mt-1">{setup.conditions.grip}</div>
+                          </div>
+                        ),
+                      },
+                      {
+                        value: "conditions",
+                        label: "Conditions",
+                        content: (
+                          <div className="space-y-4">
+                            <h4 className="font-medium">Track Conditions</h4>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                              <div className="p-3 bg-muted/20 rounded-lg">
+                                <div className="text-sm font-medium">Weather</div>
+                                <div className="text-xs text-muted-foreground mt-1">{setup.conditions.weather}</div>
+                              </div>
+                              <div className="p-3 bg-muted/20 rounded-lg">
+                                <div className="text-sm font-medium">Temperature</div>
+                                <div className="text-xs text-muted-foreground mt-1">
+                                  Air: {setup.conditions.temperature}°C
                                 </div>
                               </div>
-
-                              <h4 className="font-medium">Performance Progression</h4>
-                              <div className="space-y-3">
-                                {setup.improvements?.map((session, idx) => (
-                                  <div
-                                    key={idx}
-                                    className="flex items-center justify-between p-3 bg-muted/30 rounded-lg"
-                                  >
-                                    <div className="flex items-center gap-3">
-                                      <Badge variant="outline">Session {session.session}</Badge>
-                                      <div className="text-sm">
-                                        <div className="font-mono">{session.bestLap}</div>
-                                        <div className="text-muted-foreground text-xs">Best lap</div>
-                                      </div>
-                                    </div>
-                                    <div className="text-right text-sm">
-                                      <div className="font-mono">{session.avgLap}</div>
-                                      <div className="text-xs text-muted-foreground">Avg lap</div>
-                                    </div>
-                                  </div>
-                                )) || (
-                                  <div className="text-center py-4 text-muted-foreground">
-                                    No progression data available
-                                  </div>
-                                )}
+                              <div className="p-3 bg-muted/20 rounded-lg">
+                                <div className="text-sm font-medium">Track Temp</div>
+                                <div className="text-xs text-muted-foreground mt-1">
+                                  {setup.conditions.trackTemp}°C
+                                </div>
+                              </div>
+                              <div className="p-3 bg-muted/20 rounded-lg">
+                                <div className="text-sm font-medium">Grip Level</div>
+                                <div className="text-xs text-muted-foreground mt-1">{setup.conditions.grip}</div>
                               </div>
                             </div>
-                          </TabsContent>
-                        </Tabs>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+
+                            <h4 className="font-medium">Performance Progression</h4>
+                            <DataList
+                              items={setup.improvements?.map((session, idx) => ({
+                                id: idx,
+                                title: `Session ${session.session}`,
+                                metrics: [
+                                  { label: "Best lap", value: session.bestLap, color: "font-mono" },
+                                  { label: "Avg lap", value: session.avgLap, color: "font-mono" },
+                                ],
+                              })) || []}
+                              emptyMessage="No progression data available"
+                            />
+                          </div>
+                        ),
+                      },
+                    ]}
+                  />
+                </ExpandableCard>
               ))}
 
               {sortedSetups.length === 0 && (
-                <Card className="p-8 text-center">
-                  <div className="text-muted-foreground">
-                    <Settings className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                    <p>No setups found matching your filters.</p>
-                  </div>
-                </Card>
+                <EmptyState icon={Settings} message="No setups found matching your filters." />
               )}
             </div>
           </TabsContent>
