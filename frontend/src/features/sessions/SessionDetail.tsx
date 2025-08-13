@@ -333,10 +333,10 @@ export function SessionDetailView({ sessionId, onBack, onViewTelemetry }: ISessi
                       open={expandedStints.includes(stint.id)}
                       onOpenChange={() => toggleStint(stint.id)}
                     >
-                      <Card className="border border-zinc-700 overflow-hidden">
+                      <Card className="border border-zinc-700 overflow-hidden hover:shadow-md bg-zinc-900/50 border-zinc-800 hover:border-red-800/50">
                         {/* Stint Header - Reduced Height */}
                         <CollapsibleTrigger asChild>
-                          <div className="px-4 py-2 cursor-pointer transition-colors hover:bg-zinc-800/30">
+                          <div className="px-4 py-2 cursor-pointer transition-colors hover:hover:shadow-md bg-zinc-900/50 border-zinc-800 hover:border-red-800/50">
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-3">
                                 {expandedStints.includes(stint.id) ? (
@@ -396,7 +396,7 @@ export function SessionDetailView({ sessionId, onBack, onViewTelemetry }: ISessi
                         <CollapsibleContent>
                           <div className="border-t border-zinc-700">
                             {/* Stint Details Header */}
-                            <div className="p-4 bg-zinc-800/30">
+                            <div className="p-4 hover:shadow-md bg-zinc-900/50 border-zinc-800 hover:border-red-800/50">
                               <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-sm">
                                 <div>
                                   <div className="text-zinc-400 mb-1">Timing</div>
@@ -471,7 +471,7 @@ export function SessionDetailView({ sessionId, onBack, onViewTelemetry }: ISessi
                                   className={`p-3 rounded-lg border transition-all duration-200 ${
                                     lap.lapTime === stint.bestLap
                                       ? "bg-purple-600/10 border-purple-600/30"
-                                      : "bg-zinc-800/30 border-zinc-700 hover:border-zinc-600"
+                                      : "hover:shadow-md bg-zinc-900/90 border-zinc-800 hover:border-red-800/50 border-zinc-700 hover:border-zinc-600"
                                   }`}
                                 >
                                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 items-center text-sm">
