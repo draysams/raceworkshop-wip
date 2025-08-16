@@ -2,6 +2,7 @@
 
 import json
 import os
+from datetime import datetime
 from .models import db, Session, Stint, Lap, Simulator, Track, Car, Driver, LapTelemetry, Setup
 
 def _seed_tracks():
@@ -13,6 +14,7 @@ def _seed_tracks():
             with open('seed_track_data.json', 'r') as f:
                 track_seed_data = json.load(f)
             
+            now = datetime.now()
             data_to_seed = [
                 {
                     'id': t['id'],
@@ -22,7 +24,9 @@ def _seed_tracks():
                     'length_m': float(t['length_km']) * 1000, # Changed from 'length_km' to 'length'
                     'type': t['type'],
                     'image_path': t['image'],
-                    'thumbnail_path': t['thumbnail']
+                    'thumbnail_path': t['thumbnail'],
+                    'updated_at': now,
+                    'created_at': now
                 } for t in track_seed_data
             ]
             
@@ -44,6 +48,7 @@ def _seed_cars():
             with open('seed_cars_data.json', 'r') as f:
                 car_seed_data = json.load(f)
 
+            now = datetime.now()
             data_to_seed = [
                 {
                     'id': c['id'],
@@ -55,7 +60,9 @@ def _seed_cars():
                     'manufacturer': c['manufacturer'],
                     'engine': c['engine'],
                     'thumbnail_url': c['thumbnail_url'],
-                    'manufacturer_thumbnail_url': c['manufacturer_thumbnail_url']
+                    'manufacturer_thumbnail_url': c['manufacturer_thumbnail_url'],
+                    'updated_at': now,
+                    'created_at': now
                 } for c in car_seed_data
             ]
 

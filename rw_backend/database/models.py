@@ -13,10 +13,21 @@ class BaseModel(pw.Model):
     class Meta:
         database = db
 
-class Simulator(BaseModel):
+# --- NEW MODEL: A base model that includes automatic timestamps ---
+class TimestampedModel(BaseModel):
+    created_at = pw.DateTimeField(default=datetime.now)
+    updated_at = pw.DateTimeField()
+
+    def save(self, *args, **kwargs):
+        self.updated_at = datetime.now()
+        return super(TimestampedModel, self).save(*args, **kwargs)
+
+# --- All subsequent models (except LapTelemetry) now inherit from TimestampedModel ---
+
+class Simulator(TimestampedModel):
     name = pw.CharField(unique=True)
 
-class Track(BaseModel):
+class Track(TimestampedModel):
     id = pw.CharField(primary_key=True)
     internal_name = pw.CharField(index=True) 
     display_name = pw.CharField()
@@ -26,30 +37,22 @@ class Track(BaseModel):
     image_path = pw.CharField()
     thumbnail_path = pw.CharField()
 
-# --- CHANGE START: Expanded the Car model ---
-class Car(BaseModel):
-    """Stores detailed, official information about each car."""
+class Car(TimestampedModel):
     id = pw.CharField(primary_key=True)
-    
-    # This is the name from shared memory, used for lookups.
     internal_name = pw.CharField(unique=True, index=True)
-    
     display_name = pw.CharField()
     model = pw.CharField(index=True)
     car_class = pw.CharField(index=True)
     season = pw.CharField()
     manufacturer = pw.CharField(index=True)
     engine = pw.CharField()
-    
-    # Paths to image assets
     thumbnail_url = pw.CharField()
     manufacturer_thumbnail_url = pw.CharField()
-# --- CHANGE END ---
 
-class Driver(BaseModel):
+class Driver(TimestampedModel):
     name = pw.CharField(unique=True)
 
-class Setup(BaseModel):
+class Setup(TimestampedModel):
     car = pw.ForeignKeyField(Car, backref='setups', on_delete='CASCADE')
     track = pw.ForeignKeyField(Track, backref='setups', on_delete='CASCADE')
     name = pw.CharField()
@@ -58,7 +61,7 @@ class Setup(BaseModel):
     setup_details = pw.TextField()
     weather_details = pw.TextField()
 
-class Session(BaseModel):
+class Session(TimestampedModel):
     simulator = pw.ForeignKeyField(Simulator, backref='sessions', index=True)
     track = pw.ForeignKeyField(Track, backref='sessions', index=True)
     car = pw.ForeignKeyField(Car, backref='sessions', index=True)
@@ -70,14 +73,14 @@ class Session(BaseModel):
     air_temp = pw.FloatField(null=True)
     game_session_uid = pw.CharField(unique=True, null=True)
 
-class Stint(BaseModel):
+class Stint(TimestampedModel):
     session = pw.ForeignKeyField(Session, backref='stints', on_delete='CASCADE', index=True)
     setup = pw.ForeignKeyField(Setup, backref='stints', null=True, on_delete='SET NULL')
     stint_number = pw.IntegerField()
     started_on_lap = pw.IntegerField()
     ended_on_lap = pw.IntegerField(null=True)
 
-class Lap(BaseModel):
+class Lap(TimestampedModel):
     stint = pw.ForeignKeyField(Stint, backref='laps', on_delete='CASCADE', index=True)
     lap_number = pw.IntegerField()
     lap_time = pw.FloatField()
@@ -85,9 +88,11 @@ class Lap(BaseModel):
     sector2_time = pw.FloatField(null=True)
     sector3_time = pw.FloatField(null=True)
     is_valid = pw.BooleanField()
-    timestamp = pw.DateTimeField(default=datetime.now)
+    # We remove the old 'timestamp' field as created_at replaces it.
+    # timestamp = pw.DateTimeField(default=datetime.now)
 
-
+# LapTelemetry inherits directly from BaseModel as it is a high-volume
+# table and doesn't require updated_at timestamps.
 class LapTelemetry(BaseModel):
     lap = pw.ForeignKeyField(Lap, backref='telemetry', on_delete='CASCADE', index=True)
     lap_dist = pw.FloatField()

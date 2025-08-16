@@ -51,8 +51,8 @@ def _map_stint_to_dto(stint: Stint, all_stint_laps: list[Lap]) -> dict:
     # Derive Start/End Times
     first_lap = all_stint_laps[0] if all_stint_laps else None
     last_lap = all_stint_laps[-1] if all_stint_laps else None
-    start_time = first_lap.timestamp.isoformat() if first_lap else None
-    end_time = (last_lap.timestamp + timedelta(seconds=last_lap.lap_time)).isoformat() if last_lap and last_lap.lap_time > 0 else None
+    start_time = stint.created_at.isoformat()
+    end_time = stint.updated_at.isoformat() if stint.ended_on_lap is not None else None
 
     # Fuel Used (This is an approximation as the first snapshot might not be at lap start)
     first_telemetry = LapTelemetry.select(LapTelemetry.fuel_level).join(Lap).where(Lap.stint == stint).order_by(LapTelemetry.id.asc()).first()
