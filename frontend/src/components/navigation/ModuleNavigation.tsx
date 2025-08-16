@@ -1,5 +1,5 @@
 import { Avatar, AvatarImage, AvatarFallback } from "@radix-ui/react-avatar";
-import { Activity, Search, Bell, Settings, Home, Timer, Radio, BarChart3, Palette, Users, ArrowLeft } from "lucide-react";
+import { Activity, Search, Bell, Settings, Home, Timer, Radio, BarChart3, ArrowLeft } from "lucide-react";
 import { Button } from "../ui/button";
 import { useViewManager } from "../../hooks/useViewManager";
 
@@ -19,8 +19,6 @@ export function ModuleNavigation() {
         { view: "sessions", label: "Sessions", icon: Timer },
         { view: "transponder", label: "Transponder", icon: Radio },
         { view: "engineer", label: "Race Engineer", icon: BarChart3 },
-        { view: "paintshop", label: "Paint Shop", icon: Palette },
-        { view: "teams", label: "Teams", icon: Users },
     ];
 
     return (

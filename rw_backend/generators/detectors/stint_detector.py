@@ -12,7 +12,7 @@ class StintDetector:
         """Scenario 2: A completed pit stop (`mNumPitstops` increments) ends the old stint and begins a new one."""
         lap_ended_on = last_player_data.get('mTotalLaps', player_scoring.mTotalLaps)
         print("[StintDetector] Pit stop detected. Cycling stint.", flush=True)
-        self.event_queue.put(StintEnded(lap_number=lap_ended_on))
+        self.event_queue.put(StintEnded(lap_number=lap_ended_on, final_place=player_scoring.mPlace))
         # --- CHANGE START: Pass the setup_id to the new StintStarted event ---
         self.event_queue.put(StintStarted(lap_number=player_scoring.mTotalLaps, setup_id=setup_id))
         # --- CHANGE END ---
@@ -34,4 +34,4 @@ class StintDetector:
         elif new_state == "IN_GARAGE" and len(state_history) > 1 and state_history[-2] == "ON_TRACK":
             old_state = state_history[-2]
             print(f"[StintDetector] Transition {old_state}->{new_state}. Ending stint.", flush=True)
-            self.event_queue.put(StintEnded(lap_number=player_scoring.mTotalLaps))
+            self.event_queue.put(StintEnded(lap_number=player_scoring.mTotalLaps, final_place=player_scoring.mPlace))

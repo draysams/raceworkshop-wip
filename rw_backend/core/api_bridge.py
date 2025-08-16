@@ -4,6 +4,8 @@ from rw_backend.api.dashboard_api import DashboardApi
 from rw_backend.api.session_api import SessionApi
 from rw_backend.api.telemetry_api import TelemetryApi
 from rw_backend.api.simulator_api import SimulatorApi 
+from rw_backend.api.race_engineer_api import RaceEngineerApi
+from rw_backend.api.track_car_stats_api import TrackCarStatsApi
 
 class ApiBridge:
     """
@@ -17,7 +19,8 @@ class ApiBridge:
         self._session_api = SessionApi()
         self._telemetry_api = TelemetryApi()
         self._simulator_api = SimulatorApi()
-
+        self._race_engineer_api = RaceEngineerApi()
+        self._track_car_stats_api = TrackCarStatsApi()
     # --- CHANGE START: Add pass-through methods ---
 
     # Dashboard Methods
@@ -44,5 +47,21 @@ class ApiBridge:
     # --- NEW pass-through method ---
     def getSimulatorList(self):
         return self._simulator_api.getSimulatorList()
-        
+
+    # Race Engineer Methods
+    def getTrackViewStats(self):
+        return self._race_engineer_api.getTrackViewStats()
+
+    def getCarViewStats(self):
+        return self._race_engineer_api.getCarViewStats()
+
+    def getSetupViewStats(self):
+        return self._race_engineer_api.getSetupViewStats()
+
+    # Track & Car Stats Methods
+    def getTrackStats(self):
+        return self._track_car_stats_api.getTrackStats()
+
+    def getCarStatsForTrack(self, trackId):
+        return self._track_car_stats_api.getCarStatsForTrack(trackId)
     # --- CHANGE END ---

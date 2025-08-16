@@ -9,8 +9,6 @@ import {
   Timer,
   Radio,
   BarChart3,
-  Palette,
-  Users,
   Badge,
   ArrowLeft,
 } from "lucide-react"
@@ -33,8 +31,6 @@ export function FeatureNavigation() {
     { view: "sessions", label: "Sessions", icon: Timer },
     { view: "transponder", label: "Transponder", icon: Radio },
     { view: "engineer", label: "Race Engineer", icon: BarChart3 },
-    { view: "paintshop", label: "Paint Shop", icon: Palette },
-    { view: "teams", label: "Teams", icon: Users },
   ]
 
   // Show back button if not on dashboard

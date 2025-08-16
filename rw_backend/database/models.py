@@ -13,7 +13,6 @@ class BaseModel(pw.Model):
     class Meta:
         database = db
 
-# --- NEW MODEL: A base model that includes automatic timestamps ---
 class TimestampedModel(BaseModel):
     created_at = pw.DateTimeField(default=datetime.now)
     updated_at = pw.DateTimeField()
@@ -21,8 +20,6 @@ class TimestampedModel(BaseModel):
     def save(self, *args, **kwargs):
         self.updated_at = datetime.now()
         return super(TimestampedModel, self).save(*args, **kwargs)
-
-# --- All subsequent models (except LapTelemetry) now inherit from TimestampedModel ---
 
 class Simulator(TimestampedModel):
     name = pw.CharField(unique=True)
@@ -79,6 +76,9 @@ class Stint(TimestampedModel):
     stint_number = pw.IntegerField()
     started_on_lap = pw.IntegerField()
     ended_on_lap = pw.IntegerField(null=True)
+    # --- THIS IS THE NEW COLUMN ---
+    final_place = pw.IntegerField(null=True)
+    # --- END NEW COLUMN ---
 
 class Lap(TimestampedModel):
     stint = pw.ForeignKeyField(Stint, backref='laps', on_delete='CASCADE', index=True)
@@ -88,11 +88,7 @@ class Lap(TimestampedModel):
     sector2_time = pw.FloatField(null=True)
     sector3_time = pw.FloatField(null=True)
     is_valid = pw.BooleanField()
-    # We remove the old 'timestamp' field as created_at replaces it.
-    # timestamp = pw.DateTimeField(default=datetime.now)
 
-# LapTelemetry inherits directly from BaseModel as it is a high-volume
-# table and doesn't require updated_at timestamps.
 class LapTelemetry(BaseModel):
     lap = pw.ForeignKeyField(Lap, backref='telemetry', on_delete='CASCADE', index=True)
     lap_dist = pw.FloatField()

@@ -1,6 +1,7 @@
-import { Search } from "lucide-react"
+import { BarChart3, Search } from "lucide-react"
 import { Input } from "../../../components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../components/ui/select"
+import { Button } from "../../../components/ui/button"
 
 interface FilterOption {
   value: string
@@ -11,6 +12,7 @@ interface FilterControlsProps {
   searchPlaceholder?: string
   searchValue?: string
   onSearchChange?: (value: string) => void
+  onViewStatsTable?: () => void
   filters: Array<{
     key: string
     label: string
@@ -25,10 +27,21 @@ export function FilterControls({
   searchPlaceholder = "Search...",
   searchValue = "",
   onSearchChange,
+  onViewStatsTable,
   filters,
 }: FilterControlsProps) {
   return (
     <div className="flex flex-wrap gap-2">
+      {onViewStatsTable && (
+        <Button 
+          variant="outline" 
+          className="gap-2 bg-transparent"
+          onClick={onViewStatsTable}
+        >
+          <BarChart3 className="w-4 h-4" />
+          View Stats Table
+        </Button>
+      )}
       {onSearchChange && (
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { TrendingUp, MapPin, Car, Settings, Clock, Target } from "lucide-react"
 import { Badge } from "../../components/ui/badge"
 import { Button } from "../../components/ui/button"
@@ -15,426 +15,9 @@ import {
   DataList,
   EmptyState,
 } from "./components"
-
-const mockTracks = [
-  {
-    id: 1,
-    name: "Nürburgring GP",
-    country: "Germany",
-    length: 5.148,
-    sessions: 24,
-    cars: [
-      {
-        name: "911 GT3 RS",
-        validLaps: 156,
-        invalidLaps: 18,
-        bestLap: "1:43.891",
-        avgLap: "1:47.234",
-        sessions: 18,
-        distance: 803.1,
-      },
-      {
-        name: "718 Cayman GT4",
-        validLaps: 67,
-        invalidLaps: 5,
-        bestLap: "1:46.223",
-        avgLap: "1:49.567",
-        sessions: 6,
-        distance: 370.2,
-      },
-    ],
-    totalValidLaps: 223,
-    totalInvalidLaps: 23,
-    raceSessions: 8,
-    practiceSessions: 16,
-    wins: 3,
-    podiums: 6,
-    avgLapTime: "1:47.234",
-    bestLapTime: "1:43.891",
-    optimalTime: "1:43.102",
-    worldRecord: "1:41.770",
-    totalDistance: 1173.3,
-    recentSessions: [
-      { date: "2024-01-15", type: "Race", laps: 28, bestLap: "1:43.891", car: "911 GT3 RS" },
-      { date: "2024-01-12", type: "Practice", laps: 15, bestLap: "1:44.567", car: "911 GT3 RS" },
-      { date: "2024-01-08", type: "Qualifying", laps: 8, bestLap: "1:44.123", car: "911 GT3 RS" },
-    ],
-    lapTimeProgression: [
-      { session: 1, bestLap: 108.5, avgLap: 112.3 },
-      { session: 5, bestLap: 106.2, avgLap: 109.8 },
-      { session: 10, bestLap: 104.8, avgLap: 108.1 },
-      { session: 15, bestLap: 103.9, avgLap: 107.2 },
-      { session: 20, bestLap: 103.891, avgLap: 107.234 },
-    ],
-  },
-  {
-    id: 2,
-    name: "Silverstone Circuit",
-    country: "United Kingdom",
-    length: 5.891,
-    sessions: 18,
-    cars: [
-      {
-        name: "911 GT3 RS",
-        validLaps: 98,
-        invalidLaps: 12,
-        bestLap: "1:49.223",
-        avgLap: "1:52.445",
-        sessions: 18,
-        distance: 577.3,
-      },
-    ],
-    totalValidLaps: 98,
-    totalInvalidLaps: 12,
-    raceSessions: 6,
-    practiceSessions: 12,
-    wins: 2,
-    podiums: 4,
-    avgLapTime: "1:52.445",
-    bestLapTime: "1:49.223",
-    optimalTime: "1:48.567",
-    worldRecord: "1:46.286",
-    totalDistance: 577.3,
-    recentSessions: [
-      { date: "2024-01-10", type: "Race", laps: 22, bestLap: "1:49.223", car: "911 GT3 RS" },
-      { date: "2024-01-07", type: "Practice", laps: 18, bestLap: "1:50.445", car: "911 GT3 RS" },
-    ],
-    lapTimeProgression: [
-      { session: 1, bestLap: 115.2, avgLap: 118.9 },
-      { session: 5, bestLap: 112.8, avgLap: 116.2 },
-      { session: 10, bestLap: 110.5, avgLap: 114.1 },
-      { session: 15, bestLap: 109.223, avgLap: 112.445 },
-    ],
-  },
-  {
-    id: 3,
-    name: "Spa-Francorchamps",
-    country: "Belgium",
-    length: 7.004,
-    sessions: 12,
-    cars: [
-      {
-        name: "911 GT3 RS",
-        validLaps: 84,
-        invalidLaps: 8,
-        bestLap: "2:18.445",
-        avgLap: "2:21.789",
-        sessions: 12,
-        distance: 588.3,
-      },
-    ],
-    totalValidLaps: 84,
-    totalInvalidLaps: 8,
-    raceSessions: 4,
-    practiceSessions: 8,
-    wins: 1,
-    podiums: 2,
-    avgLapTime: "2:21.789",
-    bestLapTime: "2:18.445",
-    optimalTime: "2:17.892",
-    worldRecord: "2:15.333",
-    totalDistance: 588.3,
-    recentSessions: [{ date: "2024-01-05", type: "Race", laps: 18, bestLap: "2:18.445", car: "911 GT3 RS" }],
-    lapTimeProgression: [
-      { session: 1, bestLap: 145.2, avgLap: 148.9 },
-      { session: 5, bestLap: 142.1, avgLap: 145.3 },
-      { session: 10, bestLap: 138.445, avgLap: 141.789 },
-    ],
-  },
-]
-
-const mockCars = [
-  {
-    id: 1,
-    name: "911 GT3 RS",
-    manufacturer: "Porsche",
-    totalDistance: 2847.6,
-    validLaps: 338,
-    invalidLaps: 38,
-    sessions: 42,
-    wins: 6,
-    podiums: 12,
-    topTrack: "Nürburgring GP",
-    topTrackLaps: 156,
-    topTrackDistance: 803.1,
-    avgLapTime: "1:51.234",
-    bestOverallLap: "1:43.891",
-    reliability: 89.9, // valid laps percentage
-    winRate: 14.3, // wins/sessions percentage
-    podiumRate: 28.6, // podiums/sessions percentage
-    trackPerformance: [
-      {
-        track: "Nürburgring GP",
-        country: "Germany",
-        sessions: 18,
-        validLaps: 156,
-        invalidLaps: 18,
-        distance: 803.1,
-        bestLap: "1:43.891",
-        avgLap: "1:47.234",
-        wins: 3,
-        podiums: 6,
-        worldRecord: "1:41.770",
-        improvement: -3.2, // seconds improved over time
-      },
-      {
-        track: "Silverstone Circuit",
-        country: "United Kingdom",
-        sessions: 18,
-        validLaps: 98,
-        invalidLaps: 12,
-        distance: 577.3,
-        bestLap: "1:49.223",
-        avgLap: "1:52.445",
-        wins: 2,
-        podiums: 4,
-        worldRecord: "1:46.286",
-        improvement: -2.8,
-      },
-      {
-        track: "Spa-Francorchamps",
-        country: "Belgium",
-        sessions: 12,
-        validLaps: 84,
-        invalidLaps: 8,
-        distance: 588.3,
-        bestLap: "2:18.445",
-        avgLap: "2:21.789",
-        wins: 1,
-        podiums: 2,
-        worldRecord: "2:15.333",
-        improvement: -4.1,
-      },
-    ],
-    recentSessions: [
-      { date: "2024-01-15", track: "Nürburgring GP", type: "Race", result: "P1", bestLap: "1:43.891" },
-      { date: "2024-01-12", track: "Nürburgring GP", type: "Practice", result: "-", bestLap: "1:44.567" },
-      { date: "2024-01-10", track: "Silverstone Circuit", type: "Race", result: "P2", bestLap: "1:49.223" },
-    ],
-  },
-  {
-    id: 2,
-    name: "718 Cayman GT4",
-    manufacturer: "Porsche",
-    totalDistance: 1234.8,
-    validLaps: 89,
-    invalidLaps: 12,
-    sessions: 18,
-    wins: 1,
-    podiums: 3,
-    topTrack: "Nürburgring GP",
-    topTrackLaps: 67,
-    topTrackDistance: 370.2,
-    avgLapTime: "1:49.567",
-    bestOverallLap: "1:46.223",
-    reliability: 88.1,
-    winRate: 5.6,
-    podiumRate: 16.7,
-    trackPerformance: [
-      {
-        track: "Nürburgring GP",
-        country: "Germany",
-        sessions: 6,
-        validLaps: 67,
-        invalidLaps: 5,
-        distance: 370.2,
-        bestLap: "1:46.223",
-        avgLap: "1:49.567",
-        wins: 1,
-        podiums: 2,
-        worldRecord: "1:41.770",
-        improvement: -1.8,
-      },
-      {
-        track: "Brands Hatch",
-        country: "United Kingdom",
-        sessions: 12,
-        validLaps: 22,
-        invalidLaps: 7,
-        distance: 864.6,
-        bestLap: "1:24.567",
-        avgLap: "1:26.789",
-        wins: 0,
-        podiums: 1,
-        worldRecord: "1:22.015",
-        improvement: -1.2,
-      },
-    ],
-    recentSessions: [
-      { date: "2024-01-08", track: "Nürburgring GP", type: "Race", result: "P1", bestLap: "1:46.223" },
-      { date: "2024-01-05", track: "Brands Hatch", type: "Practice", result: "-", bestLap: "1:25.445" },
-    ],
-  },
-]
-
-const mockSetups = [
-  {
-    id: 1,
-    name: "Qualifying Setup",
-    category: "Qualifying",
-    car: "911 GT3 RS",
-    track: "Nürburgring GP",
-    bestLapTime: "1:43.891",
-    avgLapTime: "1:45.234",
-    optimalTime: "1:43.102",
-    totalDistance: 145.2,
-    laps: 28,
-    validLaps: 26,
-    invalidLaps: 2,
-    consistency: 94.2, // percentage of laps within 1% of best
-    reliability: 92.9, // valid lap percentage
-    fuelEfficiency: 8.2, // L/100km
-    tireWear: "Medium",
-    sessions: 4,
-    dateCreated: "2024-01-10",
-    lastUsed: "2024-01-15",
-    worldRecord: "1:41.770",
-    improvements: [
-      { session: 1, bestLap: 105.234, avgLap: 107.891 },
-      { session: 2, bestLap: 104.567, avgLap: 106.234 },
-      { session: 3, bestLap: 104.123, avgLap: 105.789 },
-      { session: 4, bestLap: 103.891, avgLap: 105.234 },
-    ],
-    setupDetails: {
-      frontWing: 8,
-      rearWing: 6,
-      suspension: "Stiff",
-      gearing: "Short",
-      brakeBalance: 52,
-      differential: "Aggressive",
-    },
-    conditions: {
-      weather: "Dry",
-      temperature: 22,
-      trackTemp: 35,
-      grip: "High",
-    },
-  },
-  {
-    id: 2,
-    name: "Race Setup",
-    category: "Race",
-    car: "911 GT3 RS",
-    track: "Nürburgring GP",
-    bestLapTime: "1:44.567",
-    avgLapTime: "1:46.123",
-    optimalTime: "1:43.890",
-    totalDistance: 289.4,
-    laps: 56,
-    validLaps: 54,
-    invalidLaps: 2,
-    consistency: 96.8,
-    reliability: 96.4,
-    fuelEfficiency: 7.8,
-    tireWear: "Low",
-    sessions: 8,
-    dateCreated: "2024-01-08",
-    lastUsed: "2024-01-15",
-    worldRecord: "1:41.770",
-    improvements: [
-      { session: 1, bestLap: 106.789, avgLap: 108.456 },
-      { session: 3, bestLap: 105.234, avgLap: 107.123 },
-      { session: 5, bestLap: 104.891, avgLap: 106.567 },
-      { session: 8, bestLap: 104.567, avgLap: 106.123 },
-    ],
-    setupDetails: {
-      frontWing: 7,
-      rearWing: 8,
-      suspension: "Balanced",
-      gearing: "Long",
-      brakeBalance: 54,
-      differential: "Conservative",
-    },
-    conditions: {
-      weather: "Dry",
-      temperature: 24,
-      trackTemp: 38,
-      grip: "Medium",
-    },
-  },
-  {
-    id: 3,
-    name: "Wet Weather Setup",
-    category: "Practice",
-    car: "911 GT3 RS",
-    track: "Silverstone Circuit",
-    bestLapTime: "1:52.234",
-    avgLapTime: "1:54.567",
-    optimalTime: "1:51.789",
-    totalDistance: 176.7,
-    laps: 30,
-    validLaps: 28,
-    invalidLaps: 2,
-    consistency: 89.3,
-    reliability: 93.3,
-    fuelEfficiency: 9.1,
-    tireWear: "High",
-    sessions: 3,
-    dateCreated: "2024-01-05",
-    lastUsed: "2024-01-07",
-    worldRecord: "1:46.286",
-    improvements: [
-      { session: 1, bestLap: 115.678, avgLap: 118.234 },
-      { session: 2, bestLap: 113.456, avgLap: 116.789 },
-      { session: 3, bestLap: 112.234, avgLap: 114.567 },
-    ],
-    setupDetails: {
-      frontWing: 10,
-      rearWing: 12,
-      suspension: "Soft",
-      gearing: "Medium",
-      brakeBalance: 48,
-      differential: "Open",
-    },
-    conditions: {
-      weather: "Wet",
-      temperature: 18,
-      trackTemp: 22,
-      grip: "Low",
-    },
-  },
-  {
-    id: 4,
-    name: "Endurance Setup",
-    category: "Race",
-    car: "718 Cayman GT4",
-    track: "Nürburgring GP",
-    bestLapTime: "1:46.789",
-    avgLapTime: "1:48.234",
-    optimalTime: "1:46.123",
-    totalDistance: 412.3,
-    laps: 80,
-    validLaps: 78,
-    invalidLaps: 2,
-    consistency: 97.5,
-    reliability: 97.5,
-    fuelEfficiency: 6.9,
-    tireWear: "Very Low",
-    sessions: 6,
-    dateCreated: "2024-01-03",
-    lastUsed: "2024-01-08",
-    worldRecord: "1:41.770",
-    improvements: [
-      { session: 1, bestLap: 109.234, avgLap: 111.567 },
-      { session: 3, bestLap: 108.123, avgLap: 110.234 },
-      { session: 6, bestLap: 106.789, avgLap: 108.234 },
-    ],
-    setupDetails: {
-      frontWing: 6,
-      rearWing: 9,
-      suspension: "Medium",
-      gearing: "Long",
-      brakeBalance: 55,
-      differential: "Balanced",
-    },
-    conditions: {
-      weather: "Dry",
-      temperature: 26,
-      trackTemp: 42,
-      grip: "Medium",
-    },
-  },
-]
+import { api } from "../../services/api"
+import { useViewManager } from "../../hooks/useViewManager"
+import type { TrackViewStats, CarViewStats, SetupViewStats } from "../../shared/types"
 
 export default function RaceEngineer() {
   const [activeTab, setActiveTab] = useState("tracks")
@@ -449,6 +32,42 @@ export default function RaceEngineer() {
   const [setupTrackFilter, setSetupTrackFilter] = useState("all")
   const [setupCategoryFilter, setSetupCategoryFilter] = useState("all")
   const [setupSortBy, setSetupSortBy] = useState("bestLap")
+  
+  // Real data state
+  const [trackStats, setTrackStats] = useState<TrackViewStats[]>([])
+  const [carStats, setCarStats] = useState<CarViewStats[]>([])
+  const [setupStats, setSetupStats] = useState<SetupViewStats[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  
+  const viewManager = useViewManager()
+
+  // Fetch data from backend
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setIsLoading(true)
+        
+        // Fetch track stats
+        const trackData = await api.raceEngineer.getTrackViewStats()
+        setTrackStats(trackData)
+        
+        // Fetch car stats
+        const carData = await api.raceEngineer.getCarViewStats()
+        setCarStats(carData)
+        
+        // Fetch setup stats
+        const setupData = await api.raceEngineer.getSetupViewStats()
+        setSetupStats(setupData)
+        
+      } catch (error) {
+        console.error("Error fetching race engineer data:", error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    
+    fetchData()
+  }, [])
 
   const toggleCard = (cardId: string) => {
     setExpandedCard(expandedCard === cardId ? null : cardId)
@@ -463,7 +82,7 @@ export default function RaceEngineer() {
     }
   }
 
-  const filteredTracks = mockTracks.filter((track) => {
+  const filteredTracks = trackStats.filter((track) => {
     const matchesSearch =
       track.name.toLowerCase().includes(trackSearch.toLowerCase()) ||
       track.country.toLowerCase().includes(trackSearch.toLowerCase())
@@ -475,8 +94,14 @@ export default function RaceEngineer() {
   const sortedTracks = [...filteredTracks].sort((a, b) => {
     switch (trackSortBy) {
       case "bestLapTime":
+        if (!a.bestLapTime && !b.bestLapTime) return 0
+        if (!a.bestLapTime) return 1
+        if (!b.bestLapTime) return -1
         return Number.parseFloat(a.bestLapTime.replace(":", "")) - Number.parseFloat(b.bestLapTime.replace(":", ""))
       case "avgLapTime":
+        if (!a.avgLapTime && !b.avgLapTime) return 0
+        if (!a.avgLapTime) return 1
+        if (!b.avgLapTime) return -1
         return Number.parseFloat(a.avgLapTime.replace(":", "")) - Number.parseFloat(b.avgLapTime.replace(":", ""))
       case "validLaps":
         return b.totalValidLaps - a.totalValidLaps
@@ -491,7 +116,7 @@ export default function RaceEngineer() {
     }
   })
 
-  const sortedCars = [...mockCars].sort((a, b) => {
+  const sortedCars = [...carStats].sort((a, b) => {
     switch (carSortBy) {
       case "totalDistance":
         return b.totalDistance - a.totalDistance
@@ -504,15 +129,23 @@ export default function RaceEngineer() {
       case "podiumRate":
         return b.podiumRate - a.podiumRate
       case "bestLap":
+        if (!a.bestOverallLap && !b.bestOverallLap) return 0
+        if (!a.bestOverallLap) return 1
+        if (!b.bestOverallLap) return -1
         return (
           Number.parseFloat(a.bestOverallLap.replace(":", "")) - Number.parseFloat(b.bestOverallLap.replace(":", ""))
         )
+      case "avgLap":
+        if (!a.avgLapTime && !b.avgLapTime) return 0
+        if (!a.avgLapTime) return 1
+        if (!b.avgLapTime) return -1
+        return Number.parseFloat(a.avgLapTime.replace(":", "")) - Number.parseFloat(b.avgLapTime.replace(":", ""))
       default:
         return 0
     }
   })
 
-  const filteredSetups = mockSetups.filter((setup) => {
+  const filteredSetups = setupStats.filter((setup) => {
     const matchesCar =
       setupCarFilter === "all" ||
       (setupCarFilter === "911-gt3-rs" && setup.car === "911 GT3 RS") ||
@@ -523,7 +156,8 @@ export default function RaceEngineer() {
       (setupTrackFilter === "nurburgring" && setup.track === "Nürburgring GP") ||
       (setupTrackFilter === "silverstone" && setup.track === "Silverstone Circuit")
 
-    const matchesCategory = setupCategoryFilter === "all" || setup.category === setupCategoryFilter
+    // Note: Backend doesn't provide category info yet, so we'll skip category filtering for now
+    const matchesCategory = setupCategoryFilter === "all"
 
     return matchesCar && matchesTrack && matchesCategory
   })
@@ -531,6 +165,9 @@ export default function RaceEngineer() {
   const sortedSetups = [...filteredSetups].sort((a, b) => {
     switch (setupSortBy) {
       case "bestLapTime":
+        if (!a.bestLapTime && !b.bestLapTime) return 0
+        if (!a.bestLapTime) return 1
+        if (!b.bestLapTime) return -1
         return Number.parseFloat(a.bestLapTime.replace(":", "")) - Number.parseFloat(b.bestLapTime.replace(":", ""))
       case "consistency":
         return b.consistency - a.consistency
@@ -574,7 +211,7 @@ export default function RaceEngineer() {
     <FeatureLayout header={<FeatureNavigation />}>
     <div className="min-h-screen">
       <div className="sticky top-0 z-50  border-b">
-        <div className="max-w-7xl mx-auto px-6 py-4">
+        <div className="mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-4xl font-bold tracking-tight">Race Engineer</h1>
@@ -591,7 +228,7 @@ export default function RaceEngineer() {
       </div>
 
       <div className="sticky top-[120px] z-40  border-b">
-        <div className="max-w-7xl mx-auto px-6 py-4">
+        <div className="mx-auto px-6 py-4">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="tracks" className="flex items-center gap-2">
@@ -611,7 +248,7 @@ export default function RaceEngineer() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6">
+      <div className="mx-auto px-6">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsContent value="tracks" className="mt-0">
             <div className="sticky top-[184px] z-30  border-b py-4">
@@ -622,6 +259,7 @@ export default function RaceEngineer() {
                   searchPlaceholder="Search tracks..."
                   searchValue={trackSearch}
                   onSearchChange={setTrackSearch}
+                  onViewStatsTable={() => viewManager.setActiveSubmodule("track-car-stats")}
                   filters={[
                     {
                       key: "country",
@@ -629,9 +267,10 @@ export default function RaceEngineer() {
                       value: trackCountryFilter,
                       options: [
                         { value: "all", label: "All Countries" },
-                        { value: "Germany", label: "Germany" },
-                        { value: "United Kingdom", label: "United Kingdom" },
-                        { value: "Belgium", label: "Belgium" },
+                        ...Array.from(new Set(trackStats.map(t => t.country).filter(c => c !== "N/A"))).map(country => ({
+                          value: country,
+                          label: country
+                        }))
                       ],
                       onValueChange: setTrackCountryFilter,
                     },
@@ -667,18 +306,23 @@ export default function RaceEngineer() {
             </div>
 
             <div className="h-[calc(100vh-280px)] overflow-y-auto py-6 space-y-6">
-              {sortedTracks.map((track) => (
+              {isLoading ? (
+                <div className="text-center p-8 text-muted-foreground">
+                  <p>Loading race engineer data...</p>
+                </div>
+              ) : (
+                sortedTracks.map((track) => (
                 <ExpandableCard
                   key={track.id}
                   id={`track-${track.id}`}
                   title={track.name}
-                  subtitle={`${track.country} • ${track.length}km`}
+                  subtitle={`${track.country} • ${track.length.toFixed(1)}km`}
                   badges={[
                     { text: `${track.totalDistance.toFixed(1)}km total` },
                     { text: `${track.sessions} Sessions`, variant: "secondary" },
                   ]}
                   metrics={[
-                    { value: track.bestLapTime, label: "Best Lap", color: "font-mono" },
+                    { value: track.bestLapTime || "N/A", label: "Best Lap", color: "font-mono" },
                     { value: track.totalValidLaps, label: "Valid Laps", color: "text-green-600" },
                     { value: track.wins, label: "Wins", color: "text-blue-600" },
                     { value: track.podiums, label: "Podiums", color: "text-purple-600" },
@@ -712,8 +356,9 @@ export default function RaceEngineer() {
                               metrics={[
                                 {
                                   label: "Performance vs World Record",
-                                  value: 100 - Number.parseFloat(getPerformanceGap(track.bestLapTime, track.worldRecord)),
-                                  description: `World Record: ${track.worldRecord} • Your Best: ${track.bestLapTime}`,
+                                  value: track.bestLapTime && track.worldRecord ? 
+                                    (1 - (parseFloat(track.bestLapTime.replace(":", "")) - parseFloat(track.worldRecord.replace(":", ""))) / parseFloat(track.worldRecord.replace(":", ""))) * 100 : 0,
+                                  description: `World Record: ${track.worldRecord || "N/A"} • Your Best: ${track.bestLapTime || "N/A"}`,
                                 },
                               ]}
                               columns={1}
@@ -731,7 +376,7 @@ export default function RaceEngineer() {
                               title: car.name,
                               badges: [{ text: car.name, variant: "outline" }],
                               metrics: [
-                                { label: "Best Lap", value: car.bestLap, color: "font-mono" },
+                                { label: "Best Lap", value: car.bestLap || "N/A", color: "font-mono" },
                               ],
                               actions: [
                                 {
@@ -761,7 +406,7 @@ export default function RaceEngineer() {
                               ],
                               metrics: [
                                 { label: "laps", value: session.laps },
-                                { label: "Best Lap", value: session.bestLap, color: "font-mono" },
+                                { label: "Best Lap", value: session.bestLap || "N/A", color: "font-mono" },
                               ],
                             })) || []}
                             emptyMessage="No recent sessions available"
@@ -771,9 +416,10 @@ export default function RaceEngineer() {
                     ]}
                   />
                 </ExpandableCard>
-              ))}
+              ))
+              )}
 
-              {sortedTracks.length === 0 && (
+              {!isLoading && sortedTracks.length === 0 && (
                 <EmptyState icon={MapPin} message="No tracks found matching your filters." />
               )}
             </div>
@@ -785,6 +431,7 @@ export default function RaceEngineer() {
                 <h2 className="text-2xl font-semibold">Car Performance Analysis</h2>
 
                 <FilterControls
+                  onViewStatsTable={() => viewManager.setActiveSubmodule("track-car-stats")}
                   filters={[
                     {
                       key: "sort",
@@ -797,6 +444,7 @@ export default function RaceEngineer() {
                         { value: "winRate", label: "Win Rate" },
                         { value: "podiumRate", label: "Podium Rate" },
                         { value: "bestLap", label: "Best Lap Time" },
+                        { value: "avgLap", label: "Average Lap Time" },
                       ],
                       onValueChange: setCarSortBy,
                       width: "w-[160px]",
@@ -807,7 +455,12 @@ export default function RaceEngineer() {
             </div>
 
             <div className="h-[calc(100vh-280px)] overflow-y-auto py-6 space-y-6">
-              {sortedCars.map((car) => (
+              {isLoading ? (
+                <div className="text-center p-8 text-muted-foreground">
+                  <p>Loading car data...</p>
+                </div>
+              ) : (
+                sortedCars.map((car) => (
                 <ExpandableCard
                   key={car.id}
                   id={`car-${car.id}`}
@@ -819,7 +472,7 @@ export default function RaceEngineer() {
                     { text: `${car.sessions} Sessions`, variant: "secondary" },
                   ]}
                   metrics={[
-                    { value: car.bestOverallLap, label: "Best Lap", color: "font-mono" },
+                    { value: car.bestOverallLap || "N/A", label: "Best Lap", color: "font-mono" },
                     { value: `${car.totalDistance.toFixed(0)}km`, label: "Total Distance" },
                     { value: car.validLaps, label: "Valid Laps", color: "text-green-600" },
                     { value: car.wins, label: "Wins", color: "text-blue-600" },
@@ -844,7 +497,7 @@ export default function RaceEngineer() {
                                 <div className="text-xs text-muted-foreground">Podiums</div>
                               </div>
                               <div className="text-center p-3 bg-muted/50 rounded-lg">
-                                <div className="text-lg font-bold">{car.avgLapTime}</div>
+                                <div className="text-lg font-bold">{car.avgLapTime || "N/A"}</div>
                                 <div className="text-xs text-muted-foreground">Avg Lap</div>
                               </div>
                             </div>
@@ -925,7 +578,7 @@ export default function RaceEngineer() {
 
                                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
                                     <div className="text-center p-2 bg-muted/50 rounded">
-                                      <div className="font-mono text-sm">{track.bestLap}</div>
+                                      <div className="font-mono text-sm">{track.bestLap || "N/A"}</div>
                                       <div className="text-xs text-muted-foreground">Best Lap</div>
                                     </div>
                                     <div className="text-center p-2 bg-muted/50 rounded">
@@ -960,7 +613,7 @@ export default function RaceEngineer() {
                                 { text: session.type, variant: session.type === "Race" ? "default" : "secondary" },
                               ],
                               metrics: [
-                                { label: "Best Lap", value: session.bestLap, color: "font-mono" },
+                                { label: "Best Lap", value: session.bestLap || "N/A", color: "font-mono" },
                                 { label: "Result", value: session.result && session.result !== "-" ? session.result : "Practice" },
                               ],
                             })) || []}
@@ -971,7 +624,8 @@ export default function RaceEngineer() {
                     ]}
                   />
                 </ExpandableCard>
-              ))}
+              ))
+              )}
             </div>
           </TabsContent>
 
@@ -981,6 +635,7 @@ export default function RaceEngineer() {
                 <h2 className="text-2xl font-semibold">Setup Performance Analysis</h2>
 
                 <FilterControls
+                  onViewStatsTable={() => viewManager.setActiveSubmodule("track-car-stats")}
                   filters={[
                     {
                       key: "car",
@@ -1010,9 +665,6 @@ export default function RaceEngineer() {
                       value: setupCategoryFilter,
                       options: [
                         { value: "all", label: "All Categories" },
-                        { value: "Qualifying", label: "Qualifying" },
-                        { value: "Race", label: "Race" },
-                        { value: "Practice", label: "Practice" },
                       ],
                       onValueChange: setSetupCategoryFilter,
                     },
@@ -1037,19 +689,23 @@ export default function RaceEngineer() {
             </div>
 
             <div className="h-[calc(100vh-280px)] overflow-y-auto py-6 space-y-6">
-              {sortedSetups.map((setup) => (
+              {isLoading ? (
+                <div className="text-center p-8 text-muted-foreground">
+                  <p>Loading setup data...</p>
+                </div>
+              ) : (
+                sortedSetups.map((setup) => (
                 <ExpandableCard
                   key={setup.id}
                   id={`setup-${setup.id}`}
                   title={setup.name}
                   subtitle={setup.car}
                   badges={[
-                    { text: setup.category },
                     { text: setup.track },
                     { text: `${setup.sessions} Sessions`, variant: "secondary" },
                   ]}
                   metrics={[
-                    { value: setup.bestLapTime, label: "Best Lap", color: "font-mono" },
+                    { value: setup.bestLapTime || "N/A", label: "Best Lap", color: "font-mono" },
                     { value: setup.validLaps, label: "Valid Laps", color: "text-green-600" },
                     { value: `${setup.consistency.toFixed(1)}%`, label: "Consistency" },
                     { value: `${setup.totalDistance.toFixed(0)}km`, label: "Distance" },
@@ -1068,7 +724,7 @@ export default function RaceEngineer() {
                           <>
                             <div className="grid grid-cols-2 gap-4">
                               <div className="text-center p-3 bg-muted/50 rounded-lg">
-                                <div className="text-lg font-bold font-mono">{setup.optimalTime}</div>
+                                <div className="text-lg font-bold font-mono">{setup.optimalTime || "N/A"}</div>
                                 <div className="text-xs text-muted-foreground">Optimal Time</div>
                               </div>
                               <div className="text-center p-3 bg-muted/50 rounded-lg">
@@ -1090,9 +746,9 @@ export default function RaceEngineer() {
                                   description: "Valid lap completion rate",
                                 },
                                 {
-                                  label: "vs World Record",
-                                  value: 100 - Number.parseFloat(getPerformanceGap(setup.bestLapTime, setup.worldRecord)),
-                                  description: "Gap to world record",
+                                  label: "Fuel Efficiency",
+                                  value: setup.fuelEfficiency,
+                                  description: "Fuel consumption per 100km",
                                 },
                               ]}
                               columns={3}
@@ -1139,34 +795,19 @@ export default function RaceEngineer() {
                           <div className="space-y-4">
                             <h4 className="font-medium">Setup Configuration</h4>
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                              <div className="p-3 bg-muted/20 rounded-lg">
-                                <div className="text-sm font-medium">Aerodynamics</div>
-                                <div className="text-xs text-muted-foreground mt-1">
-                                  Front Wing: {setup.setupDetails.frontWing} • Rear Wing: {setup.setupDetails.rearWing}
+                              {setup.setupDetails && Object.entries(setup.setupDetails).map(([key, value]) => (
+                                <div key={key} className="p-3 bg-muted/20 rounded-lg">
+                                  <div className="text-sm font-medium capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</div>
+                                  <div className="text-xs text-muted-foreground mt-1">
+                                    {typeof value === 'object' ? JSON.stringify(value) : String(value)}
+                                  </div>
                                 </div>
-                              </div>
-                              <div className="p-3 bg-muted/20 rounded-lg">
-                                <div className="text-sm font-medium">Suspension</div>
-                                <div className="text-xs text-muted-foreground mt-1">
-                                  {setup.setupDetails.suspension}
+                              ))}
+                              {(!setup.setupDetails || Object.keys(setup.setupDetails).length === 0) && (
+                                <div className="col-span-full text-center p-8 text-muted-foreground">
+                                  <p>No setup configuration details available</p>
                                 </div>
-                              </div>
-                              <div className="p-3 bg-muted/20 rounded-lg">
-                                <div className="text-sm font-medium">Gearing</div>
-                                <div className="text-xs text-muted-foreground mt-1">{setup.setupDetails.gearing}</div>
-                              </div>
-                              <div className="p-3 bg-muted/20 rounded-lg">
-                                <div className="text-sm font-medium">Brake Balance</div>
-                                <div className="text-xs text-muted-foreground mt-1">
-                                  {setup.setupDetails.brakeBalance}%
-                                </div>
-                              </div>
-                              <div className="p-3 bg-muted/20 rounded-lg">
-                                <div className="text-sm font-medium">Differential</div>
-                                <div className="text-xs text-muted-foreground mt-1">
-                                  {setup.setupDetails.differential}
-                                </div>
-                              </div>
+                              )}
                             </div>
                           </div>
                         ),
@@ -1178,49 +819,30 @@ export default function RaceEngineer() {
                           <div className="space-y-4">
                             <h4 className="font-medium">Track Conditions</h4>
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                              <div className="p-3 bg-muted/20 rounded-lg">
-                                <div className="text-sm font-medium">Weather</div>
-                                <div className="text-xs text-muted-foreground mt-1">{setup.conditions.weather}</div>
-                              </div>
-                              <div className="p-3 bg-muted/20 rounded-lg">
-                                <div className="text-sm font-medium">Temperature</div>
-                                <div className="text-xs text-muted-foreground mt-1">
-                                  Air: {setup.conditions.temperature}°C
+                              {setup.conditions && Object.entries(setup.conditions).map(([key, value]) => (
+                                <div key={key} className="p-3 bg-muted/20 rounded-lg">
+                                  <div className="text-sm font-medium capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</div>
+                                  <div className="text-xs text-muted-foreground mt-1">
+                                    {typeof value === 'object' ? JSON.stringify(value) : String(value)}
+                                  </div>
                                 </div>
-                              </div>
-                              <div className="p-3 bg-muted/20 rounded-lg">
-                                <div className="text-sm font-medium">Track Temp</div>
-                                <div className="text-xs text-muted-foreground mt-1">
-                                  {setup.conditions.trackTemp}°C
+                              ))}
+                              {(!setup.conditions || Object.keys(setup.conditions).length === 0) && (
+                                <div className="col-span-full text-center p-8 text-muted-foreground">
+                                  <p>No track conditions data available</p>
                                 </div>
-                              </div>
-                              <div className="p-3 bg-muted/20 rounded-lg">
-                                <div className="text-sm font-medium">Grip Level</div>
-                                <div className="text-xs text-muted-foreground mt-1">{setup.conditions.grip}</div>
-                              </div>
+                              )}
                             </div>
-
-                            <h4 className="font-medium">Performance Progression</h4>
-                            <DataList
-                              items={setup.improvements?.map((session, idx) => ({
-                                id: idx,
-                                title: `Session ${session.session}`,
-                                metrics: [
-                                  { label: "Best lap", value: session.bestLap, color: "font-mono" },
-                                  { label: "Avg lap", value: session.avgLap, color: "font-mono" },
-                                ],
-                              })) || []}
-                              emptyMessage="No progression data available"
-                            />
                           </div>
                         ),
                       },
                     ]}
                   />
                 </ExpandableCard>
-              ))}
+              ))
+              )}
 
-              {sortedSetups.length === 0 && (
+              {!isLoading && sortedSetups.length === 0 && (
                 <EmptyState icon={Settings} message="No setups found matching your filters." />
               )}
             </div>

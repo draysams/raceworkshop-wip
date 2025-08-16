@@ -27,14 +27,13 @@ class SessionEnded(Event):
 @dataclass
 class StintStarted(Event):
     lap_number: int
-    # --- CHANGE START: Add setup_id ---
     setup_id: int | None
-    # --- CHANGE END ---
 
 @dataclass
 class StintEnded(Event):
     lap_number: int
-
+    final_place: int
+    
 # --- Lap Events ---
 @dataclass
 class LapStarted(Event):

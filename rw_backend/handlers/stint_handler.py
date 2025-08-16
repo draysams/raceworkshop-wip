@@ -47,10 +47,11 @@ class StintHandler:
         if self.current_stint_model:
             print(f"[StintHandler] Ending Stint #{self.current_stint_model.stint_number}", flush=True)
             self.current_stint_model.ended_on_lap = event.lap_number
+            self.current_stint_model.final_place = event.final_place
             self.current_stint_model.save()
             self.current_stint_model = None
             
     def on_session_ended(self):
         if self.current_stint_model and self.current_stint_model.ended_on_lap is None:
             print("[StintHandler] Session ended, closing final open stint.", flush=True)
-            self.on_stint_ended(StintEnded(lap_number=0))
+            self.on_stint_ended(StintEnded(lap_number=0, final_place=None))

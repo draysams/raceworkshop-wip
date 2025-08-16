@@ -174,6 +174,152 @@ export type ModuleDashboardStats = GlobalDashboardStats;
 // --- NEW TYPES END ---
 
 // =================================================================
+//                      RACE ENGINEER TYPES
+// =================================================================
+
+export interface TrackViewStats {
+  id: number;
+  name: string;
+  country: string;
+  length: number;
+  sessions: number;
+  cars: CarStatsForTrack[];
+  totalValidLaps: number;
+  totalInvalidLaps: number;
+  raceSessions: number;
+  practiceSessions: number;
+  wins: number;
+  podiums: number;
+  avgLapTime: string | null;
+  bestLapTime: string | null;
+  optimalTime: string | null;
+  worldRecord: string | null;
+  totalDistance: number;
+  recentSessions: RecentSession[];
+  lapTimeProgression: any[];
+}
+
+export interface CarStatsForTrack {
+  name: string;
+  validLaps: number;
+  invalidLaps: number;
+  bestLap: string | null;
+  avgLap: string | null;
+  sessions: number;
+  distance: number;
+}
+
+export interface CarViewStats {
+  id: number;
+  name: string;
+  manufacturer: string;
+  totalDistance: number;
+  validLaps: number;
+  invalidLaps: number;
+  sessions: number;
+  wins: number;
+  podiums: number;
+  topTrack: string;
+  topTrackLaps: number;
+  topTrackDistance: number;
+  avgLapTime: string | null;
+  bestOverallLap: string | null;
+  reliability: number;
+  winRate: number;
+  podiumRate: number;
+  trackPerformance: TrackPerformance[];
+  recentSessions: RecentSession[];
+}
+
+export interface SetupViewStats {
+  id: number;
+  name: string;
+  car: string;
+  track: string;
+  bestLapTime: string | null;
+  avgLapTime: string | null;
+  optimalTime: string | null;
+  totalDistance: number;
+  laps: number;
+  validLaps: number;
+  invalidLaps: number;
+  consistency: number;
+  reliability: number;
+  fuelEfficiency: number;
+  sessions: number;
+  dateCreated: string;
+  lastUsed: string;
+  setupDetails: any;
+  conditions: any;
+}
+
+export interface RecentSession {
+  date: string;
+  type: string;
+  laps: number;
+  bestLap: string | null;
+  car: string;
+  track: string;
+  result: string;
+}
+
+export interface TrackPerformance {
+  track: string;
+  country: string;
+  sessions: number;
+  validLaps: number;
+  invalidLaps: number;
+  distance: number;
+  bestLap: string | null;
+  avgLap: string | null;
+  wins: number;
+  podiums: number;
+  worldRecord: string | null;
+  improvement: string;
+}
+
+// Track & Car Stats Types
+export interface TrackStats {
+  id: number;
+  name: string;
+  distance: string;
+  timeSpent: string;
+  validLaps: number;
+  invalidLaps: number;
+  races: number;
+  finished: number;
+  wins: number;
+  podiums: number;
+  penalties: number;
+  served: number;
+  dsq: number;
+  bestLap: string;
+  avgLap: string;
+  trackIcon: string;
+}
+
+export interface CarStatsForTrack {
+  id: number;
+  name: string;
+  class: string;
+  manufacturer: string;
+  logo: string;
+  distance: string;
+  timeSpent: string;
+  validLaps: number;
+  invalidLaps: number;
+  races: number;
+  finished: number;
+  wins: number;
+  podiums: number;
+  penalties: number;
+  served: number;
+  dsq: number;
+  bestLap: string;
+  avgLap: string;
+}
+
+// =================================================================
 //                      TELEMETRY TYPES
 // =================================================================
 
@@ -291,5 +437,14 @@ export interface IRaceWorkshopAPI {
         onData: (callback: (data: LiveSessionData) => void) => () => void;
         getLapTelemetry: (lapId: number) => Promise<LapTelemetryData>;
         compareLaps: (lapId1: number, lapId2: number) => Promise<LapComparisonData>;
+    };
+    raceEngineer: {
+        getTrackViewStats: () => Promise<TrackViewStats[]>;
+        getCarViewStats: () => Promise<CarViewStats[]>;
+        getSetupViewStats: (carIdFilter?: number, trackIdFilter?: number) => Promise<SetupViewStats[]>;
+    };
+    trackCarStats: {
+        getTrackStats: () => Promise<TrackStats[]>;
+        getCarStatsForTrack: (trackId: number) => Promise<CarStatsForTrack[]>;
     };
 }

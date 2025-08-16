@@ -5,6 +5,7 @@ import { SessionHistory } from "../../features/sessions/SessionHistory"
 import { SessionDetailView } from "../../features/sessions/SessionDetail"
 import Telemetry from "../../features/telemetry/Telemetry"
 import RaceEngineer from "../../features/engineer/RaceEngineer"
+import TrackCarStats from "../../features/engineer/TrackCarStats"
 import { useViewManager } from "../../hooks/useViewManager"
 
 export function ContentPane() {
@@ -60,6 +61,8 @@ export function ContentPane() {
                 )
             case "engineer":
                 return <RaceEngineer />
+            case "track-car-stats":
+                return <TrackCarStats />
             case "paintshop":
                 return (
                     <div className="p-6 text-center bg-black">

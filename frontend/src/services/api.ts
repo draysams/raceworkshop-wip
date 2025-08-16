@@ -10,7 +10,12 @@ import type {
     ModuleDashboardStats,
     Simulator,
     LapTelemetryData,
-    LapComparisonData
+    LapComparisonData,
+    TrackViewStats,
+    CarViewStats,
+    SetupViewStats,
+    TrackStats,
+    CarStatsForTrack
 } from '../shared/types';
 
 // --- CHANGE START: Update the global type definition to match the flat API structure ---
@@ -26,6 +31,13 @@ declare global {
                 getSessionDetail: (sessionId: number) => Promise<string | null>;
                 getLapTelemetry: (lapId: number) => Promise<string>;
                 compareLaps: (lapId1: number, lapId2: number) => Promise<string>;
+                // Race Engineer endpoints
+                getTrackViewStats: () => Promise<string>;
+                getCarViewStats: () => Promise<string>;
+                getSetupViewStats: () => Promise<string>;
+                // Track & Car Stats endpoints
+                getTrackStats: () => Promise<string>;
+                getCarStatsForTrack: (trackId: number) => Promise<string>;
             };
         };
     }
@@ -190,6 +202,71 @@ export const api: IRaceWorkshopAPI = {
                     lap1: { lapId: lapId1, telemetry: {}, trackpath: [] }, 
                     lap2: { lapId: lapId2, telemetry: {}, trackpath: [] } 
                 };
+            }
+        },
+    },
+    
+    raceEngineer: {
+        getTrackViewStats: async (): Promise<TrackViewStats[]> => {
+            try {
+                if (window.pywebview?.api) {
+                    const jsonString = await window.pywebview.api.getTrackViewStats();
+                    return JSON.parse(jsonString);
+                }
+                throw new Error("Pywebview API not available.");
+            } catch (e) {
+                console.error("Failed to get track view stats:", e);
+                return [];
+            }
+        },
+        getCarViewStats: async (): Promise<CarViewStats[]> => {
+            try {
+                if (window.pywebview?.api) {
+                    const jsonString = await window.pywebview.api.getCarViewStats();
+                    return JSON.parse(jsonString);
+                }
+                throw new Error("Pywebview API not available.");
+            } catch (e) {
+                console.error("Failed to get car view stats:", e);
+                return [];
+            }
+        },
+        getSetupViewStats: async (carIdFilter?: number, trackIdFilter?: number): Promise<SetupViewStats[]> => {
+            try {
+                if (window.pywebview?.api) {
+                    const jsonString = await window.pywebview.api.getSetupViewStats();
+                    return JSON.parse(jsonString);
+                }
+                throw new Error("Pywebview API not available.");
+            } catch (e) {
+                console.error("Failed to get setup view stats:", e);
+                return [];
+            }
+        },
+    },
+    trackCarStats: {
+        getTrackStats: async (): Promise<TrackStats[]> => {
+            try {
+                if (window.pywebview?.api) {
+                    const jsonString = await window.pywebview.api.getTrackStats();
+                    return JSON.parse(jsonString);
+                }
+                throw new Error("Pywebview API not available.");
+            } catch (e) {
+                console.error("Failed to get track stats:", e);
+                return [];
+            }
+        },
+        getCarStatsForTrack: async (trackId: number): Promise<CarStatsForTrack[]> => {
+            try {
+                if (window.pywebview?.api) {
+                    const jsonString = await window.pywebview.api.getCarStatsForTrack(trackId);
+                    return JSON.parse(jsonString);
+                }
+                throw new Error("Pywebview API not available.");
+            } catch (e) {
+                console.error("Failed to get car stats for track:", e);
+                return [];
             }
         },
     },
