@@ -26,7 +26,7 @@ export function PerformanceMetrics({ metrics, columns = 3 }: PerformanceMetricsP
         <div key={index} className="bg-muted/30 p-4 rounded-lg">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium">{metric.label}</span>
-            <span className="text-sm text-muted-foreground">
+            <span className="text-sm text-zinc-400">
               {metric.value.toFixed(1)}
               {metric.unit && metric.unit}
             </span>
@@ -36,7 +36,7 @@ export function PerformanceMetrics({ metrics, columns = 3 }: PerformanceMetricsP
             className="h-2"
           />
           {metric.description && (
-            <div className="text-xs text-muted-foreground mt-1">{metric.description}</div>
+            <div className="text-xs text-zinc-400 mt-1">{metric.description}</div>
           )}
         </div>
       ))}

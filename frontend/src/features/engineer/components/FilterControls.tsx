@@ -35,16 +35,16 @@ export function FilterControls({
       {onViewStatsTable && (
         <Button 
           variant="outline" 
-          className="gap-2 bg-transparent"
+          className="border-zinc-600 bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-800"
           onClick={onViewStatsTable}
         >
-          <BarChart3 className="w-4 h-4" />
           View Stats Table
+          <BarChart3 className="w-4 h-4 ml-2" />
         </Button>
       )}
       {onSearchChange && (
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-zinc-400 w-4 h-4" />
           <Input
             placeholder={searchPlaceholder}
             value={searchValue}
@@ -54,20 +54,20 @@ export function FilterControls({
         </div>
       )}
 
-      {filters.map((filter) => (
-        <Select key={filter.key} value={filter.value} onValueChange={filter.onValueChange}>
-          <SelectTrigger className={filter.width || "w-[140px]"}>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {filter.options.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      ))}
+             {filters.map((filter) => (
+         <Select key={filter.key} value={filter.value} onValueChange={filter.onValueChange}>
+           <SelectTrigger className={`${filter.width || "w-[140px]"} text-zinc-400`}>
+             <SelectValue />
+           </SelectTrigger>
+           <SelectContent>
+             {filter.options.map((option) => (
+               <SelectItem key={option.value} value={option.value}>
+                 {option.label}
+               </SelectItem>
+             ))}
+           </SelectContent>
+         </Select>
+       ))}
     </div>
   )
 }

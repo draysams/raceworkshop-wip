@@ -487,8 +487,8 @@ useEffect(() => {
                                 <Thermometer className="w-3 h-3" />
                                 <div className="text-sm">
                                   <div>{session.weather || "---"}</div>
-                                  <div className="text-xs text-zinc-500">A: {session.airTemp ? `${session.airTemp}°C` : "---"}</div>
-                                  <div className="text-xs text-zinc-500">T: {session.trackTemp ? `${session.trackTemp}°C` : "---"}</div>
+                                  <div className="text-xs text-zinc-500">A: {session.airTemp ? `${Math.round(session.airTemp)}°C` : "---"}</div>
+                                  <div className="text-xs text-zinc-500">T: {session.trackTemp ? `${Math.round(session.trackTemp)}°C` : "---"}</div>
                                 </div>
                               </div>
                             </div>

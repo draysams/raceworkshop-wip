@@ -20,7 +20,7 @@ interface DataListProps {
 export function DataList({ items, emptyMessage = "No data available", emptyIcon }: DataListProps) {
   if (items.length === 0) {
     return (
-      <div className="text-center py-4 text-muted-foreground">
+      <div className="text-center py-4 text-zinc-400">
         {emptyIcon && <div className="mb-4">{emptyIcon}</div>}
         <p>{emptyMessage}</p>
       </div>
@@ -39,14 +39,14 @@ export function DataList({ items, emptyMessage = "No data available", emptyIcon 
             ))}
             <div className="text-sm">
               <div className="font-medium">{item.title}</div>
-              {item.subtitle && <div className="text-muted-foreground">{item.subtitle}</div>}
+              {item.subtitle && <div className="text-zinc-400">{item.subtitle}</div>}
             </div>
           </div>
           <div className="flex items-center gap-4">
             {item.metrics?.map((metric, index) => (
               <div key={index} className="text-right">
                 <div className={`font-mono text-sm ${metric.color || ""}`}>{metric.value}</div>
-                <div className="text-xs text-muted-foreground">{metric.label}</div>
+                <div className="text-xs text-zinc-500">{metric.label}</div>
               </div>
             ))}
             {item.actions?.map((action, index) => (

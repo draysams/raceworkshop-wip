@@ -203,7 +203,7 @@ export default function RaceEngineer() {
       case "Very High":
         return "text-red-500"
       default:
-        return "text-muted-foreground"
+        return "text-zinc-400"
     }
   }
 
@@ -214,8 +214,8 @@ export default function RaceEngineer() {
         <div className="mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-4xl font-bold tracking-tight">Race Engineer</h1>
-              <p className="text-muted-foreground text-lg">Telemetry Analytics & Performance Dashboard</p>
+                                            <h1 className="text-3xl font-bold text-white mb-2">Race Engineer</h1>
+               <p className="text-zinc-400">Telemetry Analytics & Performance Dashboard</p>
             </div>
             <div className="flex items-center gap-2">
               <Badge variant="outline" className="text-sm">
@@ -253,7 +253,7 @@ export default function RaceEngineer() {
           <TabsContent value="tracks" className="mt-0">
             <div className="sticky top-[184px] z-30  border-b py-4">
               <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
-                <h2 className="text-2xl font-semibold">Track Performance Analysis</h2>
+                                 <h2 className="text-2xl font-semibold text-white">Track Performance Analysis</h2>
 
                 <FilterControls
                   searchPlaceholder="Search tracks..."
@@ -307,7 +307,7 @@ export default function RaceEngineer() {
 
             <div className="h-[calc(100vh-280px)] overflow-y-auto py-6 space-y-6">
               {isLoading ? (
-                <div className="text-center p-8 text-muted-foreground">
+                <div className="text-center p-8 text-zinc-400">
                   <p>Loading race engineer data...</p>
                 </div>
               ) : (
@@ -344,11 +344,11 @@ export default function RaceEngineer() {
                             <div className="grid grid-cols-2 gap-4">
                               <div className="text-center p-3 bg-muted/50 rounded-lg">
                                 <div className="text-lg font-bold text-red-600">{track.totalInvalidLaps}</div>
-                                <div className="text-xs text-muted-foreground">Invalid Laps</div>
+                                <div className="text-xs text-zinc-500">Invalid Laps</div>
                               </div>
                               <div className="text-center p-3 bg-muted/50 rounded-lg">
                                 <div className="text-lg font-bold">{track.avgLapTime}</div>
-                                <div className="text-xs text-muted-foreground">Avg Lap</div>
+                                <div className="text-xs text-zinc-500">Avg Lap</div>
                               </div>
                             </div>
 
@@ -428,7 +428,7 @@ export default function RaceEngineer() {
           <TabsContent value="cars" className="mt-0">
             <div className="sticky top-[184px] z-30  border-b py-4">
               <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
-                <h2 className="text-2xl font-semibold">Car Performance Analysis</h2>
+                                 <h2 className="text-2xl font-semibold text-white">Car Performance Analysis</h2>
 
                 <FilterControls
                   onViewStatsTable={() => viewManager.setActiveSubmodule("track-car-stats")}
@@ -456,7 +456,7 @@ export default function RaceEngineer() {
 
             <div className="h-[calc(100vh-280px)] overflow-y-auto py-6 space-y-6">
               {isLoading ? (
-                <div className="text-center p-8 text-muted-foreground">
+                <div className="text-center p-8 text-zinc-400">
                   <p>Loading car data...</p>
                 </div>
               ) : (
@@ -494,11 +494,11 @@ export default function RaceEngineer() {
                             <div className="grid grid-cols-2 gap-4">
                               <div className="text-center p-3 bg-muted/50 rounded-lg">
                                 <div className="text-lg font-bold text-purple-600">{car.podiums}</div>
-                                <div className="text-xs text-muted-foreground">Podiums</div>
+                                <div className="text-xs text-zinc-500">Podiums</div>
                               </div>
                               <div className="text-center p-3 bg-muted/50 rounded-lg">
                                 <div className="text-lg font-bold">{car.avgLapTime || "N/A"}</div>
-                                <div className="text-xs text-muted-foreground">Avg Lap</div>
+                                <div className="text-xs text-zinc-500">Avg Lap</div>
                               </div>
                             </div>
 
@@ -528,9 +528,9 @@ export default function RaceEngineer() {
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
                                   <Badge variant="outline">{car.topTrack}</Badge>
-                                  <span className="text-sm text-muted-foreground">
-                                    {car.topTrackLaps} laps • {car.topTrackDistance.toFixed(1)}km
-                                  </span>
+                                                                  <span className="text-sm text-zinc-400">
+                                  {car.topTrackLaps} laps • {car.topTrackDistance.toFixed(1)}km
+                                </span>
                                 </div>
                                 <Button
                                   variant="outline"
@@ -560,7 +560,7 @@ export default function RaceEngineer() {
                                   <div className="flex items-center justify-between mb-3">
                                     <div>
                                       <h5 className="font-medium">{track.track}</h5>
-                                      <p className="text-sm text-muted-foreground">{track.country}</p>
+                                      <p className="text-sm text-zinc-400">{track.country}</p>
                                     </div>
                                     <div className="flex items-center gap-2">
                                       {track.wins > 0 && (
@@ -579,19 +579,19 @@ export default function RaceEngineer() {
                                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
                                     <div className="text-center p-2 bg-muted/50 rounded">
                                       <div className="font-mono text-sm">{track.bestLap || "N/A"}</div>
-                                      <div className="text-xs text-muted-foreground">Best Lap</div>
+                                      <div className="text-xs text-zinc-500">Best Lap</div>
                                     </div>
                                     <div className="text-center p-2 bg-muted/50 rounded">
                                       <div className="text-sm font-medium">{track.validLaps}</div>
-                                      <div className="text-xs text-muted-foreground">Valid Laps</div>
+                                      <div className="text-xs text-zinc-500">Valid Laps</div>
                                     </div>
                                     <div className="text-center p-2 bg-muted/50 rounded">
                                       <div className="text-sm font-medium">{track.distance.toFixed(1)}km</div>
-                                      <div className="text-xs text-muted-foreground">Distance</div>
+                                      <div className="text-xs text-zinc-500">Distance</div>
                                     </div>
                                     <div className="text-center p-2 bg-muted/50 rounded">
                                       <div className="text-sm font-medium">{track.improvement}</div>
-                                      <div className="text-xs text-muted-foreground">Improvement</div>
+                                      <div className="text-xs text-zinc-500">Improvement</div>
                                     </div>
                                   </div>
                                 </div>
@@ -632,7 +632,7 @@ export default function RaceEngineer() {
           <TabsContent value="setup" className="mt-0">
             <div className="sticky top-[184px] z-30  border-b py-4">
               <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
-                <h2 className="text-2xl font-semibold">Setup Performance Analysis</h2>
+                                 <h2 className="text-2xl font-semibold text-white">Setup Performance Analysis</h2>
 
                 <FilterControls
                   onViewStatsTable={() => viewManager.setActiveSubmodule("track-car-stats")}
@@ -690,7 +690,7 @@ export default function RaceEngineer() {
 
             <div className="h-[calc(100vh-280px)] overflow-y-auto py-6 space-y-6">
               {isLoading ? (
-                <div className="text-center p-8 text-muted-foreground">
+                <div className="text-center p-8 text-zinc-400">
                   <p>Loading setup data...</p>
                 </div>
               ) : (
@@ -725,11 +725,11 @@ export default function RaceEngineer() {
                             <div className="grid grid-cols-2 gap-4">
                               <div className="text-center p-3 bg-muted/50 rounded-lg">
                                 <div className="text-lg font-bold font-mono">{setup.optimalTime || "N/A"}</div>
-                                <div className="text-xs text-muted-foreground">Optimal Time</div>
+                                <div className="text-xs text-zinc-500">Optimal Time</div>
                               </div>
                               <div className="text-center p-3 bg-muted/50 rounded-lg">
                                 <div className="text-lg font-bold">{setup.fuelEfficiency.toFixed(1)}L</div>
-                                <div className="text-xs text-muted-foreground">Fuel/100km</div>
+                                <div className="text-xs text-zinc-500">Fuel/100km</div>
                               </div>
                             </div>
 
@@ -755,7 +755,7 @@ export default function RaceEngineer() {
                             />
 
                             <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <div className="flex items-center gap-2 text-sm text-zinc-400">
                                 <span>Last used: {setup.lastUsed}</span>
                                 <span>•</span>
                                 <span>Created: {setup.dateCreated}</span>
@@ -798,13 +798,13 @@ export default function RaceEngineer() {
                               {setup.setupDetails && Object.entries(setup.setupDetails).map(([key, value]) => (
                                 <div key={key} className="p-3 bg-muted/20 rounded-lg">
                                   <div className="text-sm font-medium capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</div>
-                                  <div className="text-xs text-muted-foreground mt-1">
+                                  <div className="text-xs text-zinc-400 mt-1">
                                     {typeof value === 'object' ? JSON.stringify(value) : String(value)}
                                   </div>
                                 </div>
                               ))}
                               {(!setup.setupDetails || Object.keys(setup.setupDetails).length === 0) && (
-                                <div className="col-span-full text-center p-8 text-muted-foreground">
+                                <div className="col-span-full text-center p-8 text-zinc-400">
                                   <p>No setup configuration details available</p>
                                 </div>
                               )}
@@ -822,13 +822,13 @@ export default function RaceEngineer() {
                               {setup.conditions && Object.entries(setup.conditions).map(([key, value]) => (
                                 <div key={key} className="p-3 bg-muted/20 rounded-lg">
                                   <div className="text-sm font-medium capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</div>
-                                  <div className="text-xs text-muted-foreground mt-1">
+                                  <div className="text-xs text-zinc-400 mt-1">
                                     {typeof value === 'object' ? JSON.stringify(value) : String(value)}
                                   </div>
                                 </div>
                               ))}
                               {(!setup.conditions || Object.keys(setup.conditions).length === 0) && (
-                                <div className="col-span-full text-center p-8 text-muted-foreground">
+                                <div className="col-span-full text-center p-8 text-zinc-400">
                                   <p>No track conditions data available</p>
                                 </div>
                               )}

@@ -79,10 +79,10 @@ export default function TrackCarStats() {
   )
 
   const getStatColor = (value: number, type: "good" | "bad" | "neutral") => {
-    if (value === 0) return "text-muted-foreground"
+    if (value === 0) return "text-zinc-300"
     if (type === "good" && value > 0) return "text-green-400"
     if (type === "bad" && value > 0) return "text-red-400"
-    return "text-foreground"
+    return "text-white"
   }
 
   const getStatBg = (value: number, type: "good" | "bad" | "neutral") => {
@@ -103,7 +103,7 @@ export default function TrackCarStats() {
        )}
 
        {isLoading ? (
-         <div className="p-6 text-center text-muted-foreground">
+         <div className="p-6 text-center text-zinc-300">
            <p>Loading track statistics...</p>
          </div>
        ) : (
@@ -118,7 +118,7 @@ export default function TrackCarStats() {
               <div className="overflow-x-auto">
                 <div className="min-w-[1200px]">
                                      {/* Table Header */}
-                   <div className="grid grid-cols-[80px_300px_80px_80px_80px_80px_80px_100px] gap-2 mb-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                   <div className="grid grid-cols-[80px_300px_80px_80px_80px_80px_80px_100px] gap-2 mb-2 text-xs font-medium text-zinc-300 uppercase tracking-wider">
                      <div></div>
                      <div>Track</div>
                      <div className="text-center">Valid Laps</div>
@@ -149,8 +149,8 @@ export default function TrackCarStats() {
 
                         {/* Track Info */}
                         <div className="flex flex-col justify-center">
-                          <div className="font-semibold text-sm">{track.name}</div>
-                          <div className="text-xs text-muted-foreground">
+                          <div className="font-semibold text-zinc-100 text-sm">{track.name}</div>
+                          <div className="text-xs text-zinc-300">
                             {track.distance} {track.timeSpent}
                           </div>
                         </div>
@@ -187,8 +187,8 @@ export default function TrackCarStats() {
                            {track.podiums}
                          </div>
                          <div className="flex flex-col items-center justify-center text-sm">
-                           <div className="font-bold">{track.bestLap}</div>
-                           <div className="text-xs text-muted-foreground">{track.avgLap}</div>
+                           <div className="text-zinc-300 font-bold">{track.bestLap}</div>
+                           <div className="text-xs text-zinc-300">{track.avgLap}</div>
                          </div>
                       </div>
                     ))}
@@ -217,9 +217,9 @@ export default function TrackCarStats() {
 
                     {/* Track Info with name, distance, and time */}
                     <div className="flex-1 min-w-0">
-                      <div className="font-semibold text-sm truncate">{track.name}</div>
-                      <div className="text-xs text-muted-foreground">{track.distance}</div>
-                      <div className="text-xs text-muted-foreground">{track.timeSpent}</div>
+                      <div className="font-semibold  text-zinc-100 text-sm truncate">{track.name}</div>
+                      <div className="text-xs text-zinc-300">{track.distance}</div>
+                      <div className="text-xs text-zinc-300">{track.timeSpent}</div>
                     </div>
                   </div>
                 ))}
@@ -233,7 +233,7 @@ export default function TrackCarStats() {
           <div className="w-3/4 overflow-hidden">
             <div className="p-6 h-full overflow-y-auto">
               <div className="flex items-center gap-2 mb-4">
-                <h2 className="text-xl font-semibold">{selectedTrackData.name.toUpperCase()}</h2>
+                <h2 className="text-xl  text-zinc-100 font-semibold">{selectedTrackData.name.toUpperCase()}</h2>
                 <Button variant="ghost" size="sm" onClick={() => setSelectedTrack(null)} className="ml-auto">
                   ✕
                 </Button>
@@ -246,7 +246,7 @@ export default function TrackCarStats() {
                   <div className="overflow-x-auto">
                     <div className="min-w-[1000px]">
                                              {/* Cars Table Header */}
-                       <div className="grid grid-cols-[60px_300px_80px_80px_80px_80px_80px_100px] gap-2 mb-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                       <div className="grid grid-cols-[60px_300px_80px_80px_80px_80px_80px_100px] gap-2 mb-2 text-xs font-medium text-zinc-300 uppercase tracking-wider">
                          <div></div>
                          <div>Car</div>
                          <div className="text-center">Valid Laps</div>
@@ -276,8 +276,8 @@ export default function TrackCarStats() {
 
                             {/* Car Info */}
                             <div className="flex flex-col justify-center">
-                              <div className="font-semibold text-sm">{car.name}</div>
-                              <div className="text-xs text-muted-foreground">
+                              <div className="font-semibold  text-zinc-100 text-sm">{car.name}</div>
+                              <div className="text-xs text-zinc-300">
                                 {car.distance} {car.timeSpent}
                               </div>
                             </div>
@@ -314,8 +314,8 @@ export default function TrackCarStats() {
                                {car.podiums}
                              </div>
                              <div className="flex flex-col items-center justify-center text-sm">
-                               <div className="font-bold">{car.bestLap}</div>
-                               <div className="text-xs text-muted-foreground">{car.avgLap}</div>
+                               <div className="text-zinc-300 font-bold">{car.bestLap}</div>
+                               <div className="text-xs text-zinc-300">{car.avgLap}</div>
                              </div>
                           </div>
                         ))}

@@ -70,7 +70,7 @@ export function ExpandableCard({
                   ? metric.value.toFixed(1)
                   : metric.value}
               </div>
-              <div className="text-xs text-muted-foreground">{metric.label}</div>
+                              <div className="text-xs text-zinc-500">{metric.label}</div>
             </div>
           ))}
         </div>

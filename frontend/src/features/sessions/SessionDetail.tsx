@@ -181,11 +181,11 @@ export function SessionDetailView({ sessionId, onBack, onViewTelemetry }: ISessi
                   <div className="flex flex-wrap items-center gap-4 text-sm">
                     <div className="flex items-center gap-2">
                       <Thermometer className="w-3 h-3 text-orange-500" />
-                      <span className="text-zinc-300">{session.airTemp ? `${session.airTemp}°C` : "---"}</span>
+                      <span className="text-zinc-300">{session.airTemp ? `${Math.round(session.airTemp)}°C` : "---"}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Thermometer className="w-3 h-3 text-red-500" />
-                      <span className="text-zinc-300">{session.trackTemp ? `${session.trackTemp}°C` : "---"}</span>
+                      <span className="text-zinc-300">{session.trackTemp ? `${Math.round(session.trackTemp)}°C` : "---"}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Droplets className="w-3 h-3 text-blue-500" />
